@@ -1,0 +1,43 @@
+{
+  "app.title": "CAUSAL LAB",
+  "app.subtitle": "Laboratoire virtuel pour la recherche causale",
+  "app.tagline": "Concevoir. Simuler. Estimer. Stress-tester. Valider.",
+
+  "nav.dashboard": "Tableau de bord",
+  "nav.research_question": "Question de recherche",
+  "nav.diagnosis": "Diagnostic causal",
+  "nav.recommendation": "Recommandation méthodologique",
+  "nav.virtual_lab": "Laboratoire virtuel",
+  "nav.estimation": "Estimation",
+  "nav.break_my_design": "Fragiliser mon design",
+  "nav.robustness": "Robustesse",
+  "nav.code": "Générateur de code",
+  "nav.settings": "Paramètres",
+
+  "home.start_project": "Nouveau projet de recherche",
+  "home.start_experiment": "Commencer une expérience virtuelle",
+  "home.diagnose": "Diagnostiquer mon design",
+  "home.upload": "Importer mes données",
+
+  "step1.title": "Étape 1 — Question de recherche",
+  "step1.question": "Quelle question causale souhaitez-vous étudier ?",
+  "step2.title": "Étape 2 — Traitement",
+  "step3.title": "Étape 3 — Variable de résultat",
+  "step4.title": "Étape 4 — Unité d'analyse",
+  "step5.title": "Étape 5 — Structure des données",
+
+  "diagnosis.title": "Diagnostic du design de recherche",
+  "recommendation.title": "Design de recherche recommandé",
+  "recommendation.primary_method": "Méthode principale",
+  "recommendation.confidence": "Niveau de confiance",
+
+  "virtual.title": "Monde virtuel",
+  "estimation.title": "Estimation",
+  "break.title": "Fragiliser mon design",
+  "robustness.title": "Moteur de robustesse",
+  "code.title": "Générateur de code",
+
+  "settings.language": "Langue",
+  "settings.local_mode": "Mode local / privé",
+  "settings.local_mode_note": "Vos données restent locales, sauf si vous activez explicitement un traitement externe."
+}
