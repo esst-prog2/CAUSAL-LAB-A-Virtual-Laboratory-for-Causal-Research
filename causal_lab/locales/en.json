@@ -1,0 +1,43 @@
+{
+  "app.title": "CAUSAL LAB",
+  "app.subtitle": "A Virtual Laboratory for Causal Research",
+  "app.tagline": "Design. Simulate. Estimate. Stress-test. Validate.",
+
+  "nav.dashboard": "Dashboard",
+  "nav.research_question": "Research Question",
+  "nav.diagnosis": "Causal Diagnosis",
+  "nav.recommendation": "Method Recommendation",
+  "nav.virtual_lab": "Virtual Lab",
+  "nav.estimation": "Estimation",
+  "nav.break_my_design": "Break My Design",
+  "nav.robustness": "Robustness",
+  "nav.code": "Code Generator",
+  "nav.settings": "Settings",
+
+  "home.start_project": "Start a New Research Project",
+  "home.start_experiment": "Start a Virtual Experiment",
+  "home.diagnose": "Diagnose My Research Design",
+  "home.upload": "Upload My Dataset",
+
+  "step1.title": "Step 1 — Research Question",
+  "step1.question": "What causal question are you trying to answer?",
+  "step2.title": "Step 2 — Treatment",
+  "step3.title": "Step 3 — Outcome",
+  "step4.title": "Step 4 — Unit of Analysis",
+  "step5.title": "Step 5 — Data Structure",
+
+  "diagnosis.title": "Research Design Diagnosis",
+  "recommendation.title": "Recommended Research Design",
+  "recommendation.primary_method": "Primary Method",
+  "recommendation.confidence": "Confidence",
+
+  "virtual.title": "Virtual World",
+  "estimation.title": "Estimation",
+  "break.title": "Break My Design",
+  "robustness.title": "Robustness Engine",
+  "code.title": "Code Generator",
+
+  "settings.language": "Language",
+  "settings.local_mode": "Local / Private Mode",
+  "settings.local_mode_note": "Your data remain local unless you explicitly enable external processing."
+}
