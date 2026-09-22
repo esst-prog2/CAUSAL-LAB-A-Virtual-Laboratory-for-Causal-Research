@@ -4,6 +4,8 @@ One line per decision about this project — a requirement, a number, a name, a 
 
 ---
 
+- 2026-09-22: MVP scope drift resolved by documenting the delivered scope (not by trimming code): change `document-delivered-mvp-scope` proposes rewriting README.md sections 3-5 to recognize event study, method recommendation, the 5-check stress test, code generation, and EN/FR i18n as delivered, not "not this term" — decided by: user
+
 - 2026-09-22: Uploaded CSVs will require exactly 5 fixed columns (unit, period, Y, D, treated_unit) with no column-mapping UI; missing columns must be named in an upload-time error instead of failing later — decided by: user
 - 2026-09-22: Change `validate-upload-columns` scaffolded via `openspec new change` with proposal.md, a delta spec on real-world-data-upload, and tasks.md (design.md skipped: no cross-cutting/dependency/perf complexity applies); implementation not yet started — decided by: Claude
 - 2026-09-22: openspec/specs/ populated with 12 capability spec files (research-design-wizard, causal-diagnosis, method-recommendation, virtual-world-generation, monte-carlo-evaluation, real-world-data-upload, did-estimation, event-study-estimation, break-my-design-stress-test, robustness-battery, code-generation, internationalization) reverse-engineered from the current causal_lab/ code, all passing `openspec validate --specs` — decided by: user
