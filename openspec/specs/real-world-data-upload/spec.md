@@ -30,9 +30,13 @@ The system SHALL only show an Estimated-vs-True-ATT comparison when the active d
 - **WHEN** the active dataset is an uploaded CSV (not a generated Virtual World)
 - **THEN** the Estimation page shows the DiD estimate, standard error, and confidence interval, but does not show a "Ground truth comparison" section
 
-### Requirement: Required columns are not validated at upload time
-The system SHALL accept any CSV that pandas can parse at upload time, without checking for the columns downstream analysis pages require.
+### Requirement: Required columns are validated at upload time
+The system SHALL validate that an uploaded CSV contains all five required columns — `unit`, `period`, `Y`, `D`, `treated_unit` — immediately after it is parsed, before it can become the active dataset. Column names stay fixed; no column-mapping UI is offered.
+
+#### Scenario: All required columns present
+- **WHEN** an uploaded CSV parses successfully and contains `unit`, `period`, `Y`, `D`, and `treated_unit`
+- **THEN** it becomes the active dataset, exactly as before
 
 #### Scenario: Missing a required column
-- **WHEN** an uploaded CSV parses successfully but is missing a column a downstream page needs (for example the treatment indicator `D`, or `unit`/`period`/`Y`)
-- **THEN** the upload itself succeeds with no error shown, and the missing-column failure only surfaces later, as a runtime error from the page that first accesses that column (there is no upload-time check that names the missing column)
+- **WHEN** an uploaded CSV parses successfully but is missing one or more of `unit`, `period`, `Y`, `D`, `treated_unit` (for example the treatment indicator `D`)
+- **THEN** the app shows an error naming every missing column, and the upload does NOT become the active dataset — the previously active dataset (if any) is left unchanged

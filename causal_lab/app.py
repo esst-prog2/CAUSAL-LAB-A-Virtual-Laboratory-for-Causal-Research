@@ -31,6 +31,7 @@ from robustness_engine.stress_test import run_stress_test
 from simulation_engine.dgp import VirtualWorldConfig, generate
 from simulation_engine.monte_carlo import run_monte_carlo
 from utils.i18n import t
+from utils.validation import REQUIRED_COLUMNS, missing_required_columns
 
 st.set_page_config(page_title="CAUSAL LAB", page_icon="🔬", layout="wide")
 
@@ -312,11 +313,19 @@ elif page == L("nav.virtual_lab"):
     if uploaded is not None:
         try:
             up_df = pd.read_csv(uploaded)
-            st.session_state.uploaded_df = up_df
-            st.session_state.virtual_df = None
-            st.success(f"Loaded {len(up_df)} rows. Columns detected: {list(up_df.columns)}")
         except Exception as exc:
             st.error(f"Could not read file: {exc}")
+        else:
+            missing = missing_required_columns(up_df)
+            if missing:
+                st.error(
+                    f"Uploaded CSV is missing required column(s): {', '.join(missing)}. "
+                    f"Expected columns: {', '.join(REQUIRED_COLUMNS)}."
+                )
+            else:
+                st.session_state.uploaded_df = up_df
+                st.session_state.virtual_df = None
+                st.success(f"Loaded {len(up_df)} rows. Columns detected: {list(up_df.columns)}")
 
     if active_df() is not None:
         st.dataframe(active_df().head(20), use_container_width=True)
