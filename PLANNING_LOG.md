@@ -4,6 +4,8 @@ One line per decision about this project — a requirement, a number, a name, a 
 
 ---
 
+- 2026-09-26: Added `AGENTS.md` (planning-log rule at the top) and `CLAUDE.md` (`@AGENTS.md`) per grading feedback, so any agent working in this repo picks up the logging rule automatically instead of relying on it being repeated each session — decided by: user
+
 - 2026-09-22: Both open changes applied and archived: `validate-upload-columns` (new `causal_lab/utils/validation.py` + `tests/test_validation.py`, wired into `app.py`'s upload handler) and `document-delivered-mvp-scope` (README.md sections 3-5 rewritten); a project-local `.venv/` was created to install `causal_lab/requirements.txt` and actually run the tests and a live Streamlit smoke test, since neither existed before — decided by: user
 - 2026-09-22: MVP scope drift resolved by documenting the delivered scope (not by trimming code): change `document-delivered-mvp-scope` proposes rewriting README.md sections 3-5 to recognize event study, method recommendation, the 5-check stress test, code generation, and EN/FR i18n as delivered, not "not this term" — decided by: user
 
