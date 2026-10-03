@@ -4,6 +4,9 @@ One line per decision about this project — a requirement, a number, a name, a 
 
 ---
 
+- 2026-10-03: Spike question (issue #3): with every causal threat switched off, what Identification Strength score does the app report, and which of the 5 "Break My Design" checks fire? — decided by: user
+- 2026-10-03: Spike answer counts as: a 5-row table (one row per check: Parallel Trends, Anticipation, Spillovers, Serial Correlation, Heterogeneous Effects) with the false-alarm rate over 200 clean-world replications and, where the DGP has a corresponding threat lever, the detection rate over 200 replications with that threat set to "severe"; plus the clean-world mean Identification Strength score — decided by: user
+
 - 2026-09-26: Added `AGENTS.md` (planning-log rule at the top) and `CLAUDE.md` (`@AGENTS.md`) per grading feedback, so any agent working in this repo picks up the logging rule automatically instead of relying on it being repeated each session — decided by: user
 
 - 2026-09-22: Both open changes applied and archived: `validate-upload-columns` (new `causal_lab/utils/validation.py` + `tests/test_validation.py`, wired into `app.py`'s upload handler) and `document-delivered-mvp-scope` (README.md sections 3-5 rewritten); a project-local `.venv/` was created to install `causal_lab/requirements.txt` and actually run the tests and a live Streamlit smoke test, since neither existed before — decided by: user
