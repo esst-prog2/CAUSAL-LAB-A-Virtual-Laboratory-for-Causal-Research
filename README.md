@@ -34,9 +34,18 @@ on screen     upload or generate → see the pre/post trend plot and the
 - Generate ready-to-run Python, R, and Stata scripts that reproduce the DiD analysis.
 - Run in English or French, switchable from the sidebar at any time.
 - When run on synthetic data, show the estimate next to the true effect that was used to generate it, including a Monte Carlo mode that reports bias, RMSE, and confidence-interval coverage across many replications.
+- Run six more identification strategies as actual estimators on a "Causal Methods" page:
+  - Randomized Controlled Trial: difference in means and covariate-adjusted ATE.
+  - Matching / Propensity Score: nearest-neighbour ATT and IPW ATT.
+  - Instrumental Variables: 2SLS with a first-stage F statistic.
+  - Regression Discontinuity: sharp design, local linear with the Imbens–Kalyanaraman bandwidth.
+  - Synthetic Control: placebo-in-space p-value.
+  - Double Machine Learning: cross-fitted partially linear model.
+  
+  Each runs on its own virtual world, with a known true effect shown next to the estimate, or on an uploaded CSV whose columns you map to the method's roles.
 
 **Not this term:**
-- IV, RDD, matching, synthetic control, RCT, DML as actual estimators — the method-recommendation engine scores and explains all seven, but only DiD and Event Study are implemented as estimators you can actually run.
+- Fuzzy RD, robust bias-corrected RD inference, covariate-weighted synthetic control, and Monte Carlo / stress-test / code-generation support for the six additional methods (those pages remain DiD-only).
 - Report export (PDF/Word/LaTeX).
 - Connectors to external data sources (DHS, ACLED, WorldPop, etc.).
 - Project persistence / saved sessions.
