@@ -4,6 +4,7 @@ One line per decision about this project — a requirement, a number, a name, a 
 
 ---
 
+- 2026-10-06: Both changes merged straight into `main` (fast-forward to f588c06, no pull requests). The two feature branches were deleted locally and on GitHub so the repo keeps a single working branch. Manual browser smoke tests (tasks 5.3 of both changes) and OpenSpec archiving are still pending — decided by: user
 - 2026-10-06: Implementation choices for `add-theoretical-model`.
   - Numerical Nash solver: 64-point grid plus bounded Brent best responses; Gauss–Seidel iteration, then damped Jacobi; 8 seeded starts with early exit on duplicates; convergence at 1e-8 of the strategy range (the precision limit of a 1-D maximizer). An equilibrium is accepted only if its 400-point deviation check shows a relative gain ≤ 1e-6.
   - Comparative statics: central differences with h = 1e-3·max(1, |θ|).
