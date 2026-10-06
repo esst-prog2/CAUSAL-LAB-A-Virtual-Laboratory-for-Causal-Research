@@ -15,13 +15,11 @@ if the design is valid.
 """
 from __future__ import annotations
 
-import warnings
 from dataclasses import dataclass
 
 import numpy as np
 import pandas as pd
 import statsmodels.formula.api as smf
-from statsmodels.tools.sm_exceptions import SingularMatrixWarning
 
 
 @dataclass
@@ -68,8 +66,12 @@ def estimate_event_study(df: pd.DataFrame, outcome_col: str = "Y",
     )
     data["rel_period"] = data["rel_period"].clip(lower=-window, upper=window)
 
+    # Comparison units (never treated) share the reference category with
+    # the treated units' omitted period k = reference_period. Giving them
+    # their own "control" level would make that dummy collinear with the
+    # unit fixed effects.
     data["rel_bucket"] = data["rel_period"].apply(
-        lambda x: "control" if pd.isna(x) else f"k{int(x):+d}"
+        lambda x: "ref" if pd.isna(x) else f"k{int(x):+d}"
     )
     data.loc[data["rel_bucket"] == f"k{reference_period:+d}", "rel_bucket"] = "ref"
 
@@ -77,31 +79,20 @@ def estimate_event_study(df: pd.DataFrame, outcome_col: str = "Y",
     data[time_col] = data[time_col].astype("category")
 
     formula = f"{outcome_col} ~ C(rel_bucket, Treatment('ref')) + C({unit_col}) + C({time_col})"
-    model = smf.ols(formula, data=data)
-    # In a non-staggered design (a single adoption date shared by all
-    # treated units), the treated units' relative-period dummies are
-    # collinear with the calendar-period fixed effects for the control
-    # units that never receive any rel_period bucket. statsmodels
-    # already falls back to a pseudo-inverse in this case, which gives
-    # correct estimates for the identified coefficients; we just
-    # silence the resulting (expected, non-fatal) warning.
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore", category=SingularMatrixWarning)
-        fitted = model.fit(cov_type="cluster", cov_kwds={"groups": data[unit_col]})
+    fitted = smf.ols(formula, data=data).fit(cov_type="cluster", cov_kwds={"groups": data[unit_col]})
+    conf_int = fitted.conf_int()
 
     rows = []
     for name, coef in fitted.params.items():
         if "rel_bucket" not in name:
             continue
         bucket = name.split("[T.")[-1].rstrip("]")
-        if bucket in ("control",):
-            continue
         try:
             k = int(bucket.replace("k", ""))
         except ValueError:
             continue
         se = fitted.bse[name]
-        ci = fitted.conf_int().loc[name]
+        ci = conf_int.loc[name]
         rows.append(dict(rel_period=k, estimate=coef, se=se, ci_low=ci[0], ci_high=ci[1]))
 
     rows.append(dict(rel_period=reference_period, estimate=0.0, se=0.0,

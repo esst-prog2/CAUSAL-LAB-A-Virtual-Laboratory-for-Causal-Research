@@ -1,9 +1,4 @@
-# break-my-design-stress-test Specification
-
-## Purpose
-Runs a fixed battery of five diagnostic checks against a fitted DiD design on actual (real or simulated) panel data, producing a PASS/WARNING verdict for each threat plus an overall "Identification Strength" score out of 100. This is a diagnostic heuristic, not a statistical proof of causal identification, and is presented as such.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Parallel-trends pre-test
 The system SHALL test for differential pre-treatment trends between treated and comparison units. It SHALL use a full-rank model: unit and period fixed effects plus one treated-group × pre-period dummy for every pre-treatment period except the last, which is the reference. It SHALL attach a plain-language verdict:
@@ -63,12 +58,7 @@ The system SHALL compare the dispersion of unit-level pre/post outcome changes a
 - **WHEN** fewer than 3 treated or fewer than 3 control units have both pre- and post-treatment observations
 - **THEN** the check defaults to PASS with a message that there are too few units to assess heterogeneity
 
-### Requirement: Overall identification strength score
-The system SHALL summarize the five checks as a single 0-100 score.
-
-#### Scenario: Computing the score
-- **WHEN** all five checks have run
-- **THEN** `identification_strength = 100 * (number of PASS checks) / 5`, and the app presents it as a diagnostic heuristic, not a formal proof of causal identification
+## ADDED Requirements
 
 ### Requirement: Checks are calibrated on the Virtual World
 Each check SHALL fire rarely on a threat-free Virtual World and reliably on a world where its own threat is set to "severe". Measured over 200 seeded replications of the default Virtual World:

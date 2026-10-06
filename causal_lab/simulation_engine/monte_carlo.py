@@ -8,10 +8,10 @@ degrades as causal threats are turned on.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 import numpy as np
-import pandas as pd
+from scipy import stats
 
 from estimators.did import DiDResult, estimate_did
 from simulation_engine.dgp import VirtualWorldConfig, generate
@@ -32,28 +32,31 @@ class MonteCarloSummary:
 
 def run_monte_carlo(config: VirtualWorldConfig, n_reps: int = 200, ci_level: float = 0.95,
                      base_seed: int = 0) -> MonteCarloSummary:
-    z = 1.959963984540054 if abs(ci_level - 0.95) < 1e-6 else 1.6448536269514722
+    z = float(stats.norm.ppf(0.5 + ci_level / 2))
 
     estimates: list[float] = []
+    true_atts: list[float] = []
     covered = 0
     ci_lengths: list[float] = []
-    true_att_used = config.true_att
 
     for r in range(n_reps):
-        rep_config = VirtualWorldConfig(**{**config.__dict__, "seed": base_seed + r})
+        rep_config = replace(config, seed=base_seed + r)
         df, truth = generate(rep_config)
         result: DiDResult = estimate_did(df)
         estimates.append(result.att)
-        true_att_used = truth["true_att"]
+        # The realized ATT differs across replications when treatment
+        # effects are heterogeneous, so each estimate is compared with
+        # its own replication's truth.
+        true_atts.append(truth["true_att"])
 
         lo = result.att - z * result.se
         hi = result.att + z * result.se
         ci_lengths.append(hi - lo)
-        if lo <= true_att_used <= hi:
+        if lo <= truth["true_att"] <= hi:
             covered += 1
 
     estimates_arr = np.array(estimates)
-    errors = estimates_arr - true_att_used
+    errors = estimates_arr - np.array(true_atts)
 
     return MonteCarloSummary(
         n_reps=n_reps,
@@ -63,6 +66,6 @@ def run_monte_carlo(config: VirtualWorldConfig, n_reps: int = 200, ci_level: flo
         coverage=covered / n_reps,
         avg_ci_length=float(np.mean(ci_lengths)),
         mean_estimate=float(np.mean(estimates_arr)),
-        true_att=float(true_att_used),
+        true_att=float(np.mean(true_atts)),
         estimates=estimates,
     )

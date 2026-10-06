@@ -4,6 +4,24 @@ One line per decision about this project — a requirement, a number, a name, a 
 
 ---
 
+- 2026-10-06: `fix-correctness-and-readme-gaps` results. Calibration spike re-run (n = 200 per scenario, each check paired with its own lever), false alarm on clean worlds / detection at severe:
+  - Parallel Trends 14% / 100%
+  - Anticipation 8% / 97%
+  - Spillovers 8% / 100%
+  - Serial Correlation 0% / 100%
+  - Heterogeneous Effects 10% / 100%
+  
+  Clean-world Identification Strength rose from 57.6 to 92.2. DiD matches linearmodels PanelOLS (coefficient within 1e-8, clustered SE within 2%). New threat levers: `differential_trend` (slope 0.08·v noise-SD per period) and `anticipation` (0.5·v noise-SD shift one period early). Found along the way and fixed: DML results were not bit-reproducible with `n_jobs=-1` prediction — decided by: Claude
+- 2026-10-06: The "make it perfect" work is split into two OpenSpec changes on `main`, keeping the single-branch setup the user asked for:
+  - `fix-correctness-and-readme-gaps`: calculations, app bugs, README promises.
+  - `complete-french-translation`: every UI string goes through the i18n layer.
+  
+  Each is committed and pushed when its tests pass — decided by: Claude
+- 2026-10-06: Correction of the 2026-10-03 entry. Recalibrating the Spillovers, Heterogeneous Effects and Serial Correlation checks is no longer deferred to the next level; it is done now, together with every other known defect. "Fix everything so it is perfect" is read as: every README section 4 acceptance criterion and every promise in section 3 must actually hold, which includes:
+  - the plain-language parallel-trends verdict;
+  - the treated-vs-untreated trend plot;
+  - a full French interface;
+  - DiD validated against a reference package — decided by: user
 - 2026-10-06: Wrap-up, all done on `main`:
   - Tasks 5.3 of both changes closed by a scripted end-to-end run of the two CSV-upload flows. It used the real page code, with only `st.file_uploader` stubbed: an IV run on an uploaded CSV with a bad mapping rejected by role name; a Tullock model calibrated per year on an uploaded lobbying CSV, with Δ measured as treated − control, compared with that IV estimate.
   - Both OpenSpec changes archived into `openspec/specs/` (24 specs, all valid).

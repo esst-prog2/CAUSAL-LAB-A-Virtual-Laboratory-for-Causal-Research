@@ -41,6 +41,8 @@ class VirtualWorldConfig:
     serial_correlation: str = "none"
     staggered_adoption: bool = False
     treatment_heterogeneity: str = "none"
+    differential_trend: str = "none"   # treated units drift away before treatment
+    anticipation: str = "none"         # treated units react one period early
 
     noise_sd: float = 1.0
     seed: int | None = 42
@@ -59,91 +61,116 @@ def generate(config: VirtualWorldConfig) -> tuple[pd.DataFrame, dict]:
         that a real researcher would never observe, used only for
         pedagogical bias evaluation in the Virtual Lab.
     """
-    rng = np.random.default_rng(config.seed)
+    if not 1 <= config.treatment_period < config.n_periods:
+        raise ValueError("treatment_period must satisfy 1 <= treatment_period < n_periods")
 
-    n_treated = max(1, int(round(config.n_units * config.share_treated)))
-    unit_ids = np.arange(config.n_units)
-    treated_units = set(rng.choice(unit_ids, size=n_treated, replace=False).tolist())
+    rng = np.random.default_rng(config.seed)
+    n_units, n_periods = config.n_units, config.n_periods
+
+    n_treated = min(n_units - 1, max(1, int(round(n_units * config.share_treated))))
+    unit_ids = np.arange(n_units)
 
     # Time-invariant covariate, correlated with treatment status if
     # `confounding` is turned on (this is the classic omitted-variable
     # bias channel: X1 affects both selection into treatment and the
     # outcome trend).
     confound_strength = INTENSITY_TO_VALUE[config.confounding]
-    x1 = rng.normal(0, 1, size=config.n_units)
+    x1 = rng.normal(0, 1, size=n_units)
     if confound_strength > 0:
-        # Bias unit selection toward high-X1 units.
+        # Bias unit selection toward high-X1 units: draw exactly
+        # n_treated units with probability proportional to a logistic
+        # propensity score in X1.
         propensity = 1 / (1 + np.exp(-confound_strength * x1))
-        treated_units = set(
-            unit_ids[rng.random(config.n_units) < propensity * config.share_treated * 2][:n_treated].tolist()
-        )
-        if len(treated_units) < 1:
-            treated_units = {int(unit_ids[np.argmax(x1)])}
+        treated_arr = rng.choice(unit_ids, size=n_treated, replace=False,
+                                 p=propensity / propensity.sum())
+    else:
+        treated_arr = rng.choice(unit_ids, size=n_treated, replace=False)
+    treated_units = set(int(u) for u in treated_arr)
+    is_treated_unit = np.isin(unit_ids, treated_arr)
 
-    # Staggered adoption: treated units start treatment at different times.
+    # Staggered adoption: treated units start treatment at different
+    # times, always strictly inside the observation window so that every
+    # treated unit is actually treated at some point.
     if config.staggered_adoption:
+        last_start = min(n_periods - 1, config.treatment_period + max(1, n_periods // 3) - 1)
         adoption_period = {
-            u: int(rng.integers(config.treatment_period, config.treatment_period + config.n_periods // 3))
-            for u in treated_units
+            u: int(rng.integers(config.treatment_period, last_start + 1))
+            for u in sorted(treated_units)
         }
     else:
-        adoption_period = {u: config.treatment_period for u in treated_units}
+        adoption_period = {u: config.treatment_period for u in sorted(treated_units)}
+    # Per-unit adoption period (never-treated units: +infinity).
+    adoption = np.full(n_units, np.inf)
+    for u, a in adoption_period.items():
+        adoption[u] = a
 
     # Unit fixed effects and time fixed effects (common trend).
-    unit_fe = rng.normal(0, 1, size=config.n_units)
-    time_fe = np.cumsum(rng.normal(0.05, 0.1, size=config.n_periods))
+    unit_fe = rng.normal(0, 1, size=n_units)
+    time_fe = np.cumsum(rng.normal(0.05, 0.1, size=n_periods))
 
-    # Serial correlation in the idiosyncratic error term (AR(1)).
+    # Serial correlation in the idiosyncratic error term: stationary
+    # AR(1) with marginal standard deviation `noise_sd` in every period.
     rho = min(0.95, INTENSITY_TO_VALUE[config.serial_correlation] / 2.2)
+    eps = np.empty((n_periods, n_units))
+    eps[0] = rng.normal(0, config.noise_sd, size=n_units)
+    for t in range(1, n_periods):
+        eps[t] = rho * eps[t - 1] + rng.normal(0, config.noise_sd, size=n_units) * np.sqrt(1 - rho ** 2)
 
     # Treatment-effect heterogeneity across units.
     het_strength = INTENSITY_TO_VALUE[config.treatment_heterogeneity]
-    unit_effect = config.true_att + rng.normal(0, het_strength, size=config.n_units) if het_strength > 0 \
-        else np.full(config.n_units, config.true_att)
+    unit_effect = config.true_att + rng.normal(0, het_strength, size=n_units) if het_strength > 0 \
+        else np.full(n_units, config.true_att)
 
     # Spillovers: control units located "near" a treated unit (here,
-    # simplified as units with adjacent id) partially absorb the effect.
+    # simplified as units with adjacent id) partially absorb the effect
+    # from the first period in which a neighbouring treated unit is
+    # treated.
     spill_strength = INTENSITY_TO_VALUE[config.spillovers]
+    neighbour_adoption = np.full(n_units, np.inf)
+    neighbour_adoption[1:] = np.minimum(neighbour_adoption[1:], adoption[:-1])
+    neighbour_adoption[:-1] = np.minimum(neighbour_adoption[:-1], adoption[1:])
 
-    rows = []
-    eps_prev = np.zeros(config.n_units)
-    for t in range(config.n_periods):
-        eps = rho * eps_prev + rng.normal(0, config.noise_sd, size=config.n_units) * np.sqrt(1 - rho ** 2)
-        eps_prev = eps
-        for u in unit_ids:
-            is_treated_unit = u in treated_units
-            is_treated_now = is_treated_unit and t >= adoption_period.get(u, 10 ** 9)
+    # Panel arrays of shape (n_periods, n_units).
+    t_grid = np.arange(n_periods)[:, None]
+    treated_now = is_treated_unit[None, :] & (t_grid >= adoption[None, :])
 
-            y0 = unit_fe[u] + time_fe[t] + confound_strength * 0.3 * x1[u] * (t / config.n_periods) + eps[u]
+    # Differential trend: treated units' untreated outcome drifts by
+    # 0.08 * intensity noise-SDs per period relative to controls
+    # (violated parallel trends), centred on the treatment date.
+    trend_slope = 0.08 * INTENSITY_TO_VALUE[config.differential_trend] * config.noise_sd
+    differential = trend_slope * is_treated_unit[None, :] * (t_grid - config.treatment_period)
 
-            spill_bonus = 0.0
-            if spill_strength > 0 and not is_treated_unit:
-                # A control unit adjacent (id distance 1) to *any*
-                # currently-treated unit leaks part of the effect.
-                neighbours_treated = any(
-                    (abs(u - tu) == 1) and (t >= adoption_period.get(tu, 10 ** 9))
-                    for tu in treated_units
-                )
-                if neighbours_treated:
-                    spill_bonus = spill_strength * unit_effect[u] * 0.5
+    y0 = (unit_fe[None, :] + time_fe[:, None]
+          + confound_strength * 0.3 * x1[None, :] * (t_grid / n_periods) + differential + eps)
+    y1 = y0 + unit_effect[None, :]
+    spill_bonus = np.where(
+        (spill_strength > 0) & ~is_treated_unit[None, :] & (t_grid >= neighbour_adoption[None, :]),
+        spill_strength * unit_effect[None, :] * 0.5,
+        0.0,
+    )
+    # Anticipation: in the period just before its own adoption, a
+    # treated unit's outcome already moves by 0.5 * intensity noise-SDs
+    # in the direction of the effect, while D is still 0.
+    direction = np.sign(config.true_att) if config.true_att != 0 else 1.0
+    anticipation_shift = np.where(
+        is_treated_unit[None, :] & (t_grid == adoption[None, :] - 1),
+        0.5 * INTENSITY_TO_VALUE[config.anticipation] * config.noise_sd * direction,
+        0.0,
+    )
+    y_observed = np.where(treated_now, y1, y0 + spill_bonus + anticipation_shift)
 
-            y1 = y0 + unit_effect[u]
-            y_observed = y1 if is_treated_now else (y0 + spill_bonus)
-
-            rows.append(dict(
-                unit=int(u),
-                period=int(t),
-                treated_unit=int(is_treated_unit),
-                post=int(t >= config.treatment_period),
-                treated_now=int(is_treated_now),
-                D=int(is_treated_now),
-                X1=float(x1[u]),
-                Y0=float(y0),
-                Y1=float(y1),
-                Y=float(y_observed),
-            ))
-
-    df = pd.DataFrame(rows)
+    df = pd.DataFrame(dict(
+        unit=np.tile(unit_ids, n_periods),
+        period=np.repeat(np.arange(n_periods), n_units),
+        treated_unit=np.tile(is_treated_unit.astype(int), n_periods),
+        post=np.repeat((np.arange(n_periods) >= config.treatment_period).astype(int), n_units),
+        treated_now=treated_now.ravel().astype(int),
+        D=treated_now.ravel().astype(int),
+        X1=np.tile(x1, n_periods),
+        Y0=y0.ravel(),
+        Y1=y1.ravel(),
+        Y=y_observed.ravel(),
+    ))
 
     realized_effects = [unit_effect[u] for u in treated_units]
     truth = dict(
@@ -155,5 +182,7 @@ def generate(config: VirtualWorldConfig) -> tuple[pd.DataFrame, dict]:
         spillovers=config.spillovers,
         serial_correlation=config.serial_correlation,
         staggered_adoption=config.staggered_adoption,
+        differential_trend=config.differential_trend,
+        anticipation=config.anticipation,
     )
     return df, truth

@@ -22,9 +22,9 @@ real or simulated data, by the robustness_engine.
 """
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Optional
 
 
 class Level(str, Enum):
@@ -88,11 +88,18 @@ _ENDOGENEITY_KEYWORDS = (
 _HETEROGENEITY_KEYWORDS = (
     "gender", "income", "age", "heterogene", "differ by", "vary by",
 )
+# Keywords that must match as whole words rather than word prefixes
+# (otherwise "age" would match "average", "agency", ...).
+_WHOLE_WORD_KEYWORDS = {"age", "chose", "choice", "demand", "spread"}
 
 
 def _keyword_flag(text: str, keywords: tuple[str, ...]) -> bool:
     text_low = text.lower()
-    return any(k in text_low for k in keywords)
+    for k in keywords:
+        pattern = rf"\b{re.escape(k)}" + (r"s?\b" if k in _WHOLE_WORD_KEYWORDS else "")
+        if re.search(pattern, text_low):
+            return True
+    return False
 
 
 def diagnose(design: ResearchDesignInput) -> DiagnosisResult:

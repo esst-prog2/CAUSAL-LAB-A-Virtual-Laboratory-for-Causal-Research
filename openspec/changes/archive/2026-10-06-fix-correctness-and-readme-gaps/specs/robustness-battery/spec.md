@@ -1,16 +1,4 @@
-# robustness-battery Specification
-
-## Purpose
-Re-runs the actual DiD estimator (never an approximation) on a fixed set of alternative, well-defined subsamples and specifications, so the researcher can see how sensitive the ATT estimate is to reasonable variations in the sample.
-
-## Requirements
-
-### Requirement: Baseline row always included
-The system SHALL always report the full-sample baseline estimate first.
-
-#### Scenario: Running the battery
-- **WHEN** `run_robustness_battery(df, treatment_period)` is called
-- **THEN** the first row is "Baseline (full sample)" with the ATT, SE, and n_obs from `estimate_did` on the unmodified data
+## MODIFIED Requirements
 
 ### Requirement: Alternative pre-treatment windows
 The system SHALL re-estimate on samples restricted to windows symmetric around the treatment period.

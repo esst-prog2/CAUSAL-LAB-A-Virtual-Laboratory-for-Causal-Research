@@ -24,11 +24,11 @@ on screen     upload or generate → see the pre/post trend plot and the
 ## 3. The size
 
 **Delivered:**
-- Generate a synthetic panel dataset with a chosen, known treatment effect (the "virtual world"), with a Causal Threats Generator to add confounding, spillovers, serial correlation, staggered adoption, and treatment-effect heterogeneity at a chosen intensity.
+- Generate a synthetic panel dataset with a chosen, known treatment effect (the "virtual world"), with a Causal Threats Generator to add confounding, spillovers, serial correlation, staggered adoption, treatment-effect heterogeneity, diverging pre-trends, and anticipation at a chosen intensity.
 - Accept an uploaded CSV in the same panel shape, validated against the five required columns at upload time — a missing column is reported by name instead of failing later.
-- Plot treated vs. untreated average outcomes over time.
+- Plot treated vs. untreated average outcomes over time, with the treatment date marked (Estimation page).
 - Check pre-treatment trends and report a plain-language verdict ("plausible" / "questionable" / "violated") with the number behind it, as one of five checks in a "Break My Design" stress-test battery (parallel trends, anticipation, spillovers, serial correlation, heterogeneous effects) that also reports an overall Identification Strength score.
-- Run a two-way fixed-effects DiD estimator and report the coefficient, standard error, and p-value.
+- Run a two-way fixed-effects DiD estimator and report the coefficient, standard error, and p-value. It is validated against `linearmodels.PanelOLS`: identical coefficient and clustered standard errors within 2% (`tests/test_did_reference.py`).
 - Run an Event Study (leads-and-lags) estimator and plot dynamic, period-by-period treatment effects around the treatment date.
 - Score seven candidate causal-identification methods (RCT, DiD, Event Study, Synthetic Control, RDD, IV, Matching) against the declared research design with a transparent, explainable Method Suitability Score, and recommend the best fit — the app shows its work rather than picking silently.
 - Generate ready-to-run Python, R, and Stata scripts that reproduce the DiD analysis.
@@ -67,13 +67,38 @@ A person with a messy panel CSV and a treatment date can use this version alone:
 - Given a synthetic dataset built with deliberately diverging pre-trends (violated parallel trends), the diagnosis panel flags it as "questionable" or "violated," not "plausible."
 - Given any panel run through the event-study estimator, its coefficient for the period immediately before treatment (k = -1, the reference period) is exactly zero by construction.
 - Given a research design declared with random assignment, the method recommendation ranks Randomized Controlled Trial above every other candidate method.
-- Given panel data with a control unit directly adjacent to a treated unit, the "Break My Design" Spillovers check reports WARNING with the count and share of adjacent controls, and the overall Identification Strength score is below 100. In practice this fires on almost any randomly-assigned panel, threat or not — see the calibration note in section 5.
+- Given panel data where control units adjacent to a treated unit shift after treatment (Virtual World with spillovers), the "Break My Design" Spillovers check reports WARNING with the number of adjacent controls, the estimated shift and its p-value, and the overall Identification Strength score is below 100. Adjacency alone, without a shift, does not trigger it (8% false alarms on threat-free worlds, see section 5).
 - Given the same column names, the generated Python, R, and Stata scripts all fit the same two-way fixed-effects model with standard errors clustered on the same column.
 - Switching the sidebar language toggle from EN to FR redraws every page's text in French, falling back to English for any translation key that's missing.
 
 ## 5. What could stop this
 
-- **Statistical correctness under review.** I have used DiD in coursework but never implemented the estimator (and its standard errors) from scratch for arbitrary panel shapes — unbalanced panels, staggered treatment timing, and clustering are all places I could get the math wrong without noticing. I will validate every estimator against a known R/Python package (e.g., `linearmodels` or `fixest`) on the same synthetic data before trusting my own numbers.
+- **Statistical correctness.**
+  - **DiD, validated.** The DiD estimator is validated against `linearmodels.PanelOLS` on the same synthetic data, including staggered and serially correlated worlds. The coefficients agree to 1e-8 and the clustered SEs to within 2%.
+  - **Other estimators, Monte Carlo only.** The six additional estimators are checked by Monte Carlo coverage on their virtual worlds (93–100%), not yet against an external package.
+  - **Staggered timing remains a known limit.** The app warns when timing is staggered, because two-way fixed effects can be biased under heterogeneous effects. A heterogeneity-robust estimator (Callaway & Sant'Anna) is still backlog.
 - **Real data availability.** I don't yet have a real panel dataset I'm allowed to show in class. The demo will run on the synthetic "virtual world" generator by default; if I obtain a usable real dataset later (course data, a public panel dataset), I'll add it, but the project does not depend on it.
 - **Scope creep, and it already happened.** The original version of this idea had ten modules and two languages; this README initially cut it to one estimator and one diagnosis specifically to avoid that. The tripwire fired anyway: event study, cross-method recommendation, the full stress-test battery, code generation, and the French interface were all built before the four core acceptance criteria above were validated against a known package. Section 3 now documents what was actually delivered instead of leaving this README stale about it — but the underlying risk is unchanged: the four original acceptance criteria are still the real bar, and nothing on the delivered list above substitutes for validating the estimator itself.
-- **The "Break My Design" score is not calibrated.** Measured over 200 replications of a threat-free synthetic world (`spike/stress_test_calibration.py`): mean Identification Strength 57.6/100, never much higher whichever single threat is severe. Two of the five checks are close to useless as written — Spillovers fires on 100% of clean replications (it flags any control unit whose integer id happens to be adjacent to a treated unit's, which is near-certain under random assignment, regardless of whether real spillovers exist) and Heterogeneous Effects fires on 94% (its CV > 1.0 threshold is tighter than ordinary sampling noise produces). A third, Serial Correlation, fires on 0% of replications whether the threat is off or severe, because its Durbin-Watson statistic is computed on the panel's raw row order rather than within each unit. Parallel Trends (15% false-alarm, 21% detection) and Anticipation (2% false-alarm) are the only two checks behaving close to as intended. The estimator itself is fine (see the first risk above); the judgment layered on top of it is not. Recalibrating these three checks is next-level work, not done this term.
+- **The "Break My Design" score — recalibrated on 2026-10-06.** The hw4 spike (`spike/stress_test_calibration_results.md`) found three of the five checks useless:
+  - Spillovers fired on 100% of threat-free worlds;
+  - Heterogeneous Effects fired on 94%;
+  - Serial Correlation never fired.
+
+  The clean-world score was stuck at 57.6/100. The checks now test what their names say:
+  - Spillovers: a DiD of adjacent vs. other controls;
+  - Serial Correlation: within-unit residual autocorrelation, corrected for the fixed-effects bias;
+  - Heterogeneous Effects: a variance-ratio test of treated vs. control pre/post changes;
+  - Anticipation: a first-difference test;
+  - Parallel Trends: a full-rank lead test.
+
+  Re-running the spike with a dedicated threat lever for every check (`spike/stress_test_calibration_results_after_fix.md`, 200 replications each):
+
+  | Check | False alarm (clean) | Detection (severe) |
+  |---|---|---|
+  | Parallel Trends | 14% | 100% |
+  | Anticipation | 8% | 97% |
+  | Spillovers | 8% | 100% |
+  | Serial Correlation | 0% | 100% |
+  | Heterogeneous Effects | 10% | 100% |
+
+  The clean-world score is now 92.2/100. A severe threat lowers it to 56–76. The remaining false alarms are the expected cost of testing at the 10% level; the score is still a diagnostic heuristic, not a proof.

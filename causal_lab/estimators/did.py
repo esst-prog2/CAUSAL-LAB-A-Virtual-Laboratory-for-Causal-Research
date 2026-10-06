@@ -49,6 +49,9 @@ def estimate_did(df: pd.DataFrame, outcome_col: str = "Y", treatment_col: str = 
     """Estimate a two-way fixed-effects DiD model via OLS with unit and
     period dummies, using cluster-robust standard errors at the unit
     level (or `cluster_col` if provided)."""
+    if df[treatment_col].nunique() < 2:
+        raise ValueError(f"Treatment column '{treatment_col}' has no variation; the DiD effect is not identified.")
+
     data = df.copy()
     data[unit_col] = data[unit_col].astype("category")
     data[time_col] = data[time_col].astype("category")

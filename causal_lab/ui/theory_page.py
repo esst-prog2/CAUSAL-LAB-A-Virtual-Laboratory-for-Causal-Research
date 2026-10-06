@@ -156,7 +156,7 @@ def _show_equations(game: Game, L) -> None:
         for k, expr in game.outcomes.items():
             st.latex(rf"{_tex_name(k)} = {sp.latex(expr)}")
     st.dataframe(pd.DataFrame([{"parameter": k, "default": v, "meaning": game.parameter_info.get(k, "")}
-                               for k, v in game.parameters.items()]), use_container_width=True, hide_index=True)
+                               for k, v in game.parameters.items()]), width="stretch", hide_index=True)
 
 
 # --------------------------------------------------------------------------
@@ -297,14 +297,14 @@ def _equilibrium_step(state: dict, L) -> None:
             idx = st.selectbox("Equilibrium used for predictions", range(len(equilibria)), key=f"th_{sig}_eqidx",
                                format_func=lambda i: f"Equilibrium {i + 1}")
         state["baseline"] = equilibria[idx]
-        st.dataframe(_equilibrium_table(equilibria[idx]).round(6), use_container_width=True, hide_index=True)
+        st.dataframe(_equilibrium_table(equilibria[idx]).round(6), width="stretch", hide_index=True)
         st.caption(f"Method: {equilibria[idx].method}; largest relative gain from a unilateral deviation = "
                    f"{equilibria[idx].max_gain:.2e}.")
 
     table = state.get("table")
     if table is not None:
         st.markdown(f"**{L('theory.by_unit')}**")
-        st.dataframe(table, use_container_width=True, hide_index=True)
+        st.dataframe(table, width="stretch", hide_index=True)
         value_cols = [c for c in table.columns if c.startswith(("strategy:", "outcome:"))]
         if value_cols:
             shown = st.multiselect("Plot", value_cols, default=value_cols[: min(3, len(value_cols))],
@@ -316,7 +316,7 @@ def _equilibrium_step(state: dict, L) -> None:
                 else:
                     fig.add_trace(go.Bar(x=table["unit"].astype(str), y=table[c], name=c))
             fig.update_layout(height=380, xaxis_title=scope_col, title="Equilibrium by unit of computation")
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
 
     if state.get("baseline") is not None:
         _outcome_curve(state, game, sig, L)
@@ -352,7 +352,7 @@ def _outcome_curve(state: dict, game: Game, sig: str, L) -> None:
         fig.add_vline(x=theta, line_dash="dot", line_color="gray", annotation_text="calibrated")
         fig.update_layout(height=340, xaxis_title=param, yaxis_title=var,
                           title=f"Equilibrium {var} as a function of {param}")
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
 
 
 # --------------------------------------------------------------------------
@@ -409,7 +409,7 @@ def _predictions_step(state: dict, L) -> None:
         rows.append({"variable": k, "baseline": base, "after shift": shifted, "predicted effect": pred.effects[k],
                      f"d/d{pred.parameter}": pred.derivatives.get(k, np.nan)})
     st.markdown(f"**Predicted effect of {pred.parameter} → {pred.parameter} {pred.delta:+.4g}**")
-    st.dataframe(pd.DataFrame(rows).round(6), use_container_width=True, hide_index=True)
+    st.dataframe(pd.DataFrame(rows).round(6), width="stretch", hide_index=True)
 
     st.markdown(f"**{L('theory.compare')}**")
     variable = st.selectbox("Predicted variable", list(pred.effects), key=f"th_{sig}_cmp_var")
@@ -434,7 +434,7 @@ def _predictions_step(state: dict, L) -> None:
                              marker=dict(size=14, symbol="diamond")))
     fig.add_vline(x=0, line_dash="dot", line_color="gray")
     fig.update_layout(height=240, showlegend=False, xaxis_title="Effect")
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
     st.caption("The prediction and the causal estimate must refer to the same outcome, measured in the same units, "
                "for this comparison to be meaningful.")
 

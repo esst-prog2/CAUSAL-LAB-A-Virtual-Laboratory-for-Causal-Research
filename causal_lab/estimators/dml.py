@@ -50,6 +50,10 @@ def estimate_dml(df: pd.DataFrame, outcome_col: str = "Y", treatment_col: str = 
             model = RandomForestRegressor(n_estimators=200, min_samples_leaf=5,
                                           random_state=seed, n_jobs=-1)
             model.fit(x[train], target[train])
+            # Parallel prediction sums the trees in thread-completion order,
+            # which changes floating-point rounding between runs; predicting
+            # on one core keeps results bit-for-bit reproducible.
+            model.set_params(n_jobs=1)
             out[test] = model.predict(x[test])
 
     u, v = y - l_hat, d - m_hat

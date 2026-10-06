@@ -13,6 +13,7 @@ Run with:  streamlit run app.py
 from __future__ import annotations
 
 import sys
+from dataclasses import replace
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -54,14 +55,32 @@ if "virtual_truth" not in st.session_state:
     st.session_state.virtual_truth = None
 if "vw_config" not in st.session_state:
     st.session_state.vw_config = VirtualWorldConfig()
+if "virtual_cfg" not in st.session_state:
+    # Snapshot of the configuration that generated `virtual_df`: the
+    # Virtual Lab widgets keep editing `vw_config` after generation.
+    st.session_state.virtual_cfg = None
 if "uploaded_df" not in st.session_state:
     st.session_state.uploaded_df = None
+if "uploaded_file_id" not in st.session_state:
+    st.session_state.uploaded_file_id = None
+if "page" not in st.session_state:
+    st.session_state.page = "dashboard"
 
 lang = st.session_state.lang
+
+PAGES = [
+    "dashboard", "research_question", "diagnosis", "recommendation",
+    "virtual_lab", "estimation", "methods", "theory", "break_my_design",
+    "robustness", "code", "settings",
+]
 
 
 def L(key: str) -> str:
     return t(key, lang)
+
+
+def go_to(page_id: str) -> None:
+    st.session_state.page = page_id
 
 
 def active_df() -> pd.DataFrame | None:
@@ -70,6 +89,37 @@ def active_df() -> pd.DataFrame | None:
     if st.session_state.uploaded_df is not None:
         return st.session_state.uploaded_df
     return st.session_state.virtual_df
+
+
+def treatment_setup(df: pd.DataFrame) -> tuple[int, bool]:
+    """(treatment period, staggered?) for the active dataset: taken from
+    the configuration that generated the Virtual World, or inferred from
+    the first period in which each unit has D == 1 for uploaded data."""
+    if st.session_state.uploaded_df is None and st.session_state.virtual_cfg is not None:
+        cfg = st.session_state.virtual_cfg
+        return cfg.treatment_period, cfg.staggered_adoption
+    first_treated = df.loc[df["D"] == 1].groupby("unit")["period"].min()
+    return int(first_treated.min()), first_treated.nunique() > 1
+
+
+@st.cache_data(show_spinner=False)
+def cached_did(df: pd.DataFrame):
+    return estimate_did(df)
+
+
+@st.cache_data(show_spinner=False)
+def cached_event_study(df: pd.DataFrame, fixed_treatment_period: int | None):
+    return estimate_event_study(df, fixed_treatment_period=fixed_treatment_period)
+
+
+@st.cache_data(show_spinner=False)
+def cached_stress_test(df: pd.DataFrame, treatment_period: int):
+    return run_stress_test(df, treatment_period=treatment_period)
+
+
+@st.cache_data(show_spinner=False)
+def cached_robustness(df: pd.DataFrame, treatment_period: int):
+    return run_robustness_battery(df, treatment_period=treatment_period)
 
 
 LEVEL_COLOR = {
@@ -90,16 +140,12 @@ with st.sidebar:
         st.session_state.lang = lang_choice
         st.rerun()
 
-    page = st.radio(
-        "Navigation",
-        [
-            L("nav.dashboard"), L("nav.research_question"), L("nav.diagnosis"),
-            L("nav.recommendation"), L("nav.virtual_lab"), L("nav.estimation"),
-            L("nav.methods"), L("nav.theory"), L("nav.break_my_design"), L("nav.robustness"), L("nav.code"),
-            L("nav.settings"),
-        ],
-        label_visibility="collapsed",
-    )
+    # Page ids (not translated labels) are the radio values, so the
+    # selected page survives a language switch and can be set by the
+    # dashboard shortcuts.
+    st.radio("Navigation", PAGES, key="page", format_func=lambda p: L(f"nav.{p}"),
+             label_visibility="collapsed")
+    page = st.session_state.page
 
     st.divider()
     st.caption(f"🔒 {L('settings.local_mode_note')}")
@@ -107,7 +153,7 @@ with st.sidebar:
 # --------------------------------------------------------------------------
 # DASHBOARD
 # --------------------------------------------------------------------------
-if page == L("nav.dashboard"):
+if page == "dashboard":
     st.title(f"🔬 {L('app.title')}")
     st.subheader(L("app.subtitle"))
     st.markdown(f"**{L('app.tagline')}**")
@@ -125,17 +171,17 @@ if page == L("nav.dashboard"):
 
     st.divider()
     cols = st.columns(3)
-    if cols[0].button(f"📝 {L('home.start_project')}", use_container_width=True):
-        st.session_state["_go_to"] = L("nav.research_question")
-    if cols[1].button(f"🧪 {L('home.start_experiment')}", use_container_width=True):
-        st.session_state["_go_to"] = L("nav.virtual_lab")
-    if cols[2].button(f"💥 {L('home.diagnose')}", use_container_width=True):
-        st.session_state["_go_to"] = L("nav.break_my_design")
+    cols[0].button(f"📝 {L('home.start_project')}", width="stretch",
+                   on_click=go_to, args=("research_question",))
+    cols[1].button(f"🧪 {L('home.start_experiment')}", width="stretch",
+                   on_click=go_to, args=("virtual_lab",))
+    cols[2].button(f"💥 {L('home.diagnose')}", width="stretch",
+                   on_click=go_to, args=("break_my_design",))
 
 # --------------------------------------------------------------------------
 # STEP 1-5: RESEARCH QUESTION WIZARD
 # --------------------------------------------------------------------------
-elif page == L("nav.research_question"):
+elif page == "research_question":
     st.title(f"📝 {L('nav.research_question')}")
     d = st.session_state.design
 
@@ -201,7 +247,7 @@ elif page == L("nav.research_question"):
 # --------------------------------------------------------------------------
 # CAUSAL DIAGNOSIS ENGINE
 # --------------------------------------------------------------------------
-elif page == L("nav.diagnosis"):
+elif page == "diagnosis":
     st.title(f"🧠 {L('diagnosis.title')}")
 
     if st.session_state.diagnosis is None:
@@ -222,7 +268,7 @@ elif page == L("nav.diagnosis"):
 # --------------------------------------------------------------------------
 # METHOD RECOMMENDATION ENGINE
 # --------------------------------------------------------------------------
-elif page == L("nav.recommendation"):
+elif page == "recommendation":
     st.title(f"🧪 {L('recommendation.title')}")
 
     if not st.session_state.recommendations:
@@ -250,7 +296,7 @@ elif page == L("nav.recommendation"):
         ))
         fig.update_layout(xaxis_title="Suitability score (0-100)", yaxis_title="",
                            height=350, margin=dict(l=10, r=10, t=10, b=10))
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
 
         for r in recs:
             with st.expander(f"{r.method} — {r.overall:.0f}/100 ({r.confidence})"):
@@ -269,7 +315,7 @@ elif page == L("nav.recommendation"):
 # --------------------------------------------------------------------------
 # VIRTUAL WORLD
 # --------------------------------------------------------------------------
-elif page == L("nav.virtual_lab"):
+elif page == "virtual_lab":
     st.title(f"🧫 {L('virtual.title')}")
     st.caption("Build a synthetic world with a known ground-truth effect, "
                "then see how well an estimator recovers it.")
@@ -278,7 +324,8 @@ elif page == L("nav.virtual_lab"):
     c1, c2, c3 = st.columns(3)
     cfg.n_units = c1.number_input("Population (units)", 20, 2000, cfg.n_units, step=10)
     cfg.n_periods = c2.number_input("Time periods", 4, 60, cfg.n_periods)
-    cfg.treatment_period = c3.number_input("Treatment period", 1, cfg.n_periods - 1, min(cfg.treatment_period, cfg.n_periods - 1))
+    cfg.treatment_period = c3.number_input("Treatment period", 2, cfg.n_periods - 1,
+                                           min(max(cfg.treatment_period, 2), cfg.n_periods - 1))
 
     c1, c2, c3 = st.columns(3)
     cfg.share_treated = c1.slider("Share of treated units", 0.05, 0.9, cfg.share_treated)
@@ -291,11 +338,14 @@ elif page == L("nav.virtual_lab"):
     cfg.confounding = c1.select_slider("Confounding", levels, value=cfg.confounding)
     cfg.spillovers = c2.select_slider("Spillovers", levels, value=cfg.spillovers)
     cfg.serial_correlation = c3.select_slider("Serial correlation", levels, value=cfg.serial_correlation)
+    c1, c2, c3 = st.columns(3)
+    cfg.treatment_heterogeneity = c1.select_slider("Treatment-effect heterogeneity", levels,
+                                                   value=cfg.treatment_heterogeneity)
+    cfg.differential_trend = c2.select_slider("Diverging pre-trends", levels, value=cfg.differential_trend)
+    cfg.anticipation = c3.select_slider("Anticipation", levels, value=cfg.anticipation)
     c1, c2 = st.columns(2)
     cfg.staggered_adoption = c1.checkbox("Staggered adoption", value=cfg.staggered_adoption)
-    cfg.treatment_heterogeneity = c2.select_slider("Treatment-effect heterogeneity", levels,
-                                                     value=cfg.treatment_heterogeneity)
-    cfg.seed = st.number_input("Random seed", value=cfg.seed or 42)
+    cfg.seed = int(c2.number_input("Random seed", min_value=0, value=cfg.seed or 42, step=1))
 
     st.session_state.vw_config = cfg
 
@@ -303,6 +353,7 @@ elif page == L("nav.virtual_lab"):
         df, truth = generate(cfg)
         st.session_state.virtual_df = df
         st.session_state.virtual_truth = truth
+        st.session_state.virtual_cfg = replace(cfg)
         st.session_state.uploaded_df = None
         st.success(f"Virtual World generated: {cfg.n_units} units × {cfg.n_periods} periods "
                    f"({len(df)} rows). True ATT (realized) = {truth['true_att']:.4f}")
@@ -312,7 +363,11 @@ elif page == L("nav.virtual_lab"):
     uploaded = st.file_uploader(
         "CSV with columns matching: unit, period, D (treatment), Y (outcome), treated_unit",
         type=["csv"])
-    if uploaded is not None:
+    # The uploader returns the same file on every rerun: load it once per
+    # file, so generating a Virtual World afterwards is not silently
+    # overridden by the stale upload.
+    if uploaded is not None and uploaded.file_id != st.session_state.uploaded_file_id:
+        st.session_state.uploaded_file_id = uploaded.file_id
         try:
             up_df = pd.read_csv(uploaded)
         except Exception as exc:
@@ -324,21 +379,29 @@ elif page == L("nav.virtual_lab"):
                     f"Uploaded CSV is missing required column(s): {', '.join(missing)}. "
                     f"Expected columns: {', '.join(REQUIRED_COLUMNS)}."
                 )
+            elif up_df["D"].nunique() < 2:
+                st.error("Column 'D' has no variation: some observations must be treated (D = 1) "
+                         "and some untreated (D = 0).")
             else:
                 st.session_state.uploaded_df = up_df
                 st.session_state.virtual_df = None
+                st.session_state.virtual_truth = None
+                st.session_state.virtual_cfg = None
                 st.success(f"Loaded {len(up_df)} rows. Columns detected: {list(up_df.columns)}")
 
     if active_df() is not None:
-        st.dataframe(active_df().head(20), use_container_width=True)
+        st.dataframe(active_df().head(20), width="stretch")
+        st.download_button("Download dataset (CSV)", active_df().to_csv(index=False),
+                           "causal_lab_data.csv", mime="text/csv")
 
     if st.session_state.virtual_df is not None:
         st.divider()
         st.subheader("Monte Carlo Simulation")
+        st.caption("Replications use the current settings above.")
         n_reps = st.select_slider("Replications", [100, 500, 1000, 5000], value=500)
         if st.button("🎲 Run Monte Carlo"):
             with st.spinner("Running replications..."):
-                summary = run_monte_carlo(cfg, n_reps=n_reps)
+                summary = run_monte_carlo(cfg, n_reps=n_reps, base_seed=int(cfg.seed or 0))
             c1, c2, c3, c4 = st.columns(4)
             c1.metric("Bias", f"{summary.bias:+.4f}")
             c2.metric("RMSE", f"{summary.rmse:.4f}")
@@ -349,40 +412,63 @@ elif page == L("nav.virtual_lab"):
                            annotation_text="True ATT")
             fig.update_layout(title="Distribution of DiD estimates across replications",
                                xaxis_title="Estimated ATT", height=350)
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
 
 # --------------------------------------------------------------------------
 # ESTIMATION
 # --------------------------------------------------------------------------
-elif page == L("nav.estimation"):
+elif page == "estimation":
     st.title(f"📈 {L('estimation.title')}")
     df = active_df()
     if df is None:
         st.info("No dataset loaded. Generate a Virtual World or upload data first.")
     else:
+        treatment_period, staggered = treatment_setup(df)
+
+        # Treated vs untreated average outcome over time (README section 3).
+        means = df.groupby(["period", "treated_unit"])["Y"].mean().unstack("treated_unit")
+        fig = go.Figure()
+        for flag, name in ((1, "Treated units"), (0, "Untreated units")):
+            if flag in means.columns:
+                fig.add_trace(go.Scatter(x=means.index, y=means[flag], mode="lines+markers", name=name))
+        fig.add_vline(x=treatment_period - 0.5, line_dash="dash", line_color="red",
+                      annotation_text="Treatment" + (" (first adoption)" if staggered else ""))
+        fig.update_layout(title="Average outcome over time: treated vs untreated units",
+                          xaxis_title="Period", yaxis_title="Mean outcome Y", height=360)
+        st.plotly_chart(fig, width="stretch")
+
         tab1, tab2 = st.tabs(["Difference-in-Differences", "Event Study"])
 
         with tab1:
-            result = estimate_did(df)
-            c1, c2, c3 = st.columns(3)
-            c1.metric("Estimated ATT", f"{result.att:.4f}")
-            c2.metric("Cluster-robust SE", f"{result.se:.4f}")
-            c3.metric("95% CI", f"[{result.ci_low:.3f}, {result.ci_high:.3f}]")
-
-            if st.session_state.virtual_truth is not None:
-                true_att = st.session_state.virtual_truth["true_att"]
-                bias = result.att - true_att
-                st.markdown("#### Ground truth comparison (Virtual World only)")
+            try:
+                result = cached_did(df)
+            except ValueError as exc:
+                st.error(str(exc))
+                result = None
+            if result is not None:
                 c1, c2, c3 = st.columns(3)
                 c1.metric("Estimated ATT", f"{result.att:.4f}")
-                c2.metric("True ATT", f"{true_att:.4f}")
-                c3.metric("Bias", f"{bias:+.4f}")
+                c2.metric("Cluster-robust SE", f"{result.se:.4f}")
+                c3.metric("95% CI", f"[{result.ci_low:.3f}, {result.ci_high:.3f}]")
 
-            st.code(result.summary_text, language="text")
+                if st.session_state.virtual_truth is not None and st.session_state.uploaded_df is None:
+                    true_att = st.session_state.virtual_truth["true_att"]
+                    bias = result.att - true_att
+                    st.markdown("#### Ground truth comparison (Virtual World only)")
+                    c1, c2, c3 = st.columns(3)
+                    c1.metric("Estimated ATT", f"{result.att:.4f}")
+                    c2.metric("True ATT", f"{true_att:.4f}")
+                    c3.metric("Bias", f"{bias:+.4f}")
+                if staggered:
+                    st.warning("Treatment timing is staggered: the two-way fixed-effects estimate can be "
+                               "biased when effects differ across adoption cohorts.")
+
+                st.code(result.summary_text, language="text")
 
         with tab2:
-            treatment_period = st.session_state.vw_config.treatment_period if st.session_state.virtual_df is not None else int(df["period"].median())
-            es = estimate_event_study(df, fixed_treatment_period=treatment_period)
+            # Staggered adoption: each unit's own adoption period is
+            # inferred from D; otherwise the common treatment date is used.
+            es = cached_event_study(df, None if staggered else treatment_period)
             fig = go.Figure()
             fig.add_trace(go.Scatter(
                 x=es.coefficients["rel_period"], y=es.coefficients["estimate"],
@@ -396,35 +482,38 @@ elif page == L("nav.estimation"):
             fig.update_layout(title="Event study: dynamic treatment effects",
                                xaxis_title="Periods relative to treatment",
                                yaxis_title="Effect estimate", height=400)
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
             st.caption("Pre-treatment coefficients (k < -1) should be close to zero "
                        "if the parallel-trends assumption holds.")
 
 # --------------------------------------------------------------------------
 # CAUSAL METHODS (RCT, Matching, IV, RDD, Synthetic Control, DML)
 # --------------------------------------------------------------------------
-elif page == L("nav.methods"):
+elif page == "methods":
     render_methods_page(L)
 
 # --------------------------------------------------------------------------
 # THEORETICAL MODEL (agents, equilibrium, calibration, predictions)
 # --------------------------------------------------------------------------
-elif page == L("nav.theory"):
+elif page == "theory":
     render_theory_page(L)
 
 # --------------------------------------------------------------------------
 # BREAK MY DESIGN
 # --------------------------------------------------------------------------
-elif page == L("nav.break_my_design"):
+elif page == "break_my_design":
     st.title(f"💥 {L('break.title')}")
     df = active_df()
     if df is None:
         st.info("No dataset loaded. Generate a Virtual World or upload data first.")
     else:
-        treatment_period = (st.session_state.vw_config.treatment_period
-                             if st.session_state.virtual_df is not None
-                             else int(df["period"].median()))
-        report = run_stress_test(df, treatment_period=treatment_period)
+        treatment_period, _ = treatment_setup(df)
+        report = cached_stress_test(df, treatment_period)
+
+        pt = next(c for c in report.checks if c.name == "Parallel Trends")
+        if pt.assessment:
+            {"plausible": st.success, "questionable": st.warning, "violated": st.error}[pt.assessment](
+                f"### Parallel trends: {pt.assessment}")
 
         st.subheader("Stress Test Results")
         for check in report.checks:
@@ -442,36 +531,34 @@ elif page == L("nav.break_my_design"):
 # --------------------------------------------------------------------------
 # ROBUSTNESS
 # --------------------------------------------------------------------------
-elif page == L("nav.robustness"):
+elif page == "robustness":
     st.title(f"🧯 {L('robustness.title')}")
     df = active_df()
     if df is None:
         st.info("No dataset loaded. Generate a Virtual World or upload data first.")
     else:
-        treatment_period = (st.session_state.vw_config.treatment_period
-                             if st.session_state.virtual_df is not None
-                             else int(df["period"].median()))
-        rows = run_robustness_battery(df, treatment_period=treatment_period)
+        treatment_period, _ = treatment_setup(df)
+        rows = cached_robustness(df, treatment_period)
         table = pd.DataFrame([{
             "Specification": r.specification, "ATT": round(r.att, 4),
             "SE": round(r.se, 4), "N": r.n_obs, "Note": r.note,
         } for r in rows])
-        st.dataframe(table, use_container_width=True)
+        st.dataframe(table, width="stretch")
 
         fig = go.Figure(go.Scatter(
             x=table["ATT"], y=table["Specification"], mode="markers",
-            error_x=dict(type="data", array=table["SE"] * 1.96, visible=True),
+            error_x=dict(type="data", array=(table["SE"] * 1.96).fillna(0), visible=True),
             marker=dict(size=10),
         ))
         fig.add_vline(x=rows[0].att, line_dash="dot", line_color="gray",
                       annotation_text="Baseline")
         fig.update_layout(height=350, xaxis_title="Estimated ATT", yaxis_title="")
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
 
 # --------------------------------------------------------------------------
 # CODE GENERATOR
 # --------------------------------------------------------------------------
-elif page == L("nav.code"):
+elif page == "code":
     st.title(f"💻 {L('code.title')}")
     c1, c2 = st.columns(2)
     data_path = c1.text_input("Data file path (for the generated script)", value="data.csv")
@@ -493,7 +580,7 @@ elif page == L("nav.code"):
 # --------------------------------------------------------------------------
 # SETTINGS
 # --------------------------------------------------------------------------
-elif page == L("nav.settings"):
+elif page == "settings":
     st.title(f"⚙️ {L('settings.language')}")
     st.write(f"Current language: **{st.session_state.lang.upper()}**")
     st.info(L("settings.local_mode_note"))

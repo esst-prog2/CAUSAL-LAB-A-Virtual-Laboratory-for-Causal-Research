@@ -42,11 +42,11 @@ def run_robustness_battery(df: pd.DataFrame, treatment_period: int,
     baseline = estimate_did(df, outcome_col, treatment_col, unit_col, time_col)
     rows.append(RobustnessRow("Baseline (full sample)", baseline.att, baseline.se, baseline.n_obs))
 
-    # 2. Alternative pre-treatment windows.
+    # 2. Alternative time windows symmetric around the treatment date.
     for window in (3, 5):
-        min_period = treatment_period - window
-        sub = df[df[time_col] >= min_period]
-        if sub[time_col].nunique() < 2:
+        sub = df[(df[time_col] >= treatment_period - window)
+                 & (df[time_col] < treatment_period + window)]
+        if sub[time_col].nunique() < 2 or sub[treatment_col].nunique() < 2:
             continue
         res = estimate_did(sub, outcome_col, treatment_col, unit_col, time_col)
         rows.append(RobustnessRow(f"Restricted window (±{window} periods)", res.att, res.se, res.n_obs))
@@ -65,18 +65,21 @@ def run_robustness_battery(df: pd.DataFrame, treatment_period: int,
         rows.append(RobustnessRow(
             "Leave-one-treated-unit-out (range)",
             att=sum(loo_atts) / len(loo_atts),
-            se=float(pd.Series(loo_atts).std()),
+            se=float("nan"),  # a range of point estimates, not a sampling SE
             n_obs=len(loo_atts),
             note=f"min={min(loo_atts):.3f}, max={max(loo_atts):.3f} across {len(loo_atts)} unit(s) dropped",
         ))
 
     # 4. Drop control units directly adjacent to a treated unit
     #    (a control-group definition robust to local spillovers).
-    treated_ids = set(df.loc[df[treated_unit_col] == 1, unit_col].unique())
-    adjacent_controls = {
-        c for c in df.loc[df[treated_unit_col] == 0, unit_col].unique()
-        if any(abs(c - t) == 1 for t in treated_ids)
-    }
+    #    Adjacency is defined on numeric unit ids (unit id distance 1).
+    adjacent_controls: set = set()
+    if pd.api.types.is_numeric_dtype(df[unit_col]):
+        treated_ids = set(df.loc[df[treated_unit_col] == 1, unit_col].unique())
+        adjacent_controls = {
+            c for c in df.loc[df[treated_unit_col] == 0, unit_col].unique()
+            if (c - 1) in treated_ids or (c + 1) in treated_ids
+        }
     if adjacent_controls:
         sub = df[~df[unit_col].isin(adjacent_controls)]
         res = estimate_did(sub, outcome_col, treatment_col, unit_col, time_col)

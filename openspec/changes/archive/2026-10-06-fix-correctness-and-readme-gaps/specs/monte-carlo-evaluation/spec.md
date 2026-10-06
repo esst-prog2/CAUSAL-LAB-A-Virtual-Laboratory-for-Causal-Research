@@ -1,9 +1,4 @@
-# monte-carlo-evaluation Specification
-
-## Purpose
-Repeatedly draws a fresh synthetic dataset from the Virtual World DGP, applies the DiD estimator, and aggregates bias, RMSE, MAE, confidence-interval coverage, and average CI length across replications — used to see how estimator performance degrades as causal threats are turned on.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Replication and aggregation
 The system SHALL run a configurable number of independent replications, each with its own synthetic dataset and DiD estimate, and aggregate their results. Each estimate SHALL be compared with the true ATT of its own replication.
@@ -21,10 +16,3 @@ The system SHALL run a configurable number of independent replications, each wit
 #### Scenario: Confidence level determines the critical value
 - **WHEN** `ci_level` is any value in (0, 1)
 - **THEN** the coverage check uses the two-sided normal critical value `z = Φ⁻¹(0.5 + ci_level / 2)`, e.g. ≈ 1.95996 for 0.95
-
-### Requirement: Triggering from the app
-The system SHALL only offer Monte Carlo simulation when a Virtual World dataset (not an uploaded real-world dataset) is active, since it needs a known ground truth.
-
-#### Scenario: Virtual World active
-- **WHEN** a Virtual World dataset has been generated
-- **THEN** the Virtual Lab page shows a "Run Monte Carlo" control with a selectable replication count (100/500/1000/5000) and, once run, displays bias, RMSE, 95% CI coverage, average CI length, and a histogram of estimates with the true ATT marked

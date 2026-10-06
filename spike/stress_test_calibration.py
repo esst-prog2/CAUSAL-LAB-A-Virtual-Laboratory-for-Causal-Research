@@ -10,10 +10,18 @@ detection rate per check.
 
 Deterministic: each scenario reuses seeds 0..199, so re-running this
 script reproduces the same table. Writes the table to
-stress_test_calibration_results.md next to this script.
+stress_test_calibration_results.md next to this script, or to the file
+name given as first argument (used to record the after-fix numbers
+without overwriting the original spike result).
+
+Each check is paired with the DGP lever it is meant to detect. The
+original spike (2026-10-03) paired Parallel Trends with `confounding`
+and had no lever for Anticipation; the generator now has
+`differential_trend` and `anticipation` levers for exactly those
+checks (change fix-correctness-and-readme-gaps).
 
 Run from the repository root:
-    .venv/Scripts/python.exe spike/stress_test_calibration.py
+    .venv/Scripts/python.exe spike/stress_test_calibration.py [results.md]
 """
 from __future__ import annotations
 
@@ -38,12 +46,10 @@ CHECK_NAMES = [
     "Heterogeneous Effects",
 ]
 
-# Which VirtualWorldConfig threat lever (if any) this check is meant to
-# detect. "Anticipation" has no corresponding lever: the DGP has no
-# anticipation-effect parameter at all.
+# Which VirtualWorldConfig threat lever this check is meant to detect.
 CHECK_TO_THREAT = {
-    "Parallel Trends": "confounding",
-    "Anticipation": None,
+    "Parallel Trends": "differential_trend",
+    "Anticipation": "anticipation",
     "Spillovers": "spillovers",
     "Serial Correlation": "serial_correlation",
     "Heterogeneous Effects": "treatment_heterogeneity",
@@ -103,7 +109,8 @@ def main() -> None:
 
     print("\n" + table)
 
-    out_path = Path(__file__).resolve().parent / "stress_test_calibration_results.md"
+    out_name = sys.argv[1] if len(sys.argv) > 1 else "stress_test_calibration_results.md"
+    out_path = Path(__file__).resolve().parent / out_name
     out_path.write_text(table, encoding="utf-8")
     print(f"Written to {out_path}")
 

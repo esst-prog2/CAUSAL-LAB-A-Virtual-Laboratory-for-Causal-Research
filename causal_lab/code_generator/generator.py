@@ -71,10 +71,8 @@ def generate_stata_code(p: CodeGenParams) -> str:
 * Two-way fixed effects Difference-in-Differences
 * Model: Y_it = alpha_i + gamma_t + beta * D_it + epsilon_it
 
+* Requires reghdfe:  ssc install reghdfe, replace
 import delimited "{p.data_path}", clear
-
-encode {p.unit_col}, gen(unit_id)
-xtset unit_id {p.time_col}
 
 reghdfe {p.outcome_col} {p.treatment_col}, absorb({p.unit_col} {p.time_col}) vce(cluster {p.cluster()})
 '''

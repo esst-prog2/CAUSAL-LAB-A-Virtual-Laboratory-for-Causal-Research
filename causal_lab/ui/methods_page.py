@@ -279,8 +279,8 @@ def _plots(method: str, result: MethodResult, state: dict) -> None:
     if method == "rct":
         if len(d["balance"]):
             st.plotly_chart(_balance_chart(d["balance"], [("std_diff", "Treated vs control")]),
-                            use_container_width=True)
-            st.dataframe(d["balance"].round(4), use_container_width=True)
+                            width="stretch")
+            st.dataframe(d["balance"].round(4), width="stretch")
         st.caption(f"Difference in means = {d['difference_in_means']:.4f} (SE {d['difference_in_means_se']:.4f}); "
                    f"{d['n_treated']} treated, {d['n_control']} control.")
     elif method == "matching":
@@ -292,10 +292,10 @@ def _plots(method: str, result: MethodResult, state: dict) -> None:
                                        opacity=0.6, nbinsx=40, histnorm="probability density"))
         fig.update_layout(barmode="overlay", title="Propensity-score overlap",
                           xaxis_title="Propensity score", height=320, margin=dict(t=50, b=30))
-        c1.plotly_chart(fig, use_container_width=True)
+        c1.plotly_chart(fig, width="stretch")
         c2.plotly_chart(_balance_chart(d["balance"], [("std_diff_before", "Before matching"),
                                                       ("std_diff_after", "After matching")]),
-                        use_container_width=True)
+                        width="stretch")
         c1, c2, c3 = st.columns(3)
         c1.metric("IPW ATT", f"{d['ipw_att']:.4f}", help=f"Bootstrap SE {d['ipw_se']:.4f}")
         c2.metric("Naive difference in means", f"{d['naive_difference']:.4f}")
@@ -308,9 +308,9 @@ def _plots(method: str, result: MethodResult, state: dict) -> None:
         fig.update_layout(title=f"First stage: mean of {m['treatment']} by {z}", xaxis_title=z,
                           yaxis_title=m["treatment"], height=320, margin=dict(t=50, b=30))
         c1, c2 = st.columns(2)
-        c1.plotly_chart(fig, use_container_width=True)
+        c1.plotly_chart(fig, width="stretch")
         c2.plotly_chart(_comparison_chart(result, "2SLS", d["ols_estimate"], d["ols_se"], "Naive OLS", truth),
-                        use_container_width=True)
+                        width="stretch")
         st.caption(f"First-stage F = {d['first_stage_f']:.2f}, partial R² = {d['partial_r2']:.3f}. "
                    f"Exclusion restriction cannot be tested from the data.")
     elif method == "rdd":
@@ -329,9 +329,9 @@ def _plots(method: str, result: MethodResult, state: dict) -> None:
         fig.add_vline(x=cutoff, line_dash="dash", line_color="red", annotation_text="Cutoff")
         fig.update_layout(title="Outcome against the running variable", xaxis_title=m["running"],
                           yaxis_title=m["outcome"], height=420, margin=dict(t=50, b=30))
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
         st.markdown("**Bandwidth sensitivity**")
-        st.dataframe(d["sensitivity"].round(4), use_container_width=True)
+        st.dataframe(d["sensitivity"].round(4), width="stretch")
         man = d["manipulation"]
         st.caption(f"Bandwidth rule: {d['bandwidth_rule']}. Manipulation check: {man['count_below']} obs just "
                    f"below vs {man['count_above']} just above the cutoff (p = {man['p_value']:.3f}). {d['notes']}")
@@ -343,7 +343,7 @@ def _plots(method: str, result: MethodResult, state: dict) -> None:
                                     line=dict(dash="dash"))])
         fig.add_vline(x=tp - 0.5, line_dash="dot", line_color="red", annotation_text="Treatment")
         fig.update_layout(title="Treated vs synthetic control", height=360, margin=dict(t=50, b=30))
-        c1.plotly_chart(fig, use_container_width=True)
+        c1.plotly_chart(fig, width="stretch")
         fig = go.Figure()
         for donor, gaps in d["placebo_gaps"].items():
             fig.add_trace(go.Scatter(x=paths["period"], y=gaps, mode="lines", showlegend=False,
@@ -352,14 +352,14 @@ def _plots(method: str, result: MethodResult, state: dict) -> None:
                                  line=dict(color="crimson", width=3)))
         fig.add_vline(x=tp - 0.5, line_dash="dot", line_color="red")
         fig.update_layout(title="Gap: treated vs placebo donors", height=360, margin=dict(t=50, b=30))
-        c2.plotly_chart(fig, use_container_width=True)
+        c2.plotly_chart(fig, width="stretch")
         st.markdown("**Donor weights**")
-        st.dataframe(d["weights"][d["weights"]["weight"] > 1e-3].round(4), use_container_width=True)
+        st.dataframe(d["weights"][d["weights"]["weight"] > 1e-3].round(4), width="stretch")
         st.caption(f"Pre-treatment RMSPE = {d['pre_rmspe']:.4f}; post/pre RMSPE ratio = {d['rmspe_ratio']:.2f}; "
                    f"placebo p-value over {d['n_donors'] + 1} units.")
     elif method == "dml":
         st.plotly_chart(_comparison_chart(result, "DML", d["ols_estimate"], d["ols_se"],
-                                          "Naive OLS (linear controls)", truth), use_container_width=True)
+                                          "Naive OLS (linear controls)", truth), width="stretch")
         c1, c2 = st.columns(2)
         c1.metric("Out-of-fold R² — outcome model", f"{d['r2_outcome']:.3f}")
         c2.metric("Out-of-fold R² — treatment model", f"{d['r2_treatment']:.3f}")
@@ -400,7 +400,7 @@ def render(L) -> None:
     if state["df"] is None or state["source"] != source:
         return
     with st.expander(f"Data preview ({len(state['df'])} rows)"):
-        st.dataframe(state["df"].head(20), use_container_width=True)
+        st.dataframe(state["df"].head(20), width="stretch")
 
     if st.button(f"▶️ {L('methods.estimate')}", type="primary", key=f"mw_{method}_run"):
         with st.spinner("Estimating..."):
