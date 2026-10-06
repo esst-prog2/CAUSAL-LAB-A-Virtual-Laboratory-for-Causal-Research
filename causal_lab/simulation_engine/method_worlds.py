@@ -17,6 +17,8 @@ from dataclasses import dataclass
 import numpy as np
 import pandas as pd
 
+from utils.i18n import LocalizedError, Msg
+
 
 def _sigmoid(x):
     return 1 / (1 + np.exp(-x))
@@ -44,7 +46,7 @@ def rct_world(cfg: RCTWorldConfig) -> tuple[pd.DataFrame, dict]:
     y0 = cfg.covariate_strength * (x @ np.array([1.0, 0.5, -0.5])) + rng.normal(0, cfg.noise_sd, cfg.n)
     y = y0 + d * tau
     df = pd.DataFrame({"Y": y, "D": d, "X1": x[:, 0], "X2": x[:, 1], "X3": x[:, 2]})
-    return df, dict(true_effect=float(tau.mean()), estimand="ATE",
+    return df, dict(true_effect=float(tau.mean()), estimand=Msg("estimand.ate"),
                     roles=dict(outcome="Y", treatment="D", covariates=["X1", "X2", "X3"]))
 
 
@@ -70,7 +72,7 @@ def matching_world(cfg: MatchingWorldConfig) -> tuple[pd.DataFrame, dict]:
     y0 = cfg.confounding_strength * (1.5 * x[:, 0] + x[:, 1] + 0.5 * x[:, 2]) + rng.normal(0, cfg.noise_sd, cfg.n)
     y = y0 + d * tau
     df = pd.DataFrame({"Y": y, "D": d, "X1": x[:, 0], "X2": x[:, 1], "X3": x[:, 2]})
-    return df, dict(true_effect=float(tau[d == 1].mean()), estimand="ATT",
+    return df, dict(true_effect=float(tau[d == 1].mean()), estimand=Msg("estimand.att"),
                     true_ate=float(tau.mean()),
                     roles=dict(outcome="Y", treatment="D", covariates=["X1", "X2", "X3"]))
 
@@ -97,7 +99,7 @@ def iv_world(cfg: IVWorldConfig) -> tuple[pd.DataFrame, dict]:
          + rng.normal(size=cfg.n) > 0.5).astype(int)
     y = cfg.effect * d + 1.5 * cfg.endogeneity * u + 0.5 * x + rng.normal(0, cfg.noise_sd, cfg.n)
     df = pd.DataFrame({"Y": y, "D": d, "Z": z, "X": x})
-    return df, dict(true_effect=float(cfg.effect), estimand="LATE (constant effect)",
+    return df, dict(true_effect=float(cfg.effect), estimand=Msg("estimand.late_constant"),
                     roles=dict(outcome="Y", treatment="D", instruments=["Z"], controls=["X"]))
 
 
@@ -122,7 +124,7 @@ def rdd_world(cfg: RDDWorldConfig) -> tuple[pd.DataFrame, dict]:
     mu = 0.5 + 0.8 * xc + cfg.curvature * (-0.6 * xc ** 2 + 0.4 * xc ** 3)
     y = mu + cfg.effect * d + rng.normal(0, cfg.noise_sd, cfg.n)
     df = pd.DataFrame({"Y": y, "X": x, "D": d})
-    return df, dict(true_effect=float(cfg.effect), estimand="Effect at the cutoff",
+    return df, dict(true_effect=float(cfg.effect), estimand=Msg("estimand.rdd"),
                     roles=dict(outcome="Y", running="X", cutoff=cfg.cutoff))
 
 
@@ -142,7 +144,7 @@ class SyntheticControlWorldConfig:
 
 def synthetic_control_world(cfg: SyntheticControlWorldConfig) -> tuple[pd.DataFrame, dict]:
     if not 2 <= cfg.treatment_period < cfg.n_periods:
-        raise ValueError("treatment_period must satisfy 2 <= treatment_period < n_periods")
+        raise LocalizedError("err.sc_world_period")
     rng = np.random.default_rng(cfg.seed)
     n_units = cfg.n_donors + 1
     trend = np.cumsum(rng.normal(0.1, 0.2, cfg.n_periods))
@@ -169,7 +171,7 @@ def synthetic_control_world(cfg: SyntheticControlWorldConfig) -> tuple[pd.DataFr
         "period": np.repeat(np.arange(cfg.n_periods), n_units),
         "Y": y.ravel(),
     })
-    return df, dict(true_effect=float(cfg.effect), estimand="Mean post-treatment effect on the treated unit",
+    return df, dict(true_effect=float(cfg.effect), estimand=Msg("estimand.sc"),
                     true_weights=dict(zip(names[1:], true_w.round(4))),
                     roles=dict(unit="unit", period="period", outcome="Y",
                                treated_unit="treated", treatment_period=cfg.treatment_period))
@@ -190,7 +192,7 @@ class DMLWorldConfig:
 
 def dml_world(cfg: DMLWorldConfig) -> tuple[pd.DataFrame, dict]:
     if cfg.n_covariates < 3:
-        raise ValueError("n_covariates must be at least 3")
+        raise LocalizedError("err.dml_world_covariates")
     rng = np.random.default_rng(cfg.seed)
     x = rng.uniform(-2, 2, (cfg.n, cfg.n_covariates))
     a = cfg.nonlinearity
@@ -200,5 +202,5 @@ def dml_world(cfg: DMLWorldConfig) -> tuple[pd.DataFrame, dict]:
     y = cfg.theta * d + g + rng.normal(0, cfg.noise_sd, cfg.n)
     cols = {f"X{k + 1}": x[:, k] for k in range(cfg.n_covariates)}
     df = pd.DataFrame({"Y": y, "D": d, **cols})
-    return df, dict(true_effect=float(cfg.theta), estimand="theta (partially linear model)",
+    return df, dict(true_effect=float(cfg.theta), estimand=Msg("estimand.dml"),
                     roles=dict(outcome="Y", treatment="D", covariates=list(cols)))

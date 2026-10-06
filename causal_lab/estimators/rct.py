@@ -21,6 +21,7 @@ import statsmodels.api as sm
 
 from estimators.common import (MethodResult, format_summary, normal_inference,
                                require_binary, standardized_difference)
+from utils.i18n import LocalizedError, Msg
 
 IMBALANCE_THRESHOLD = 0.1
 
@@ -56,16 +57,15 @@ def estimate_rct(df: pd.DataFrame, outcome_col: str = "Y", treatment_col: str = 
         estimate, se = _ols_effect(y, design)
         imbalanced = balance.loc[balance["imbalanced"], "covariate"].tolist()
         if imbalanced:
-            warnings.append(
-                f"Covariate(s) {imbalanced} have |standardized difference| > {IMBALANCE_THRESHOLD}: "
-                f"check the randomization, or rely on the covariate-adjusted estimate.")
+            warnings.append(Msg("warn.rct_imbalance", covariates=", ".join(imbalanced),
+                                threshold=IMBALANCE_THRESHOLD))
     else:
         estimate, se = diff_means, diff_se
 
     ci_low, ci_high, p_value = normal_inference(estimate, se)
     result = MethodResult(
-        method="Randomized Controlled Trial",
-        estimand="ATE",
+        method="Randomized Controlled Trial", key="rct",
+        estimand=Msg("estimand.ate"),
         estimate=estimate, se=se, ci_low=ci_low, ci_high=ci_high, p_value=p_value,
         n_obs=len(data),
         details=dict(

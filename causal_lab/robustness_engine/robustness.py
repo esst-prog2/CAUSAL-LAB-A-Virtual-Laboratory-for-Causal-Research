@@ -21,15 +21,16 @@ from dataclasses import dataclass
 import pandas as pd
 
 from estimators.did import DiDResult, estimate_did
+from utils.i18n import Msg
 
 
 @dataclass
 class RobustnessRow:
-    specification: str
+    specification: Msg          # str() gives the English label
     att: float
     se: float
     n_obs: int
-    note: str = ""
+    note: Msg | str = ""
 
 
 def run_robustness_battery(df: pd.DataFrame, treatment_period: int,
@@ -40,7 +41,7 @@ def run_robustness_battery(df: pd.DataFrame, treatment_period: int,
 
     # 1. Baseline specification.
     baseline = estimate_did(df, outcome_col, treatment_col, unit_col, time_col)
-    rows.append(RobustnessRow("Baseline (full sample)", baseline.att, baseline.se, baseline.n_obs))
+    rows.append(RobustnessRow(Msg("robustness.baseline"), baseline.att, baseline.se, baseline.n_obs))
 
     # 2. Alternative time windows symmetric around the treatment date.
     for window in (3, 5):
@@ -49,7 +50,7 @@ def run_robustness_battery(df: pd.DataFrame, treatment_period: int,
         if sub[time_col].nunique() < 2 or sub[treatment_col].nunique() < 2:
             continue
         res = estimate_did(sub, outcome_col, treatment_col, unit_col, time_col)
-        rows.append(RobustnessRow(f"Restricted window (±{window} periods)", res.att, res.se, res.n_obs))
+        rows.append(RobustnessRow(Msg("robustness.window", w=window), res.att, res.se, res.n_obs))
 
     # 3. Leave-one-treated-unit-out.
     treated_units = sorted(df.loc[df[treated_unit_col] == 1, unit_col].unique())
@@ -63,11 +64,11 @@ def run_robustness_battery(df: pd.DataFrame, treatment_period: int,
             continue
     if loo_atts:
         rows.append(RobustnessRow(
-            "Leave-one-treated-unit-out (range)",
+            Msg("robustness.loo"),
             att=sum(loo_atts) / len(loo_atts),
             se=float("nan"),  # a range of point estimates, not a sampling SE
             n_obs=len(loo_atts),
-            note=f"min={min(loo_atts):.3f}, max={max(loo_atts):.3f} across {len(loo_atts)} unit(s) dropped",
+            note=Msg("robustness.loo_note", lo=min(loo_atts), hi=max(loo_atts), n=len(loo_atts)),
         ))
 
     # 4. Drop control units directly adjacent to a treated unit
@@ -84,8 +85,8 @@ def run_robustness_battery(df: pd.DataFrame, treatment_period: int,
         sub = df[~df[unit_col].isin(adjacent_controls)]
         res = estimate_did(sub, outcome_col, treatment_col, unit_col, time_col)
         rows.append(RobustnessRow(
-            "Excluding spillover-adjacent controls", res.att, res.se, res.n_obs,
-            note=f"{len(adjacent_controls)} control unit(s) excluded",
+            Msg("robustness.adjacent"), res.att, res.se, res.n_obs,
+            note=Msg("robustness.adjacent_note", n=len(adjacent_controls)),
         ))
 
     return rows

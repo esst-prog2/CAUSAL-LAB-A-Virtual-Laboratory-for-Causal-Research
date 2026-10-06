@@ -22,6 +22,7 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import KFold
 
 from estimators.common import MethodResult, format_summary, normal_inference
+from utils.i18n import LocalizedError, Msg
 
 
 def _r2(actual: np.ndarray, predicted: np.ndarray) -> float:
@@ -33,13 +34,12 @@ def estimate_dml(df: pd.DataFrame, outcome_col: str = "Y", treatment_col: str = 
                  seed: int = 0) -> MethodResult:
     covariate_cols = list(covariate_cols or [])
     if not covariate_cols:
-        raise ValueError("DML requires at least one covariate.")
+        raise LocalizedError("err.needs_covariate", method=Msg("method.dml"))
     data = df[[outcome_col, treatment_col] + covariate_cols].dropna().astype(float)
     if len(data) < 10 * n_folds:
-        raise ValueError(f"DML needs at least {10 * n_folds} complete observations for {n_folds}-fold "
-                         f"cross-fitting (found {len(data)}).")
+        raise LocalizedError("err.dml_too_few", needed=10 * n_folds, folds=n_folds, found=len(data))
     if data[treatment_col].nunique() < 2:
-        raise ValueError(f"Treatment column '{treatment_col}' has no variation.")
+        raise LocalizedError("err.no_variation", column=treatment_col)
     y = data[outcome_col].to_numpy()
     d = data[treatment_col].to_numpy()
     x = data[covariate_cols].to_numpy()
@@ -68,12 +68,11 @@ def estimate_dml(df: pd.DataFrame, outcome_col: str = "Y", treatment_col: str = 
     warnings: list[str] = []
     r2_d = _r2(d, m_hat)
     if r2_d > 0.95:
-        warnings.append(f"The covariates predict the treatment almost perfectly (out-of-fold R2 = {r2_d:.3f}): "
-                        f"little independent treatment variation is left, so theta is weakly identified.")
+        warnings.append(Msg("warn.dml_weak", r2=r2_d))
 
     result = MethodResult(
-        method="Double Machine Learning",
-        estimand="theta (partially linear model)",
+        method="Double Machine Learning", key="dml",
+        estimand=Msg("estimand.dml"),
         estimate=theta, se=se, ci_low=ci_low, ci_high=ci_high, p_value=p_value,
         n_obs=len(y),
         details=dict(

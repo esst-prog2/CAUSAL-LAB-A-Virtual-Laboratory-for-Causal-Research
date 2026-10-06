@@ -4,6 +4,11 @@ One line per decision about this project — a requirement, a number, a name, a 
 
 ---
 
+- 2026-10-06: `complete-french-translation` done.
+  - Engine messages are `Msg` (a str whose value is the English text, rendered from en.json) and user-facing errors are `LocalizedError`.
+  - Every interface string goes through i18n; the locales grow from 77 to 663 keys, identical in EN and FR.
+  - Kept in English on purpose: generated code, the technical summary log (labelled as English), references, and user column names.
+  - Proof: `tests/test_i18n_coverage.py`, plus a scripted French audit of every page with data (0 raw keys, 0 English sentences outside code blocks). The audit also caught two real bugs, a shadowed `render` import and lazily evaluated language closures, both fixed — decided by: Claude
 - 2026-10-06: `fix-correctness-and-readme-gaps` results. Calibration spike re-run (n = 200 per scenario, each check paired with its own lever), false alarm on clean worlds / detection at severe:
   - Parallel Trends 14% / 100%
   - Anticipation 8% / 97%

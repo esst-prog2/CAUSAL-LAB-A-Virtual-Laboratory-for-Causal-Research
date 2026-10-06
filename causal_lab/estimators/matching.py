@@ -27,6 +27,7 @@ import statsmodels.api as sm
 
 from estimators.common import (MethodResult, format_summary, normal_inference,
                                require_binary, standardized_difference)
+from utils.i18n import LocalizedError, Msg
 
 N_BOOTSTRAP = 200
 
@@ -55,7 +56,7 @@ def estimate_matching(df: pd.DataFrame, outcome_col: str = "Y", treatment_col: s
                       covariate_cols: list[str] | None = None, seed: int = 0) -> MethodResult:
     covariate_cols = list(covariate_cols or [])
     if not covariate_cols:
-        raise ValueError("Matching requires at least one covariate.")
+        raise LocalizedError("err.needs_covariate", method=Msg("method.matching"))
     require_binary(df[treatment_col], treatment_col)
     data = df[[outcome_col, treatment_col] + covariate_cols].dropna().reset_index(drop=True)
     y = data[outcome_col].to_numpy(float)
@@ -64,7 +65,7 @@ def estimate_matching(df: pd.DataFrame, outcome_col: str = "Y", treatment_col: s
 
     t_idx, c_idx = np.flatnonzero(d == 1), np.flatnonzero(d == 0)
     if len(c_idx) < 2:
-        raise ValueError("Matching requires at least two control observations.")
+        raise LocalizedError("err.matching_two_controls")
     order = np.argsort(ps[c_idx])
     c_sorted, ps_c_sorted = c_idx[order], ps[c_idx][order]
 
@@ -112,15 +113,14 @@ def estimate_matching(df: pd.DataFrame, outcome_col: str = "Y", treatment_col: s
     warnings: list[str] = []
     outside = int(np.sum((ps[t_idx] > ps[c_idx].max()) | (ps[t_idx] < ps[c_idx].min())))
     if outside:
-        warnings.append(f"Overlap: {outside} treated observation(s) have a propensity score outside "
-                        f"the range of control propensity scores; their matches are poor.")
+        warnings.append(Msg("warn.overlap", n=outside))
     if np.any(np.abs(balance["std_diff_after"]) > 0.1):
-        warnings.append("Some covariates remain imbalanced after matching (|standardized difference| > 0.1).")
+        warnings.append(Msg("warn.imbalance_after_matching"))
 
     ci_low, ci_high, p_value = normal_inference(att, se)
     result = MethodResult(
-        method="Matching / Propensity Score",
-        estimand="ATT",
+        method="Matching / Propensity Score", key="matching",
+        estimand=Msg("estimand.att"),
         estimate=att, se=se, ci_low=ci_low, ci_high=ci_high, p_value=p_value,
         n_obs=len(data),
         details=dict(
@@ -129,9 +129,7 @@ def estimate_matching(df: pd.DataFrame, outcome_col: str = "Y", treatment_col: s
             n_treated=n1, n_control=len(c_idx), n_controls_used=int(np.sum(k_used > 0)),
             propensity=pd.DataFrame({"propensity": ps, "treated": d}),
             balance=balance,
-            notes="Abadie-Imbens SE ignores propensity-score estimation error; on the Matching virtual "
-                  "world it is conservative (about 30% too large, 100% CI coverage over 200 "
-                  "replications).",
+            notes=Msg("note.matching_se"),
         ),
         warnings=warnings,
     )

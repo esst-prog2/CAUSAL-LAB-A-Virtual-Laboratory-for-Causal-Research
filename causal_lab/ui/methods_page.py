@@ -9,7 +9,9 @@ the estimator and sees the estimate, its diagnostics and a
 method-specific plot.
 
 Per-method state lives in `st.session_state.method_data[method]`, so
-switching methods does not discard work done on another one.
+switching methods does not discard work done on another one. Every
+string goes through the i18n layer (keys methods.*, mparam.*, and the
+engines' own message keys).
 """
 from __future__ import annotations
 
@@ -30,12 +32,12 @@ from estimators.rdd import estimate_rdd
 from estimators.synthetic_control import estimate_synthetic_control
 from simulation_engine import method_worlds as mw
 from utils.column_mapping import METHOD_ROLES, prepare_mapped_frame, validate_mapping
+from utils.i18n import LocalizedError, render as render_message, tf
 
 
 @dataclass(frozen=True)
 class Param:
     field: str
-    label: str
     min_value: float
     max_value: float
     step: float
@@ -43,72 +45,51 @@ class Param:
 
 @dataclass(frozen=True)
 class MethodSpec:
-    label: str
-    assumption: str
     config_cls: type
     world: Callable
     params: tuple[Param, ...]
 
 
 METHODS: dict[str, MethodSpec] = {
-    "rct": MethodSpec(
-        "Randomized Controlled Trial",
-        "Treatment is randomly assigned, so treated and control groups are comparable in expectation "
-        "on observed and unobserved characteristics.",
-        mw.RCTWorldConfig, mw.rct_world,
-        (Param("n", "Sample size", 50, 20000, 50), Param("ate", "True ATE", -5.0, 5.0, 0.1),
-         Param("effect_heterogeneity", "Effect heterogeneity (sd)", 0.0, 3.0, 0.1),
-         Param("covariate_strength", "Covariate predictive power", 0.0, 3.0, 0.1),
-         Param("share_treated", "Share treated", 0.1, 0.9, 0.05)),
-    ),
-    "matching": MethodSpec(
-        "Matching / Propensity Score",
-        "Selection on observables: conditional on the covariates, treatment is as good as random, and "
-        "every treated unit has comparable controls (overlap).",
-        mw.MatchingWorldConfig, mw.matching_world,
-        (Param("n", "Sample size", 100, 20000, 100), Param("att", "True ATT", -5.0, 5.0, 0.1),
-         Param("confounding_strength", "Confounding strength", 0.0, 3.0, 0.1),
-         Param("effect_heterogeneity", "Effect heterogeneity", 0.0, 3.0, 0.1)),
-    ),
-    "iv": MethodSpec(
-        "Instrumental Variables",
-        "The instrument moves the treatment (relevance) and affects the outcome only through the "
-        "treatment (exclusion). Exclusion cannot be tested from the data.",
-        mw.IVWorldConfig, mw.iv_world,
-        (Param("n", "Sample size", 100, 20000, 100), Param("effect", "True effect", -5.0, 5.0, 0.1),
-         Param("instrument_strength", "Instrument strength", 0.0, 3.0, 0.05),
-         Param("endogeneity", "Endogeneity (unobserved confounding)", 0.0, 3.0, 0.1)),
-    ),
-    "rdd": MethodSpec(
-        "Regression Discontinuity",
-        "Treatment switches on when the running variable crosses a known cutoff, and units cannot "
-        "precisely manipulate which side they fall on; everything else varies smoothly at the cutoff.",
-        mw.RDDWorldConfig, mw.rdd_world,
-        (Param("n", "Sample size", 200, 50000, 100), Param("effect", "True jump at cutoff", -5.0, 5.0, 0.1),
-         Param("cutoff", "Cutoff", -5.0, 5.0, 0.1), Param("curvature", "Curvature of E[Y|X]", 0.0, 5.0, 0.1),
-         Param("noise_sd", "Noise (sd)", 0.05, 5.0, 0.05)),
-    ),
-    "synthetic_control": MethodSpec(
-        "Synthetic Control",
-        "Before treatment, a weighted average of untreated donor units reproduces the treated unit's "
-        "outcome path, and donors are not affected by the treatment.",
-        mw.SyntheticControlWorldConfig, mw.synthetic_control_world,
-        (Param("n_donors", "Donor units", 3, 80, 1), Param("n_periods", "Periods", 6, 100, 1),
-         Param("treatment_period", "First treated period", 2, 99, 1),
-         Param("effect", "True effect", -10.0, 10.0, 0.1), Param("noise_sd", "Noise (sd)", 0.0, 3.0, 0.05)),
-    ),
-    "dml": MethodSpec(
-        "Double Machine Learning",
-        "All confounders are observed among the covariates (unconfoundedness), possibly acting "
-        "non-linearly; the treatment effect is constant (partially linear model).",
-        mw.DMLWorldConfig, mw.dml_world,
-        (Param("n", "Sample size", 200, 10000, 100), Param("theta", "True theta", -5.0, 5.0, 0.1),
-         Param("n_covariates", "Covariates", 3, 50, 1),
-         Param("nonlinearity", "Non-linearity of confounding", 0.0, 3.0, 0.1)),
-    ),
+    "rct": MethodSpec(mw.RCTWorldConfig, mw.rct_world,
+                      (Param("n", 50, 20000, 50), Param("ate", -5.0, 5.0, 0.1),
+                       Param("effect_heterogeneity", 0.0, 3.0, 0.1), Param("covariate_strength", 0.0, 3.0, 0.1),
+                       Param("share_treated", 0.1, 0.9, 0.05))),
+    "matching": MethodSpec(mw.MatchingWorldConfig, mw.matching_world,
+                           (Param("n", 100, 20000, 100), Param("att", -5.0, 5.0, 0.1),
+                            Param("confounding_strength", 0.0, 3.0, 0.1),
+                            Param("effect_heterogeneity", 0.0, 3.0, 0.1))),
+    "iv": MethodSpec(mw.IVWorldConfig, mw.iv_world,
+                     (Param("n", 100, 20000, 100), Param("effect", -5.0, 5.0, 0.1),
+                      Param("instrument_strength", 0.0, 3.0, 0.05), Param("endogeneity", 0.0, 3.0, 0.1))),
+    "rdd": MethodSpec(mw.RDDWorldConfig, mw.rdd_world,
+                      (Param("n", 200, 50000, 100), Param("effect", -5.0, 5.0, 0.1), Param("cutoff", -5.0, 5.0, 0.1),
+                       Param("curvature", 0.0, 5.0, 0.1), Param("noise_sd", 0.05, 5.0, 0.05))),
+    "synthetic_control": MethodSpec(mw.SyntheticControlWorldConfig, mw.synthetic_control_world,
+                                    (Param("n_donors", 3, 80, 1), Param("n_periods", 6, 100, 1),
+                                     Param("treatment_period", 2, 99, 1), Param("effect", -10.0, 10.0, 0.1),
+                                     Param("noise_sd", 0.0, 3.0, 0.05))),
+    "dml": MethodSpec(mw.DMLWorldConfig, mw.dml_world,
+                      (Param("n", 200, 10000, 100), Param("theta", -5.0, 5.0, 0.1),
+                       Param("n_covariates", 3, 50, 1), Param("nonlinearity", 0.0, 3.0, 0.1))),
 }
 
 NO_COLUMN = "—"
+
+
+_LANG = "en"   # set at the start of each render; read by format_func closures
+
+
+def _lang() -> str:
+    return _LANG
+
+
+def F(key: str, **params) -> str:
+    return tf(key, _lang(), **params)
+
+
+def R(message) -> str:
+    return render_message(message, _lang())
 
 
 def _state(method: str) -> dict:
@@ -157,28 +138,28 @@ def _virtual_world_inputs(method: str, spec: MethodSpec, state: dict, L) -> None
         widget_args = dict(min_value=int(p.min_value) if is_int else float(p.min_value),
                            max_value=int(p.max_value) if is_int else float(p.max_value),
                            value=default, step=p.step, key=f"mw_{method}_{p.field}")
-        values[p.field] = cols[i % 3].number_input(p.label, **widget_args)
-    values["seed"] = int(st.number_input("Random seed", min_value=0, value=42, step=1, key=f"mw_{method}_seed"))
+        values[p.field] = cols[i % 3].number_input(L(f"mparam.{method}.{p.field}"), **widget_args)
+    values["seed"] = int(st.number_input(L("common.seed"), min_value=0, value=42, step=1, key=f"mw_{method}_seed"))
 
     if st.button(f"⚗️ {L('methods.generate')}", type="primary", key=f"mw_{method}_generate"):
         valid_fields = {f.name for f in fields(spec.config_cls)}
         try:
             df, truth = spec.world(spec.config_cls(**{k: v for k, v in values.items() if k in valid_fields}))
-        except ValueError as exc:
-            st.error(str(exc))
+        except LocalizedError as exc:
+            st.error(exc.render(_lang()))
             return
         state.update(df=df, truth=truth, mapping=dict(truth["roles"]), options=_virtual_options(method, truth),
                      source="virtual", result=None, error=None, dropped=0)
-        st.success(f"Generated {len(df)} rows. True effect ({truth['estimand']}) = {truth['true_effect']:.4f}")
+        st.success(F("methods.generated", rows=len(df), estimand=truth["estimand"], value=truth["true_effect"]))
 
 
 def _upload_inputs(method: str, state: dict, L) -> None:
-    uploaded = st.file_uploader("CSV file", type=["csv"], key=f"mw_{method}_upload")
+    uploaded = st.file_uploader(L("methods.csv_file"), type=["csv"], key=f"mw_{method}_upload")
     if uploaded is not None and uploaded.file_id != state["file_id"]:
         try:
             raw = pd.read_csv(uploaded)
         except Exception as exc:
-            st.error(f"Could not read file: {exc}")
+            st.error(F("common.read_error", error=exc))
             return
         state.update(raw=raw, file_id=uploaded.file_id, result=None, error=None)
     raw = state.get("raw")
@@ -191,34 +172,34 @@ def _upload_inputs(method: str, state: dict, L) -> None:
     cols = st.columns(2)
     for i, role in enumerate(METHOD_ROLES[method]):
         target = cols[i % 2]
+        label = R(role.label) + ("" if role.required else f" ({L('methods.optional')})")
         if role.multi:
-            mapping[role.key] = target.multiselect(role.label + ("" if role.required else " (optional)"),
-                                                   columns, key=f"mw_{method}_map_{role.key}")
+            mapping[role.key] = target.multiselect(label, columns, key=f"mw_{method}_map_{role.key}")
         else:
-            choice = target.selectbox(role.label, [NO_COLUMN] + columns, key=f"mw_{method}_map_{role.key}")
+            choice = target.selectbox(label, [NO_COLUMN] + columns, key=f"mw_{method}_map_{role.key}")
             mapping[role.key] = None if choice == NO_COLUMN else choice
 
     options: dict = {}
     if method == "rdd" and mapping.get("running") in raw.columns \
             and pd.api.types.is_numeric_dtype(raw[mapping["running"]]):
         running = raw[mapping["running"]].dropna()
-        options["cutoff"] = st.number_input("Cutoff", value=float(running.median()), key=f"mw_{method}_cutoff")
-        bw = st.number_input("Bandwidth (0 = automatic, Imbens-Kalyanaraman)", min_value=0.0, value=0.0,
-                             key=f"mw_{method}_bw")
+        options["cutoff"] = st.number_input(L("methods.cutoff"), value=float(running.median()),
+                                            key=f"mw_{method}_cutoff")
+        bw = st.number_input(L("methods.bandwidth"), min_value=0.0, value=0.0, key=f"mw_{method}_bw")
         options["bandwidth"] = bw or None
     if method == "synthetic_control" and mapping.get("unit") in raw.columns and mapping.get("period") in raw.columns:
         units = sorted(raw[mapping["unit"]].dropna().unique().tolist(), key=str)
         periods = sorted(raw[mapping["period"]].dropna().unique().tolist())
         c1, c2 = st.columns(2)
-        options["treated_unit"] = c1.selectbox("Treated unit", units, key=f"mw_{method}_treated")
-        options["treatment_period"] = c2.selectbox("First treated period", periods,
+        options["treated_unit"] = c1.selectbox(L("methods.treated_unit"), units, key=f"mw_{method}_treated")
+        options["treatment_period"] = c2.selectbox(L("methods.first_treated_period"), periods,
                                                    index=len(periods) // 2, key=f"mw_{method}_tperiod")
 
-    problems = validate_mapping(raw, method, mapping)
+    problems = [R(p) for p in validate_mapping(raw, method, mapping)]
     if method == "rdd" and "cutoff" not in options:
-        problems.append("Running variable: select a numeric column to set the cutoff.")
+        problems.append(L("methods.need_running"))
     if method == "synthetic_control" and "treated_unit" not in options:
-        problems.append("Unit / Period: select both columns to choose the treated unit and period.")
+        problems.append(L("methods.need_unit_period"))
     if problems:
         for p in problems:
             st.error(p)
@@ -230,7 +211,7 @@ def _upload_inputs(method: str, state: dict, L) -> None:
     df, dropped = prepare_mapped_frame(raw, method, mapping)
     state.update(df=df, truth=None, mapping=mapping, options=options, source="upload", dropped=dropped)
     if dropped:
-        st.info(f"{dropped} row(s) with missing values in the mapped columns were dropped.")
+        st.info(F("methods.dropped", n=dropped))
 
 
 # --------------------------------------------------------------------------
@@ -238,32 +219,32 @@ def _upload_inputs(method: str, state: dict, L) -> None:
 # --------------------------------------------------------------------------
 def _metrics(result: MethodResult, truth: dict | None, L) -> None:
     c1, c2, c3 = st.columns(3)
-    c1.metric(f"Estimate ({result.estimand})", f"{result.estimate:.4f}")
+    c1.metric(F("methods.estimate_of", estimand=R(result.estimand)), f"{result.estimate:.4f}")
     if result.se is not None:
-        c2.metric("Std. error", f"{result.se:.4f}")
-        c3.metric("95% CI", f"[{result.ci_low:.3f}, {result.ci_high:.3f}]")
+        c2.metric(L("methods.std_error"), f"{result.se:.4f}")
+        c3.metric(L("common.ci95"), f"[{result.ci_low:.3f}, {result.ci_high:.3f}]")
     else:
-        c2.metric("Std. error", "—")
-        c3.metric("Placebo p-value", f"{result.p_value:.3f}")
+        c2.metric(L("methods.std_error"), "—")
+        c3.metric(L("methods.placebo_p"), f"{result.p_value:.3f}")
     if truth is not None:
         st.markdown(f"#### {L('methods.truth')}")
         c1, c2, c3 = st.columns(3)
-        c1.metric("Estimate", f"{result.estimate:.4f}")
-        c2.metric("True effect", f"{truth['true_effect']:.4f}")
-        c3.metric("Bias", f"{result.estimate - truth['true_effect']:+.4f}")
+        c1.metric(L("common.estimate"), f"{result.estimate:.4f}")
+        c2.metric(L("methods.true_effect"), f"{truth['true_effect']:.4f}")
+        c3.metric(L("common.bias"), f"{result.estimate - truth['true_effect']:+.4f}")
     for w in result.warnings:
-        st.warning(w)
+        st.warning(R(w))
 
 
-def _balance_chart(balance: pd.DataFrame, columns: list[tuple[str, str]]) -> go.Figure:
+def _balance_chart(balance: pd.DataFrame, columns: list[tuple[str, str]], L) -> go.Figure:
     fig = go.Figure()
     for col, name in columns:
         fig.add_trace(go.Scatter(x=balance[col], y=balance["covariate"], mode="markers",
                                  marker=dict(size=11), name=name))
     for x in (-0.1, 0.1):
         fig.add_vline(x=x, line_dash="dot", line_color="gray")
-    fig.update_layout(title="Covariate balance (standardized mean difference)",
-                      xaxis_title="Standardized difference", height=320, margin=dict(t=50, b=30))
+    fig.update_layout(title=L("methods.balance_title"), xaxis_title=L("methods.std_diff"),
+                      height=320, margin=dict(t=50, b=30))
     return fig
 
 
@@ -272,123 +253,132 @@ def _binned(x: pd.Series, y: pd.Series, n_bins: int = 20) -> pd.DataFrame:
     return pd.DataFrame({"x": x, "y": y}).groupby(bins, observed=True).mean()
 
 
-def _plots(method: str, result: MethodResult, state: dict) -> None:
+def _comparison_chart(result: MethodResult, name: str, other: float, other_se: float, other_name: str,
+                      truth: dict | None, L) -> go.Figure:
+    fig = go.Figure(go.Scatter(
+        x=[result.estimate, other], y=[name, other_name], mode="markers", marker=dict(size=12),
+        error_x=dict(type="data", array=[1.96 * result.se, 1.96 * other_se], visible=True)))
+    if truth is not None:
+        fig.add_vline(x=truth["true_effect"], line_dash="dash", line_color="green",
+                      annotation_text=L("methods.true_effect"))
+    fig.update_layout(title=L("methods.estimate_ci"), xaxis_title=L("methods.effect"), height=260,
+                      margin=dict(t=50, b=30))
+    return fig
+
+
+def _translated_table(df: pd.DataFrame, L) -> pd.DataFrame:
+    """Rename the engines' technical column names for display."""
+    return df.rename(columns=lambda c: L(f"col.{c}"))
+
+
+def _plots(method: str, result: MethodResult, state: dict, L) -> None:
     d = result.details
     df, m = state["df"], state["mapping"]
-    truth = state["truth"]
+    truth = state["truth"] if state["source"] == "virtual" else None
     if method == "rct":
         if len(d["balance"]):
-            st.plotly_chart(_balance_chart(d["balance"], [("std_diff", "Treated vs control")]),
+            st.plotly_chart(_balance_chart(d["balance"], [("std_diff", L("methods.treated_vs_control"))], L),
                             width="stretch")
-            st.dataframe(d["balance"].round(4), width="stretch")
-        st.caption(f"Difference in means = {d['difference_in_means']:.4f} (SE {d['difference_in_means_se']:.4f}); "
-                   f"{d['n_treated']} treated, {d['n_control']} control.")
+            st.dataframe(_translated_table(d["balance"].round(4), L), width="stretch")
+        st.caption(F("methods.rct_caption", dim=d["difference_in_means"], se=d["difference_in_means_se"],
+                     treated=d["n_treated"], control=d["n_control"]))
     elif method == "matching":
         c1, c2 = st.columns(2)
         ps = d["propensity"]
         fig = go.Figure()
-        for flag, name in ((1, "Treated"), (0, "Control")):
+        for flag, name in ((1, L("methods.treated")), (0, L("methods.control"))):
             fig.add_trace(go.Histogram(x=ps.loc[ps["treated"] == flag, "propensity"], name=name,
                                        opacity=0.6, nbinsx=40, histnorm="probability density"))
-        fig.update_layout(barmode="overlay", title="Propensity-score overlap",
-                          xaxis_title="Propensity score", height=320, margin=dict(t=50, b=30))
+        fig.update_layout(barmode="overlay", title=L("methods.overlap_title"),
+                          xaxis_title=L("methods.propensity"), height=320, margin=dict(t=50, b=30))
         c1.plotly_chart(fig, width="stretch")
-        c2.plotly_chart(_balance_chart(d["balance"], [("std_diff_before", "Before matching"),
-                                                      ("std_diff_after", "After matching")]),
+        c2.plotly_chart(_balance_chart(d["balance"], [("std_diff_before", L("methods.before_matching")),
+                                                      ("std_diff_after", L("methods.after_matching"))], L),
                         width="stretch")
         c1, c2, c3 = st.columns(3)
-        c1.metric("IPW ATT", f"{d['ipw_att']:.4f}", help=f"Bootstrap SE {d['ipw_se']:.4f}")
-        c2.metric("Naive difference in means", f"{d['naive_difference']:.4f}")
-        c3.metric("Distinct controls used", d["n_controls_used"])
-        st.caption(d["notes"])
+        c1.metric(L("methods.ipw_att"), f"{d['ipw_att']:.4f}", help=F("methods.bootstrap_se", se=d["ipw_se"]))
+        c2.metric(L("methods.naive_difference"), f"{d['naive_difference']:.4f}")
+        c3.metric(L("methods.controls_used"), d["n_controls_used"])
+        st.caption(R(d["notes"]))
     elif method == "iv":
         z = m["instruments"][0]
         first = _binned(df[z], df[m["treatment"]])
         fig = go.Figure(go.Scatter(x=first["x"], y=first["y"], mode="markers+lines"))
-        fig.update_layout(title=f"First stage: mean of {m['treatment']} by {z}", xaxis_title=z,
-                          yaxis_title=m["treatment"], height=320, margin=dict(t=50, b=30))
+        fig.update_layout(title=F("methods.first_stage_title", treatment=m["treatment"], instrument=z),
+                          xaxis_title=z, yaxis_title=m["treatment"], height=320, margin=dict(t=50, b=30))
         c1, c2 = st.columns(2)
         c1.plotly_chart(fig, width="stretch")
-        c2.plotly_chart(_comparison_chart(result, "2SLS", d["ols_estimate"], d["ols_se"], "Naive OLS", truth),
-                        width="stretch")
-        st.caption(f"First-stage F = {d['first_stage_f']:.2f}, partial R² = {d['partial_r2']:.3f}. "
-                   f"Exclusion restriction cannot be tested from the data.")
+        c2.plotly_chart(_comparison_chart(result, "2SLS", d["ols_estimate"], d["ols_se"], L("methods.naive_ols"),
+                                          truth, L), width="stretch")
+        st.caption(F("methods.iv_caption", f=d["first_stage_f"], r2=d["partial_r2"]))
     elif method == "rdd":
         plot = d["plot_data"]
         cutoff, h = d["cutoff"], d["bandwidth"]
         fig = go.Figure()
-        for side, mask in (("below", plot["x"] < cutoff), ("above", plot["x"] >= cutoff)):
+        for side, mask in ((L("methods.below"), plot["x"] < cutoff), (L("methods.above"), plot["x"] >= cutoff)):
             b = _binned(plot.loc[mask, "x"], plot.loc[mask, "y"])
-            fig.add_trace(go.Scatter(x=b["x"], y=b["y"], mode="markers", name=f"Binned means ({side})",
-                                     marker=dict(size=8)))
+            fig.add_trace(go.Scatter(x=b["x"], y=b["y"], mode="markers", marker=dict(size=8),
+                                     name=F("methods.binned_means", side=side)))
         for key, lo, hi in (("fit_left", cutoff - h, cutoff), ("fit_right", cutoff, cutoff + h)):
             xs = np.linspace(lo, hi, 50)
             fit = d[key]
             fig.add_trace(go.Scatter(x=xs, y=fit["intercept"] + fit["slope"] * (xs - cutoff), mode="lines",
-                                     line=dict(width=3), name="Local linear fit", showlegend=key == "fit_left"))
-        fig.add_vline(x=cutoff, line_dash="dash", line_color="red", annotation_text="Cutoff")
-        fig.update_layout(title="Outcome against the running variable", xaxis_title=m["running"],
-                          yaxis_title=m["outcome"], height=420, margin=dict(t=50, b=30))
+                                     line=dict(width=3), name=L("methods.local_linear_fit"),
+                                     showlegend=key == "fit_left"))
+        fig.add_vline(x=cutoff, line_dash="dash", line_color="red", annotation_text=L("methods.cutoff"))
+        fig.update_layout(title=L("methods.rdd_title"), xaxis_title=m["running"], yaxis_title=m["outcome"],
+                          height=420, margin=dict(t=50, b=30))
         st.plotly_chart(fig, width="stretch")
-        st.markdown("**Bandwidth sensitivity**")
-        st.dataframe(d["sensitivity"].round(4), width="stretch")
+        st.markdown(f"**{L('methods.bandwidth_sensitivity')}**")
+        st.dataframe(_translated_table(d["sensitivity"].round(4), L), width="stretch")
         man = d["manipulation"]
-        st.caption(f"Bandwidth rule: {d['bandwidth_rule']}. Manipulation check: {man['count_below']} obs just "
-                   f"below vs {man['count_above']} just above the cutoff (p = {man['p_value']:.3f}). {d['notes']}")
+        rule = L("methods.rule_user") if d["bandwidth_rule"] == "user" else d["bandwidth_rule"]
+        st.caption(F("methods.rdd_caption", rule=rule, below=man["count_below"], above=man["count_above"],
+                     p=man["p_value"], notes=R(d["notes"])))
     elif method == "synthetic_control":
         paths, tp = d["paths"], d["treatment_period"]
         c1, c2 = st.columns(2)
-        fig = go.Figure([go.Scatter(x=paths["period"], y=paths["treated"], name=f"{d['treated_unit']}"),
-                         go.Scatter(x=paths["period"], y=paths["synthetic"], name="Synthetic",
+        fig = go.Figure([go.Scatter(x=paths["period"], y=paths["treated"], name=str(d["treated_unit"])),
+                         go.Scatter(x=paths["period"], y=paths["synthetic"], name=L("methods.synthetic"),
                                     line=dict(dash="dash"))])
-        fig.add_vline(x=tp - 0.5, line_dash="dot", line_color="red", annotation_text="Treatment")
-        fig.update_layout(title="Treated vs synthetic control", height=360, margin=dict(t=50, b=30))
+        fig.add_vline(x=tp - 0.5, line_dash="dot", line_color="red", annotation_text=L("common.treatment"))
+        fig.update_layout(title=L("methods.sc_paths_title"), height=360, margin=dict(t=50, b=30))
         c1.plotly_chart(fig, width="stretch")
         fig = go.Figure()
         for donor, gaps in d["placebo_gaps"].items():
             fig.add_trace(go.Scatter(x=paths["period"], y=gaps, mode="lines", showlegend=False,
                                      line=dict(color="lightgray", width=1)))
-        fig.add_trace(go.Scatter(x=paths["period"], y=paths["gap"], name="Treated gap",
+        fig.add_trace(go.Scatter(x=paths["period"], y=paths["gap"], name=L("methods.treated_gap"),
                                  line=dict(color="crimson", width=3)))
         fig.add_vline(x=tp - 0.5, line_dash="dot", line_color="red")
-        fig.update_layout(title="Gap: treated vs placebo donors", height=360, margin=dict(t=50, b=30))
+        fig.update_layout(title=L("methods.sc_gaps_title"), height=360, margin=dict(t=50, b=30))
         c2.plotly_chart(fig, width="stretch")
-        st.markdown("**Donor weights**")
-        st.dataframe(d["weights"][d["weights"]["weight"] > 1e-3].round(4), width="stretch")
-        st.caption(f"Pre-treatment RMSPE = {d['pre_rmspe']:.4f}; post/pre RMSPE ratio = {d['rmspe_ratio']:.2f}; "
-                   f"placebo p-value over {d['n_donors'] + 1} units.")
+        st.markdown(f"**{L('methods.donor_weights')}**")
+        st.dataframe(_translated_table(d["weights"][d["weights"]["weight"] > 1e-3].round(4), L), width="stretch")
+        st.caption(F("methods.sc_caption", pre=d["pre_rmspe"], ratio=d["rmspe_ratio"], units=d["n_donors"] + 1))
     elif method == "dml":
         st.plotly_chart(_comparison_chart(result, "DML", d["ols_estimate"], d["ols_se"],
-                                          "Naive OLS (linear controls)", truth), width="stretch")
+                                          L("methods.naive_ols_linear"), truth, L), width="stretch")
         c1, c2 = st.columns(2)
-        c1.metric("Out-of-fold R² — outcome model", f"{d['r2_outcome']:.3f}")
-        c2.metric("Out-of-fold R² — treatment model", f"{d['r2_treatment']:.3f}")
-        st.caption(f"{d['n_folds']}-fold cross-fitting with {d['learner']}.")
-
-
-def _comparison_chart(result: MethodResult, name: str, other: float, other_se: float, other_name: str,
-                      truth: dict | None) -> go.Figure:
-    fig = go.Figure(go.Scatter(
-        x=[result.estimate, other], y=[name, other_name], mode="markers", marker=dict(size=12),
-        error_x=dict(type="data", array=[1.96 * result.se, 1.96 * other_se], visible=True)))
-    if truth is not None:
-        fig.add_vline(x=truth["true_effect"], line_dash="dash", line_color="green", annotation_text="True effect")
-    fig.update_layout(title="Estimate with 95% CI", xaxis_title="Effect", height=260, margin=dict(t=50, b=30))
-    return fig
+        c1.metric(L("methods.r2_outcome"), f"{d['r2_outcome']:.3f}")
+        c2.metric(L("methods.r2_treatment"), f"{d['r2_treatment']:.3f}")
+        st.caption(F("methods.dml_caption", folds=d["n_folds"], learner=d["learner"]))
 
 
 # --------------------------------------------------------------------------
 # Page
 # --------------------------------------------------------------------------
 def render(L) -> None:
+    global _LANG
+    _LANG = st.session_state.get("lang", "en")
     st.title(f"🧭 {L('methods.title')}")
     st.caption(L("methods.intro"))
 
-    method = st.selectbox(L("methods.choose"), list(METHODS), format_func=lambda k: METHODS[k].label,
+    method = st.selectbox(L("methods.choose"), list(METHODS), format_func=lambda k: L(f"method.{k}"),
                           key="methods_choice")
     spec = METHODS[method]
     state = _state(method)
-    st.info(f"**{L('methods.assumption')}:** {spec.assumption}")
+    st.info(f"**{L('methods.assumption')}:** {L(f'methods.assumption.{method}')}")
 
     source = st.radio(L("methods.source"), ["virtual", "upload"], horizontal=True, key=f"mw_{method}_source",
                       format_func=lambda s: L("methods.source_virtual") if s == "virtual" else L("methods.source_upload"))
@@ -399,23 +389,26 @@ def render(L) -> None:
 
     if state["df"] is None or state["source"] != source:
         return
-    with st.expander(f"Data preview ({len(state['df'])} rows)"):
+    with st.expander(F("methods.preview", rows=len(state["df"]))):
         st.dataframe(state["df"].head(20), width="stretch")
 
     if st.button(f"▶️ {L('methods.estimate')}", type="primary", key=f"mw_{method}_run"):
-        with st.spinner("Estimating..."):
+        with st.spinner(L("methods.estimating")):
             try:
                 state.update(result=_run_estimator(method, state["df"], state["mapping"], state["options"]),
                              error=None)
+            except LocalizedError as exc:
+                state.update(result=None, error=exc.msg)
             except ValueError as exc:
                 state.update(result=None, error=str(exc))
 
     if state["error"]:
-        st.error(state["error"])
+        st.error(R(state["error"]))
     result = state["result"]
     if result is None:
         return
     st.divider()
     _metrics(result, state["truth"] if state["source"] == "virtual" else None, L)
-    _plots(method, result, state)
-    st.code(result.summary_text, language="text")
+    _plots(method, result, state, L)
+    with st.expander(L("methods.technical_summary")):
+        st.code(result.summary_text, language="text")

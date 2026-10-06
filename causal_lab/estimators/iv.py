@@ -19,6 +19,7 @@ import statsmodels.api as sm
 from linearmodels.iv import IV2SLS
 
 from estimators.common import MethodResult, format_summary
+from utils.i18n import LocalizedError, Msg
 
 WEAK_INSTRUMENT_F = 10.0
 
@@ -29,10 +30,10 @@ def estimate_iv(df: pd.DataFrame, outcome_col: str = "Y", treatment_col: str = "
     instrument_cols = list(instrument_cols or [])
     control_cols = list(control_cols or [])
     if not instrument_cols:
-        raise ValueError("IV requires at least one instrument.")
+        raise LocalizedError("err.iv_needs_instrument")
     data = df[[outcome_col, treatment_col] + instrument_cols + control_cols].dropna().astype(float)
     if data[treatment_col].nunique() < 2:
-        raise ValueError(f"Treatment column '{treatment_col}' has no variation.")
+        raise LocalizedError("err.no_variation", column=treatment_col)
 
     exog = sm.add_constant(data[control_cols], has_constant="add")
     fitted = IV2SLS(data[outcome_col], exog, data[[treatment_col]], data[instrument_cols]).fit(cov_type="robust")
@@ -52,12 +53,11 @@ def estimate_iv(df: pd.DataFrame, outcome_col: str = "Y", treatment_col: str = "
 
     warnings: list[str] = []
     if first_stage_f < WEAK_INSTRUMENT_F:
-        warnings.append(f"Weak instrument: first-stage F = {first_stage_f:.1f} < {WEAK_INSTRUMENT_F:.0f}. "
-                        f"2SLS is biased toward OLS and its confidence interval is unreliable.")
+        warnings.append(Msg("warn.weak_instrument", f=first_stage_f, threshold=WEAK_INSTRUMENT_F))
 
     result = MethodResult(
-        method="Instrumental Variables (2SLS)",
-        estimand="LATE / effect of D",
+        method="Instrumental Variables (2SLS)", key="iv",
+        estimand=Msg("estimand.iv"),
         estimate=estimate, se=se, ci_low=float(ci["lower"]), ci_high=float(ci["upper"]),
         p_value=float(fitted.pvalues[treatment_col]),
         n_obs=int(fitted.nobs),

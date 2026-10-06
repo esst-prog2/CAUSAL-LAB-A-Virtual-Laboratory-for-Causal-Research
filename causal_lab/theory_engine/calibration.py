@@ -24,11 +24,12 @@ import numpy as np
 import pandas as pd
 
 from theory_engine.game import Game, solve_equilibrium
+from utils.i18n import LocalizedError, Msg
 
 STATISTICS = ("mean", "median", "sd", "min", "max", "sum", "count")
 
 
-class CalibrationError(ValueError):
+class CalibrationError(LocalizedError):
     pass
 
 
@@ -44,49 +45,51 @@ class ParameterSource:
     x: str | None = None
     coefficient: str = "slope"               # slope | intercept
 
-    def describe(self) -> str:
+    def describe(self) -> Msg:
         if self.kind == "manual":
-            return f"manual = {self.value}"
+            return Msg("source.manual", value=self.value)
         if self.kind == "statistic":
-            where = f" where {self.filter_column} == {self.filter_value!r}" if self.filter_column else ""
-            return f"{self.statistic}({self.column}){where}"
-        return f"{self.coefficient} of OLS {self.y} ~ {self.x}"
+            if self.filter_column:
+                return Msg("source.statistic_filtered", stat=Msg(f"stat.{self.statistic}"), column=self.column,
+                           filter=self.filter_column, value=self.filter_value)
+            return Msg("source.statistic", stat=Msg(f"stat.{self.statistic}"), column=self.column)
+        return Msg("source.regression", coef=Msg(f"coef.{self.coefficient}"), y=self.y, x=self.x)
 
 
 def _numeric(df: pd.DataFrame, column: str | None, name: str) -> pd.Series:
     if column is None or column not in df.columns:
-        raise CalibrationError(f"Parameter '{name}': column '{column}' is not in the data.")
+        raise CalibrationError("err.cal_missing_column", name=name, column=column)
     if not pd.api.types.is_numeric_dtype(df[column]):
-        raise CalibrationError(f"Parameter '{name}': column '{column}' is not numeric.")
+        raise CalibrationError("err.cal_not_numeric", name=name, column=column)
     return df[column]
 
 
 def compute_parameter(df: pd.DataFrame | None, source: ParameterSource, name: str) -> float:
     if source.kind == "manual":
         if source.value is None:
-            raise CalibrationError(f"Parameter '{name}': no value given.")
+            raise CalibrationError("err.cal_no_value", name=name)
         return float(source.value)
     if df is None:
-        raise CalibrationError(f"Parameter '{name}': a data source is required for '{source.kind}'.")
+        raise CalibrationError("err.cal_needs_data", name=name)
 
     if source.kind == "statistic":
         data = df
         if source.filter_column:
             if source.filter_column not in df.columns:
-                raise CalibrationError(f"Parameter '{name}': filter column '{source.filter_column}' is not in the data.")
+                raise CalibrationError("err.cal_missing_filter", name=name, column=source.filter_column)
             data = df[df[source.filter_column].astype(str) == str(source.filter_value)]
             if data.empty:
-                raise CalibrationError(f"Parameter '{name}': no rows where {source.filter_column} == "
-                                       f"{source.filter_value!r}.")
+                raise CalibrationError("err.cal_no_rows", name=name, column=source.filter_column,
+                                       value=source.filter_value)
         if source.statistic == "count":
             return float(len(data))
         series = _numeric(data, source.column, name).dropna()
         if series.empty:
-            raise CalibrationError(f"Parameter '{name}': column '{source.column}' has no values here.")
+            raise CalibrationError("err.cal_empty", name=name, column=source.column)
         stat = {"mean": series.mean, "median": series.median, "sd": lambda: series.std(ddof=1),
                 "min": series.min, "max": series.max, "sum": series.sum}.get(source.statistic)
         if stat is None:
-            raise CalibrationError(f"Parameter '{name}': unknown statistic '{source.statistic}'.")
+            raise CalibrationError("err.cal_unknown_stat", name=name, stat=source.statistic)
         return float(stat())
 
     if source.kind == "regression":
@@ -94,11 +97,11 @@ def compute_parameter(df: pd.DataFrame | None, source: ParameterSource, name: st
         x = _numeric(df, source.x, name)
         mask = y.notna() & x.notna()
         if mask.sum() < 3 or x[mask].nunique() < 2:
-            raise CalibrationError(f"Parameter '{name}': not enough variation to regress {source.y} on {source.x}.")
+            raise CalibrationError("err.cal_regression", name=name, y=source.y, x=source.x)
         slope, intercept = np.polyfit(x[mask].to_numpy(float), y[mask].to_numpy(float), 1)
         return float(slope if source.coefficient == "slope" else intercept)
 
-    raise CalibrationError(f"Parameter '{name}': unknown source kind '{source.kind}'.")
+    raise CalibrationError("err.cal_unknown_kind", name=name, kind=source.kind)
 
 
 def calibrate(df: pd.DataFrame | None, sources: dict[str, ParameterSource]) -> dict[str, float]:
@@ -131,7 +134,7 @@ def solve_by_scope(game: Game, df: pd.DataFrame | None, sources: dict[str, Param
         units = [("All data", df)]
     else:
         if not scope_column or scope_column not in df.columns:
-            raise CalibrationError(f"Scope '{scope}' needs a column present in the data.")
+            raise CalibrationError("err.cal_scope", scope=scope)
         keys = sorted(df[scope_column].dropna().unique(), key=lambda v: (isinstance(v, str), v))
         units = [(k, df[df[scope_column] == k]) for k in keys]
 
@@ -142,13 +145,16 @@ def solve_by_scope(game: Game, df: pd.DataFrame | None, sources: dict[str, Param
         try:
             values = calibrate(subset, sources)
         except CalibrationError as exc:
-            rows.append({**row, "status": str(exc)})
+            rows.append({**row, "status": exc.msg})
             continue
         row.update({f"param:{k}": v for k, v in values.items()})
         try:
             result = solve_equilibrium(game, values, start=previous) if previous else solve_equilibrium(game, values)
             if not result.found and previous:
                 result = solve_equilibrium(game, values)
+        except LocalizedError as exc:
+            rows.append({**row, "status": exc.msg})
+            continue
         except ValueError as exc:
             rows.append({**row, "status": str(exc)})
             continue
@@ -159,7 +165,7 @@ def solve_by_scope(game: Game, df: pd.DataFrame | None, sources: dict[str, Param
         previous = eq.strategies
         row.update({f"strategy:{k}": v for k, v in eq.strategies.items()})
         row.update({f"outcome:{k}": v for k, v in eq.outcomes.items()})
-        row["status"] = "verified" if eq.verified else "unverified"
+        row["status"] = Msg("status.verified") if eq.verified else Msg("status.unverified")
         row["n_equilibria"] = len(result.equilibria)
         rows.append(row)
     return pd.DataFrame(rows)

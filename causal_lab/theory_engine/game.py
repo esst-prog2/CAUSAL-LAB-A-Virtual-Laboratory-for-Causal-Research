@@ -28,6 +28,8 @@ import sympy as sp
 from scipy.optimize import minimize_scalar
 from sympy.parsing.sympy_parser import convert_xor, parse_expr, standard_transformations
 
+from utils.i18n import LocalizedError, Msg
+
 PENALTY = -1e300                 # stands in for -inf / undefined utility values
 GRID_BR = 64                     # grid points for a best response
 GRID_VERIFY = 400                # grid points for the deviation check
@@ -64,7 +66,7 @@ class Game:
         merged = {**self.parameters, **(values or {})}
         unknown = set(merged) - set(self.symbols)
         if unknown:
-            raise ValueError(f"Unknown parameter(s): {sorted(unknown)}")
+            raise LocalizedError("err.game_unknown_params", names=", ".join(sorted(unknown)))
         return {self.symbols[k]: float(v) for k, v in merged.items()}
 
 
@@ -81,7 +83,7 @@ class Equilibrium:
 @dataclass
 class SolveResult:
     equilibria: list[Equilibrium]
-    message: str = ""
+    message: Msg | str = ""
 
     @property
     def found(self) -> bool:
@@ -148,8 +150,7 @@ class _NumericGame:
         for a in game.agents:
             lo, hi = float(a.lower.subs(subs)), float(a.upper.subs(subs))
             if not (np.isfinite(lo) and np.isfinite(hi)) or lo >= hi:
-                raise ValueError(f"Strategy bounds of agent '{a.name}' are invalid for these parameter "
-                                 f"values: [{lo:g}, {hi:g}].")
+                raise LocalizedError("err.game_bounds", agent=a.name, lo=lo, hi=hi)
             self.bounds.append((lo, hi))
         self.outcome_fns = {k: _safe(sp.lambdify(syms, e.subs(subs), modules="numpy"))
                             for k, e in game.outcomes.items()}
@@ -242,8 +243,8 @@ def solve_equilibrium(game: Game, values: dict[str, float] | None = None, n_star
         s = np.array([float(game.closed_form[str(a.strategy)].subs(subs)) for a in game.agents])
         eq = num.equilibrium(s, "closed form")
         if eq.verified:
-            return SolveResult([eq], "Closed-form equilibrium (verified against unilateral deviations).")
-        return SolveResult([], "The closed-form profile failed the deviation check at these parameter values.")
+            return SolveResult([eq], Msg("solve.closed_form"))
+        return SolveResult([], Msg("solve.closed_form_failed"))
 
     rng = np.random.default_rng(seed)
     lows = np.array([b[0] for b in num.bounds])
@@ -266,9 +267,8 @@ def solve_equilibrium(game: Game, values: dict[str, float] | None = None, n_star
         if all(np.max(np.abs(vec - np.array(list(f.strategies.values()))) / num.scale) > 1e-4 for f in found):
             found.append(eq)
     if not found:
-        return SolveResult([], "No pure-strategy Nash equilibrium was found: best-response iteration did not "
-                               "reach a profile without profitable unilateral deviations.")
-    msg = "Unique equilibrium found." if len(found) == 1 else f"{len(found)} distinct equilibria found."
+        return SolveResult([], Msg("solve.none"))
+    msg = Msg("solve.unique") if len(found) == 1 else Msg("solve.several", n=len(found))
     return SolveResult(found, msg)
 
 
@@ -306,30 +306,31 @@ _GLOBALS = {"Integer": sp.Integer, "Float": sp.Float, "Rational": sp.Rational, "
 
 def _check_tokens(text: str, allowed_names: set[str], where: str) -> None:
     if not text.strip():
-        raise ValueError(f"{where}: the expression is empty.")
+        raise LocalizedError("err.expr_empty", where=where)
     for bad in ("__", "[", "]", "'", '"', "lambda", ";", ":", "\\"):
         if bad in text:
-            raise ValueError(f"{where}: '{bad}' is not allowed in an expression.")
+            raise LocalizedError("err.expr_forbidden", where=where, token=bad)
     pos = 0
     while pos < len(text):
         m = _TOKEN.match(text, pos)
         if not m or m.end() == pos:
             if text[pos:].strip() == "":
                 break
-            raise ValueError(f"{where}: unexpected character '{text[pos:].strip()[0]}'.")
+            raise LocalizedError("err.expr_char", where=where, char=text[pos:].strip()[0])
         name = m.group("name")
         if name is not None and name not in allowed_names and name not in ALLOWED_FUNCTIONS:
-            raise ValueError(f"{where}: unknown name '{name}' (declare it as a parameter or strategy).")
+            raise LocalizedError("err.expr_unknown_name", where=where, name=name)
         pos = m.end()
 
 
-def parse_expression(text: str, symbols: dict[str, sp.Symbol], where: str = "Expression") -> sp.Expr:
+def parse_expression(text: str, symbols: dict[str, sp.Symbol], where: str = "") -> sp.Expr:
+    where = where or Msg("where.expression")
     _check_tokens(text, set(symbols), where)
     try:
         expr = parse_expr(text, local_dict={**symbols, **ALLOWED_FUNCTIONS}, global_dict=dict(_GLOBALS),
                           transformations=standard_transformations + (convert_xor,))
     except Exception as exc:          # syntax errors from the tokenizer-approved text
-        raise ValueError(f"{where}: could not parse the expression ({exc}).") from None
+        raise LocalizedError("err.expr_parse", where=where, error=str(exc)) from None
     return sp.sympify(expr)
 
 
@@ -338,13 +339,13 @@ def build_custom_game(name: str, parameters: dict[str, float], agents: list[dict
     """Build a Game from user text. `agents` items have keys
     name, strategy, lower, upper, utility (strings)."""
     if len(agents) < 1:
-        raise ValueError("Declare at least one agent.")
+        raise LocalizedError("err.game_no_agent")
     names = list(parameters) + [a["strategy"].strip() for a in agents]
     for n in names:
         if not _NAME.match(n) or "__" in n or n in ALLOWED_FUNCTIONS:
-            raise ValueError(f"'{n}' is not a valid parameter or strategy name.")
+            raise LocalizedError("err.game_bad_name", name=n)
     if len(set(names)) != len(names):
-        raise ValueError("Parameter and strategy names must all be distinct.")
+        raise LocalizedError("err.game_duplicate_names")
 
     param_syms = {k: sp.Symbol(k, real=True) for k in parameters}
     strat_syms = {a["strategy"].strip(): sp.Symbol(a["strategy"].strip(), real=True) for a in agents}
@@ -354,10 +355,11 @@ def build_custom_game(name: str, parameters: dict[str, float], agents: list[dict
         label = a.get("name") or a["strategy"]
         built.append(Agent(
             name=label, strategy=strat_syms[a["strategy"].strip()],
-            utility=parse_expression(a["utility"], all_syms, f"Utility of {label}"),
-            lower=parse_expression(str(a["lower"]), param_syms, f"Lower bound of {label}"),
-            upper=parse_expression(str(a["upper"]), param_syms, f"Upper bound of {label}"),
+            utility=parse_expression(a["utility"], all_syms, Msg("where.utility", agent=label)),
+            lower=parse_expression(str(a["lower"]), param_syms, Msg("where.lower", agent=label)),
+            upper=parse_expression(str(a["upper"]), param_syms, Msg("where.upper", agent=label)),
         ))
-    parsed_outcomes = {k: parse_expression(v, all_syms, f"Outcome '{k}'") for k, v in (outcomes or {}).items()}
+    parsed_outcomes = {k: parse_expression(v, all_syms, Msg("where.outcome", name=k))
+                       for k, v in (outcomes or {}).items()}
     return Game(name=name, agents=built, parameters={k: float(v) for k, v in parameters.items()},
-                symbols=param_syms, outcomes=parsed_outcomes, description="Custom model")
+                symbols=param_syms, outcomes=parsed_outcomes, description=Msg("model.custom.description"))

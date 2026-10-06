@@ -16,15 +16,31 @@ import pandas as pd
 import statsmodels.formula.api as smf
 from scipy import stats
 
+from utils.i18n import Msg
+
+# Locale key suffix of each check's display name (check.<slug>).
+CHECK_SLUGS = {
+    "Parallel Trends": "parallel_trends", "Anticipation": "anticipation", "Spillovers": "spillovers",
+    "Serial Correlation": "serial_correlation", "Heterogeneous Effects": "heterogeneous_effects",
+}
+
 
 @dataclass
 class CheckResult:
     name: str
     verdict: str          # "PASS" or "WARNING"
-    detail: str
+    message: Msg          # translatable explanation; str(message) is English
     statistic: float | None = None
     p_value: float | None = None
     assessment: str | None = None   # plain-language verdict, e.g. "plausible"
+
+    @property
+    def detail(self) -> str:
+        return str(self.message)
+
+    @property
+    def slug(self) -> str:
+        return CHECK_SLUGS[self.name]
 
 
 def parallel_trends_assessment(p_value: float) -> str:
@@ -49,8 +65,7 @@ def _check_parallel_trends(df: pd.DataFrame, outcome_col, unit_col, time_col,
                             treated_unit_col, treatment_period) -> CheckResult:
     pre = df[df[time_col] < treatment_period].copy()
     if pre[time_col].nunique() < 2 or pre[treated_unit_col].nunique() < 2:
-        return CheckResult("Parallel Trends", "WARNING",
-                            "Not enough pre-treatment periods or groups to test pre-trends.")
+        return CheckResult("Parallel Trends", "WARNING", Msg("stress.pt.not_enough"))
     # Treated-group x pre-period interactions, omitting the last
     # pre-treatment period as the reference (including every period
     # would be collinear with the unit fixed effects).
@@ -70,18 +85,12 @@ def _check_parallel_trends(df: pd.DataFrame, outcome_col, unit_col, time_col,
         p_value = float(np.asarray(wald.pvalue))
         assessment = parallel_trends_assessment(p_value)
         if p_value < 0.10:
-            return CheckResult(
-                "Parallel Trends", "WARNING",
-                f"Parallel trends: {assessment}. The joint test of pre-treatment "
-                f"group-specific trends rejects equal trends (p = {p_value:.3f}); "
-                f"differential pre-trends threaten the parallel-trends assumption.",
-                p_value=p_value, assessment=assessment)
-        return CheckResult(
-            "Parallel Trends", "PASS",
-            f"Parallel trends: {assessment}. No evidence of differential "
-            f"pre-treatment trends (p = {p_value:.3f}).", p_value=p_value, assessment=assessment)
+            return CheckResult("Parallel Trends", "WARNING", Msg(f"stress.pt.{assessment}", p=p_value),
+                               p_value=p_value, assessment=assessment)
+        return CheckResult("Parallel Trends", "PASS", Msg("stress.pt.plausible", p=p_value),
+                           p_value=p_value, assessment=assessment)
     except Exception as exc:  # pragma: no cover - defensive
-        return CheckResult("Parallel Trends", "WARNING", f"Test could not be computed ({exc}).")
+        return CheckResult("Parallel Trends", "WARNING", Msg("stress.error", error=str(exc)))
 
 
 def _check_serial_correlation(df: pd.DataFrame, outcome_col, unit_col, time_col,
@@ -105,19 +114,9 @@ def _check_serial_correlation(df: pd.DataFrame, outcome_col, unit_col, time_col,
     n_periods = periods.nunique()
     rho = (1 - dw / 2) + 1 / max(1, n_periods - 1)
     if rho > 0.2:
-        return CheckResult(
-            "Serial Correlation", "WARNING",
-            f"Within-unit Durbin-Watson statistic = {dw:.2f}; implied "
-            f"residual autocorrelation (corrected for fixed-effects bias) "
-            f"= {rho:.2f}. Serially correlated errors make non-clustered "
-            f"standard errors too small (Bertrand, Duflo & Mullainathan "
-            f"2004): keep clustering by unit, and consider a wild-cluster "
-            f"bootstrap when clusters are few.", statistic=dw)
-    return CheckResult("Serial Correlation", "PASS",
-                        f"Within-unit Durbin-Watson statistic = {dw:.2f}; implied "
-                        f"residual autocorrelation (corrected for fixed-effects "
-                        f"bias) = {rho:.2f}, no strong evidence of serial correlation.",
-                        statistic=dw)
+        return CheckResult("Serial Correlation", "WARNING", Msg("stress.serial.warning", dw=dw, rho=rho),
+                           statistic=dw)
+    return CheckResult("Serial Correlation", "PASS", Msg("stress.serial.pass", dw=dw, rho=rho), statistic=dw)
 
 
 def _check_anticipation(df: pd.DataFrame, outcome_col, unit_col, time_col,
@@ -125,7 +124,7 @@ def _check_anticipation(df: pd.DataFrame, outcome_col, unit_col, time_col,
     lead_period, before_lead = treatment_period - 1, treatment_period - 2
     pre = df[df[time_col].isin([lead_period, before_lead])]
     if pre.empty or pre[time_col].nunique() < 2:
-        return CheckResult("Anticipation", "WARNING", "Not enough data to test for anticipation effects.")
+        return CheckResult("Anticipation", "WARNING", Msg("stress.anticipation.not_enough"))
     # First difference between the last two pre-treatment periods, per
     # unit: this removes unit fixed effects, so the test compares how
     # treated and control units *changed* just before treatment.
@@ -133,20 +132,16 @@ def _check_anticipation(df: pd.DataFrame, outcome_col, unit_col, time_col,
     groups = pre.groupby(unit_col)[treated_unit_col].max()
     fd = pd.DataFrame({"change": wide[lead_period] - wide[before_lead], "treated": groups}).dropna()
     if fd["treated"].nunique() < 2:
-        return CheckResult("Anticipation", "WARNING", "Not enough data to test for anticipation effects.")
+        return CheckResult("Anticipation", "WARNING", Msg("stress.anticipation.not_enough"))
     try:
         fitted = smf.ols("change ~ treated", data=fd).fit(cov_type="HC1")
         p_value = float(fitted.pvalues["treated"])
         if p_value < 0.10:
-            return CheckResult("Anticipation", "WARNING",
-                                f"Outcome jumps for treated units in the period right before "
-                                f"treatment (p = {p_value:.3f}), suggesting possible anticipation.",
-                                p_value=p_value)
-        return CheckResult("Anticipation", "PASS",
-                            f"No evidence of anticipatory behavior just before treatment "
-                            f"(p = {p_value:.3f}).", p_value=p_value)
+            return CheckResult("Anticipation", "WARNING", Msg("stress.anticipation.warning", p=p_value),
+                               p_value=p_value)
+        return CheckResult("Anticipation", "PASS", Msg("stress.anticipation.pass", p=p_value), p_value=p_value)
     except Exception as exc:  # pragma: no cover
-        return CheckResult("Anticipation", "WARNING", f"Test could not be computed ({exc}).")
+        return CheckResult("Anticipation", "WARNING", Msg("stress.error", error=str(exc)))
 
 
 def _check_spillovers(df: pd.DataFrame, outcome_col, unit_col, time_col,
@@ -155,9 +150,7 @@ def _check_spillovers(df: pd.DataFrame, outcome_col, unit_col, time_col,
     distance 1, the neighbourhood structure of the Virtual World) with
     the remaining controls, before vs. after treatment."""
     if not pd.api.types.is_numeric_dtype(df[unit_col]):
-        return CheckResult("Spillovers", "WARNING",
-                            "Unit identifiers are not numeric, so no neighbourhood "
-                            "structure is available to test for spillovers.")
+        return CheckResult("Spillovers", "WARNING", Msg("stress.spillovers.non_numeric"))
     treated_ids = set(df.loc[df[treated_unit_col] == 1, unit_col].unique())
     controls = df[df[treated_unit_col] == 0].copy()
     controls["adjacent"] = controls[unit_col].apply(
@@ -165,9 +158,7 @@ def _check_spillovers(df: pd.DataFrame, outcome_col, unit_col, time_col,
     n_adjacent = controls.loc[controls["adjacent"] == 1, unit_col].nunique()
     n_far = controls.loc[controls["adjacent"] == 0, unit_col].nunique()
     if n_adjacent < 2 or n_far < 2:
-        return CheckResult("Spillovers", "PASS",
-                            "Too few adjacent / non-adjacent control units to test for "
-                            "spillovers; default pass.")
+        return CheckResult("Spillovers", "PASS", Msg("stress.spillovers.too_few"))
 
     controls["adj_post"] = controls["adjacent"] * (controls[time_col] >= treatment_period).astype(int)
     controls[unit_col] = controls[unit_col].astype("category")
@@ -179,19 +170,13 @@ def _check_spillovers(df: pd.DataFrame, outcome_col, unit_col, time_col,
         p_value = float(fitted.pvalues["adj_post"])
         effect = float(fitted.params["adj_post"])
     except Exception as exc:  # pragma: no cover - defensive
-        return CheckResult("Spillovers", "WARNING", f"Test could not be computed ({exc}).")
+        return CheckResult("Spillovers", "WARNING", Msg("stress.error", error=str(exc)))
     if p_value < 0.10:
-        return CheckResult(
-            "Spillovers", "WARNING",
-            f"The {n_adjacent} control unit(s) adjacent to a treated unit "
-            f"shift by {effect:+.3f} after treatment relative to other "
-            f"controls (p = {p_value:.3f}). Spillovers contaminate the "
-            f"comparison group.", statistic=effect, p_value=p_value)
-    return CheckResult(
-        "Spillovers", "PASS",
-        f"Control units adjacent to a treated unit do not change "
-        f"differently after treatment (difference = {effect:+.3f}, "
-        f"p = {p_value:.3f}).", statistic=effect, p_value=p_value)
+        return CheckResult("Spillovers", "WARNING",
+                           Msg("stress.spillovers.warning", n=n_adjacent, effect=effect, p=p_value),
+                           statistic=effect, p_value=p_value)
+    return CheckResult("Spillovers", "PASS", Msg("stress.spillovers.pass", effect=effect, p=p_value),
+                       statistic=effect, p_value=p_value)
 
 
 def _check_heterogeneous_effects(df: pd.DataFrame, outcome_col, unit_col, time_col,
@@ -208,23 +193,16 @@ def _check_heterogeneous_effects(df: pd.DataFrame, outcome_col, unit_col, time_c
     treated_changes = changes[group == 1]
     control_changes = changes[group == 0]
     if len(treated_changes) < 3 or len(control_changes) < 3:
-        return CheckResult("Heterogeneous Effects", "PASS",
-                            "Too few treated or control units to assess effect "
-                            "heterogeneity; default pass.")
+        return CheckResult("Heterogeneous Effects", "PASS", Msg("stress.heterogeneity.too_few"))
     var_ratio = float(treated_changes.var() / control_changes.var())
     p_value = float(stats.f.sf(var_ratio, len(treated_changes) - 1, len(control_changes) - 1))
     if p_value < 0.10:
-        return CheckResult(
-            "Heterogeneous Effects", "WARNING",
-            f"Pre/post changes vary more across treated units than across "
-            f"controls (variance ratio = {var_ratio:.2f}, p = {p_value:.3f}). "
-            f"A single average treatment effect may mask important "
-            f"heterogeneity.", statistic=var_ratio, p_value=p_value)
-    return CheckResult(
-        "Heterogeneous Effects", "PASS",
-        f"Pre/post changes are no more dispersed across treated units than "
-        f"across controls (variance ratio = {var_ratio:.2f}, p = {p_value:.3f}).",
-        statistic=var_ratio, p_value=p_value)
+        return CheckResult("Heterogeneous Effects", "WARNING",
+                           Msg("stress.heterogeneity.warning", ratio=var_ratio, p=p_value),
+                           statistic=var_ratio, p_value=p_value)
+    return CheckResult("Heterogeneous Effects", "PASS",
+                       Msg("stress.heterogeneity.pass", ratio=var_ratio, p=p_value),
+                       statistic=var_ratio, p_value=p_value)
 
 
 def run_stress_test(df: pd.DataFrame, treatment_period: int, outcome_col: str = "Y",

@@ -24,6 +24,8 @@ from dataclasses import dataclass
 import numpy as np
 import pandas as pd
 
+from utils.i18n import LocalizedError
+
 INTENSITY_TO_VALUE = {"none": 0.0, "low": 0.3, "medium": 0.7, "high": 1.2, "severe": 2.0}
 
 
@@ -62,7 +64,7 @@ def generate(config: VirtualWorldConfig) -> tuple[pd.DataFrame, dict]:
         pedagogical bias evaluation in the Virtual Lab.
     """
     if not 1 <= config.treatment_period < config.n_periods:
-        raise ValueError("treatment_period must satisfy 1 <= treatment_period < n_periods")
+        raise LocalizedError("err.dgp_treatment_period")
 
     rng = np.random.default_rng(config.seed)
     n_units, n_periods = config.n_units, config.n_periods

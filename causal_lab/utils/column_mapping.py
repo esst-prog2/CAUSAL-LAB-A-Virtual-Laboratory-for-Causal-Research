@@ -14,46 +14,52 @@ from dataclasses import dataclass
 
 import pandas as pd
 
+from utils.i18n import Msg
+
 
 @dataclass(frozen=True)
 class Role:
     key: str
-    label: str
+    label_key: str               # locale key of the role's display label
     multi: bool = False          # several columns (covariates, instruments)
     required: bool = True
     numeric: bool = True
 
+    @property
+    def label(self) -> Msg:
+        return Msg(self.label_key)
+
 
 METHOD_ROLES: dict[str, tuple[Role, ...]] = {
     "rct": (
-        Role("outcome", "Outcome"),
-        Role("treatment", "Treatment (0/1)"),
-        Role("covariates", "Covariates", multi=True, required=False),
+        Role("outcome", "role.outcome"),
+        Role("treatment", "role.treatment_binary"),
+        Role("covariates", "role.covariates", multi=True, required=False),
     ),
     "matching": (
-        Role("outcome", "Outcome"),
-        Role("treatment", "Treatment (0/1)"),
-        Role("covariates", "Covariates", multi=True),
+        Role("outcome", "role.outcome"),
+        Role("treatment", "role.treatment_binary"),
+        Role("covariates", "role.covariates", multi=True),
     ),
     "iv": (
-        Role("outcome", "Outcome"),
-        Role("treatment", "Treatment (endogenous)"),
-        Role("instruments", "Instrument(s)", multi=True),
-        Role("controls", "Exogenous controls", multi=True, required=False),
+        Role("outcome", "role.outcome"),
+        Role("treatment", "role.treatment_endogenous"),
+        Role("instruments", "role.instruments", multi=True),
+        Role("controls", "role.controls", multi=True, required=False),
     ),
     "rdd": (
-        Role("outcome", "Outcome"),
-        Role("running", "Running variable"),
+        Role("outcome", "role.outcome"),
+        Role("running", "role.running"),
     ),
     "synthetic_control": (
-        Role("unit", "Unit", numeric=False),
-        Role("period", "Period"),
-        Role("outcome", "Outcome"),
+        Role("unit", "role.unit", numeric=False),
+        Role("period", "role.period"),
+        Role("outcome", "role.outcome"),
     ),
     "dml": (
-        Role("outcome", "Outcome"),
-        Role("treatment", "Treatment"),
-        Role("covariates", "Covariates", multi=True),
+        Role("outcome", "role.outcome"),
+        Role("treatment", "role.treatment"),
+        Role("covariates", "role.covariates", multi=True),
     ),
 }
 
@@ -64,25 +70,25 @@ def _as_list(value) -> list[str]:
     return list(value) if isinstance(value, (list, tuple)) else [value]
 
 
-def validate_mapping(df: pd.DataFrame, method: str, mapping: dict) -> list[str]:
+def validate_mapping(df: pd.DataFrame, method: str, mapping: dict) -> list[Msg]:
     """Return human-readable problems with `mapping` (role key -> column
     name, or list of names for multi roles). Empty list = valid."""
-    problems: list[str] = []
-    used: dict[str, str] = {}
+    problems: list[Msg] = []
+    used: dict[str, Msg] = {}
     for role in METHOD_ROLES[method]:
         columns = _as_list(mapping.get(role.key))
         if role.required and not columns:
-            problems.append(f"{role.label}: no column selected.")
+            problems.append(Msg("mapping.no_column", role=role.label))
             continue
         for col in columns:
             if col not in df.columns:
-                problems.append(f"{role.label}: column '{col}' is not in the file.")
+                problems.append(Msg("mapping.not_in_file", role=role.label, column=col))
                 continue
             if col in used:
-                problems.append(f"{role.label}: column '{col}' is already used as {used[col]}.")
+                problems.append(Msg("mapping.already_used", role=role.label, column=col, other=used[col]))
             used.setdefault(col, role.label)
             if role.numeric and not pd.api.types.is_numeric_dtype(df[col]):
-                problems.append(f"{role.label}: column '{col}' must be numeric.")
+                problems.append(Msg("mapping.not_numeric", role=role.label, column=col))
     return problems
 
 

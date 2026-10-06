@@ -19,6 +19,7 @@ import pandas as pd
 
 from theory_engine.calibration import CalibrationError, ParameterSource, compute_parameter
 from theory_engine.game import Equilibrium, Game, comparative_statics, solve_equilibrium
+from utils.i18n import LocalizedError
 
 
 @dataclass
@@ -34,13 +35,13 @@ class Prediction:
 def delta_from_data(df: pd.DataFrame, source: ParameterSource, treatment_column: str, name: str) -> float:
     """Parameter source on treated rows (treatment == 1) minus control rows (== 0)."""
     if source.kind == "manual":
-        raise CalibrationError(f"Parameter '{name}' is set manually; a data-based shift needs a data source.")
+        raise CalibrationError("err.pred_manual", name=name)
     if treatment_column not in df.columns:
-        raise CalibrationError(f"Treatment column '{treatment_column}' is not in the data.")
+        raise CalibrationError("err.pred_no_treatment", column=treatment_column)
     treated = df[df[treatment_column] == 1]
     control = df[df[treatment_column] == 0]
     if treated.empty or control.empty:
-        raise CalibrationError(f"Treatment column '{treatment_column}' must contain both 0 and 1.")
+        raise CalibrationError("err.pred_treatment_values", column=treatment_column)
     return compute_parameter(treated, source, name) - compute_parameter(control, source, name)
 
 
@@ -49,14 +50,15 @@ def predict_shift(game: Game, values: dict[str, float], parameter: str, delta: f
     if baseline is None:
         result = solve_equilibrium(game, values)
         if not result.found:
-            raise ValueError(result.message)
+            raise LocalizedError(result.message.key, **result.message.params)
         baseline = result.equilibria[0]
     shifted_values = {**game.parameters, **values, parameter: float(values.get(parameter, game.parameters[parameter])) + delta}
     shifted_result = solve_equilibrium(game, shifted_values, start=baseline.strategies)
     if not shifted_result.found:
         shifted_result = solve_equilibrium(game, shifted_values)
     if not shifted_result.found:
-        raise ValueError(f"No equilibrium after shifting {parameter} by {delta:g}: {shifted_result.message}")
+        raise LocalizedError("err.pred_no_equilibrium", parameter=parameter, delta=delta,
+                             reason=shifted_result.message)
     shifted = shifted_result.equilibria[0]
     effects = {k: shifted.strategies[k] - baseline.strategies[k] for k in baseline.strategies}
     effects.update({k: shifted.outcomes[k] - baseline.outcomes[k] for k in baseline.outcomes})

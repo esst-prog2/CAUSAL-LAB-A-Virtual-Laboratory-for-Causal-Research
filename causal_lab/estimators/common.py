@@ -14,13 +14,15 @@ from dataclasses import dataclass, field
 import numpy as np
 from scipy import stats
 
+from utils.i18n import LocalizedError, Msg
+
 Z_95 = float(stats.norm.ppf(0.975))
 
 
 @dataclass
 class MethodResult:
     method: str
-    estimand: str
+    estimand: Msg | str
     estimate: float
     se: float | None
     ci_low: float | None
@@ -28,8 +30,9 @@ class MethodResult:
     p_value: float | None
     n_obs: int
     details: dict = field(default_factory=dict)
-    warnings: list[str] = field(default_factory=list)
+    warnings: list[Msg] = field(default_factory=list)
     summary_text: str = ""
+    key: str = ""                     # locale key suffix: method.<key>
 
 
 def normal_inference(estimate: float, se: float) -> tuple[float, float, float]:
@@ -57,10 +60,7 @@ def require_binary(series, name: str) -> None:
     """Raise ValueError unless `series` is coded 0/1 with both values present."""
     values = set(np.unique(series.dropna()))
     if not values <= {0, 1} or len(values) < 2:
-        raise ValueError(
-            f"Treatment column '{name}' must be binary (0/1) with both treated and "
-            f"control observations present; found values {sorted(values)[:10]}."
-        )
+        raise LocalizedError("err.treatment_not_binary", column=name, values=sorted(values)[:10])
 
 
 def standardized_difference(x_treated, x_control) -> float:

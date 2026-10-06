@@ -26,6 +26,8 @@ import re
 from dataclasses import dataclass, field
 from enum import Enum
 
+from utils.i18n import Msg
+
 
 class Level(str, Enum):
     LOW = "LOW"
@@ -63,7 +65,20 @@ class DiagnosisResult:
     potential_confounding: Level = Level.UNKNOWN
     treatment_heterogeneity: Level = Level.UNKNOWN
     potential_spillovers: Level = Level.UNKNOWN
-    notes: list[str] = field(default_factory=list)
+    notes: list[Msg] = field(default_factory=list)
+
+    def as_rows(self) -> list[tuple[str, Level]]:
+        """(locale key suffix diagnosis.dim.<slug>, level) per dimension."""
+        return [
+            ("treatment_type", self.treatment_type),
+            ("treatment_timing", self.treatment_timing),
+            ("outcome_type", self.outcome_type),
+            ("data_structure", self.data_structure),
+            ("potential_endogeneity", self.potential_endogeneity),
+            ("potential_confounding", self.potential_confounding),
+            ("treatment_heterogeneity", self.treatment_heterogeneity),
+            ("potential_spillovers", self.potential_spillovers),
+        ]
 
     def as_table(self) -> list[tuple[str, str]]:
         return [
@@ -120,13 +135,7 @@ def diagnose(design: ResearchDesignInput) -> DiagnosisResult:
         result.treatment_timing = Level.LOW
     elif design.treatment_timing == "staggered":
         result.treatment_timing = Level.HIGH
-        result.notes.append(
-            "Staggered treatment timing detected: standard two-way "
-            "fixed-effects DiD can be biased under treatment-effect "
-            "heterogeneity (Goodman-Bacon 2021; de Chaisemartin & "
-            "D'Haultfoeuille 2020). Consider heterogeneity-robust "
-            "DiD estimators."
-        )
+        result.notes.append(Msg("diagnosis.note.staggered"))
     else:
         result.treatment_timing = Level.MEDIUM
 
@@ -150,21 +159,14 @@ def diagnose(design: ResearchDesignInput) -> DiagnosisResult:
         result.potential_endogeneity = Level.HIGH
     if _keyword_flag(design.research_question, _ENDOGENEITY_KEYWORDS):
         result.potential_endogeneity = Level.HIGH
-        result.notes.append(
-            "The research question mentions self-selection or reverse "
-            "causality language; treat the assignment mechanism as "
-            "potentially endogenous."
-        )
+        result.notes.append(Msg("diagnosis.note.endogenous_language"))
 
     # --- Potential confounding ------------------------------------------------
     if design.assignment_mechanism == "random":
         result.potential_confounding = Level.LOW
     elif not design.has_pre_treatment_periods:
         result.potential_confounding = Level.HIGH
-        result.notes.append(
-            "No pre-treatment periods are available: pre-trends and "
-            "time-invariant confounding cannot be assessed directly."
-        )
+        result.notes.append(Msg("diagnosis.note.no_pre_periods"))
     else:
         result.potential_confounding = Level.MEDIUM
 
@@ -178,11 +180,7 @@ def diagnose(design: ResearchDesignInput) -> DiagnosisResult:
     # --- Potential spillovers ------------------------------------------------
     if design.has_spatial_component or _keyword_flag(design.research_question, _SPILLOVER_KEYWORDS):
         result.potential_spillovers = Level.HIGH
-        result.notes.append(
-            "Spatial or network language detected: treated and "
-            "comparison units may not be independent (SUTVA "
-            "violation). Consider a spillover / spatial-DiD analysis."
-        )
+        result.notes.append(Msg("diagnosis.note.spatial"))
     else:
         result.potential_spillovers = Level.LOW
 

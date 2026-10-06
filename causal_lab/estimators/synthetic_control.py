@@ -22,6 +22,7 @@ import pandas as pd
 from scipy.optimize import minimize
 
 from estimators.common import MethodResult, format_summary
+from utils.i18n import LocalizedError, Msg
 
 
 def _fit_weights(y1_pre: np.ndarray, y0_pre: np.ndarray) -> tuple[np.ndarray, bool]:
@@ -51,24 +52,24 @@ def estimate_synthetic_control(df: pd.DataFrame, unit_col: str = "unit", period_
                                outcome_col: str = "Y", treated_unit=None,
                                treatment_period=None) -> MethodResult:
     if treated_unit is None or treatment_period is None:
-        raise ValueError("Synthetic control requires a treated unit and a first treated period.")
+        raise LocalizedError("err.sc_needs_unit_period")
     data = df[[unit_col, period_col, outcome_col]].dropna()
     if data.duplicated([unit_col, period_col]).any():
-        raise ValueError("Each (unit, period) pair must appear once: the panel has duplicate rows.")
+        raise LocalizedError("err.sc_duplicates")
     wide = data.pivot(index=period_col, columns=unit_col, values=outcome_col).sort_index()
     if treated_unit not in wide.columns:
-        raise ValueError(f"Treated unit '{treated_unit}' is not in the '{unit_col}' column.")
+        raise LocalizedError("err.sc_unknown_unit", unit=treated_unit, column=unit_col)
     if wide.isna().any().any():
-        raise ValueError("The panel must be balanced: every unit needs an outcome in every period.")
+        raise LocalizedError("err.sc_unbalanced")
 
     periods = wide.index.to_numpy()
     pre = periods < treatment_period
     if pre.sum() < 2 or (~pre).sum() < 1:
-        raise ValueError(f"Need at least 2 pre-treatment periods and 1 post-treatment period "
-                         f"(found {int(pre.sum())} before and {int((~pre).sum())} from {treatment_period}).")
+        raise LocalizedError("err.sc_periods", before=int(pre.sum()), after=int((~pre).sum()),
+                             period=treatment_period)
     donors = [u for u in wide.columns if u != treated_unit]
     if len(donors) < 2:
-        raise ValueError("Synthetic control needs at least two donor units.")
+        raise LocalizedError("err.sc_donors")
 
     def run(treated, pool):
         y1 = wide[treated].to_numpy(float)
@@ -94,20 +95,18 @@ def estimate_synthetic_control(df: pd.DataFrame, unit_col: str = "unit", period_
 
     warnings: list[str] = []
     if not main["ok"]:
-        warnings.append("The weight optimizer did not report convergence; weights may be slightly suboptimal.")
+        warnings.append(Msg("warn.sc_convergence"))
     outcome_sd = float(np.std(wide[treated_unit].to_numpy()[pre]))
     if outcome_sd > 0 and main["pre_rmspe"] > 0.5 * outcome_sd:
-        warnings.append(f"Poor pre-treatment fit: RMSPE = {main['pre_rmspe']:.3f}, more than half the "
-                        f"treated unit's pre-treatment outcome SD. The treated unit may lie outside "
-                        f"the donors' convex hull.")
+        warnings.append(Msg("warn.sc_fit", rmspe=main["pre_rmspe"]))
 
     weights = pd.DataFrame({"donor": donors, "weight": main["weights"]}) \
         .sort_values("weight", ascending=False).reset_index(drop=True)
     paths = pd.DataFrame({"period": periods, "treated": wide[treated_unit].to_numpy(float),
                           "synthetic": main["synthetic"], "gap": main["gaps"]})
     result = MethodResult(
-        method="Synthetic Control",
-        estimand="Mean post-treatment effect on the treated unit",
+        method="Synthetic Control", key="synthetic_control",
+        estimand=Msg("estimand.sc"),
         estimate=estimate, se=None, ci_low=None, ci_high=None, p_value=p_value,
         n_obs=int(wide.size),
         details=dict(

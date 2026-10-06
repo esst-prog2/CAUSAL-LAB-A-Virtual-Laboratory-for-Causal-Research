@@ -27,6 +27,8 @@ import numpy as np
 import pandas as pd
 import statsmodels.formula.api as smf
 
+from utils.i18n import LocalizedError
+
 
 @dataclass
 class DiDResult:
@@ -50,7 +52,7 @@ def estimate_did(df: pd.DataFrame, outcome_col: str = "Y", treatment_col: str = 
     period dummies, using cluster-robust standard errors at the unit
     level (or `cluster_col` if provided)."""
     if df[treatment_col].nunique() < 2:
-        raise ValueError(f"Treatment column '{treatment_col}' has no variation; the DiD effect is not identified.")
+        raise LocalizedError("err.did_no_variation", column=treatment_col)
 
     data = df.copy()
     data[unit_col] = data[unit_col].astype("category")
