@@ -10,7 +10,10 @@ The system SHALL generate a synthetic panel dataset from a `VirtualWorldConfig` 
 
 #### Scenario: Basic generation
 - **WHEN** `generate(config)` is called with `n_units`, `n_periods`, `treatment_period`, `share_treated`, and `true_att`
-- **THEN** it returns a DataFrame with one row per (unit, period) containing columns `unit`, `period`, `treated_unit`, `post`, `treated_now`, `D`, `X1`, `Y0`, `Y1`, `Y`, and a `truth` dict containing `true_att` (the realized mean effect among treated units), `design_att` (the configured value), `treated_units`, and `adoption_period`
+- **THEN** it returns a DataFrame with one row per (unit, period) containing columns `unit`, `period`, `treated_unit`, `post`, `treated_now`, `D`, `X1`, `Y0`, `Y1`, `Y`. It also returns a `truth` dict containing:
+  - `true_att`: the mean of Y1 − Y0 over treated unit-periods (D = 1), which equals the mean unit effect among treated units when adoption is not staggered and effects are static;
+  - `design_att`: the configured value;
+  - `treated_units` and `adoption_period`
 
 #### Scenario: Reproducibility via seed
 - **WHEN** `generate(config)` is called twice with the same `seed` and otherwise identical config
@@ -72,3 +75,10 @@ The system SHALL keep a snapshot of the configuration that generated the active 
 #### Scenario: Editing a setting after generation
 - **WHEN** the researcher changes the treatment-period widget after generating a Virtual World
 - **THEN** the Estimation, Break My Design and Robustness pages keep using the treatment period the data was generated with, until a new world is generated
+
+### Requirement: Dynamic treatment effects threat
+The system SHALL let treatment effects grow with time since each unit's own adoption.
+
+#### Scenario: Dynamic effects enabled
+- **WHEN** `dynamic_effects` is above "none"
+- **THEN** a treated unit's effect e periods after its adoption equals its base effect × (1 + 0.25 × intensity_value × e). Combined with staggered adoption, this biases two-way fixed effects

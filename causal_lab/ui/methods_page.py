@@ -411,4 +411,4 @@ def render(L) -> None:
     _metrics(result, state["truth"] if state["source"] == "virtual" else None, L)
     _plots(method, result, state, L)
     with st.expander(L("methods.technical_summary")):
-        st.code(result.summary_text, language="text")
+        st.code("\n".join(R(line) for line in result.summary_lines), language="text")

@@ -39,8 +39,30 @@ def test_matching_requires_covariates():
         raise AssertionError("expected ValueError without covariates")
 
 
+def test_matching_standard_error_is_calibrated():
+    import numpy as np
+    import estimators.matching as matching
+    saved, matching.N_BOOTSTRAP = matching.N_BOOTSTRAP, 2        # IPW bootstrap not under test here
+    try:
+        errors, ses = [], []
+        for seed in range(60):
+            df, truth = matching_world(MatchingWorldConfig(seed=seed))
+            r = estimate_matching(df, covariate_cols=truth["roles"]["covariates"])
+            errors.append(r.estimate - truth["true_effect"])
+            ses.append(r.se)
+    finally:
+        matching.N_BOOTSTRAP = saved
+    errors, ses = np.array(errors), np.array(ses)
+    coverage = np.mean(np.abs(errors) <= 1.96 * ses)
+    ratio = ses.mean() / errors.std(ddof=1)
+    print("Matching coverage:", coverage, "mean SE / sampling SD:", ratio)
+    assert 0.88 <= coverage <= 1.0
+    assert 0.8 <= ratio <= 1.25
+
+
 if __name__ == "__main__":
     test_matching_and_ipw_recover_att_naive_is_biased()
+    test_matching_standard_error_is_calibrated()
     test_matching_improves_balance()
     test_propensity_scores_in_unit_interval()
     test_matching_requires_covariates()

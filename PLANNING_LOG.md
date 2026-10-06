@@ -4,6 +4,11 @@ One line per decision about this project — a requirement, a number, a name, a 
 
 ---
 
+- 2026-10-06: `close-remaining-gaps` done (user asked to fix the remaining limits).
+  - Callaway & Sant'Anna robust DiD, with a Robust DiD tab and a new `dynamic_effects` lever. `true_att` is now the mean effect over treated unit-periods. On 60 staggered worlds with growing effects: TWFE bias +0.21 with 38% coverage, CS bias +0.006 with 93% coverage.
+  - Matching now uses covariates (Mahalanobis) with bias correction. On 200 worlds the SD of estimates fell from 0.116 to 0.092 and coverage went from 100% to 97%.
+  - Generated scripts' comments and labels and the technical summaries now follow the language; the French audit including code blocks finds 0 problems.
+  - Untranslated by nature: references and the user's own data names — decided by: user
 - 2026-10-06: `complete-french-translation` done.
   - Engine messages are `Msg` (a str whose value is the English text, rendered from en.json) and user-facing errors are `LocalizedError`.
   - Every interface string goes through i18n; the locales grow from 77 to 663 keys, identical in EN and FR.

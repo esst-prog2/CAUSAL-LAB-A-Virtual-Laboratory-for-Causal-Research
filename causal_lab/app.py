@@ -31,6 +31,7 @@ from causal_engine.recommendation import MethodScore, component_slug, recommend
 from code_generator.generator import CodeGenParams, generate_all
 from estimators.did import estimate_did
 from estimators.event_study import estimate_event_study
+from estimators.staggered_did import estimate_staggered_did
 from robustness_engine.robustness import run_robustness_battery
 from robustness_engine.stress_test import run_stress_test
 from simulation_engine.dgp import VirtualWorldConfig, generate
@@ -133,6 +134,11 @@ def cached_did(df: pd.DataFrame):
 @st.cache_data(show_spinner=False)
 def cached_event_study(df: pd.DataFrame, fixed_treatment_period: int | None):
     return estimate_event_study(df, fixed_treatment_period=fixed_treatment_period)
+
+
+@st.cache_data(show_spinner=False)
+def cached_staggered_did(df: pd.DataFrame):
+    return estimate_staggered_did(df)
 
 
 @st.cache_data(show_spinner=False)
@@ -352,9 +358,10 @@ elif page == "virtual_lab":
     cfg.treatment_heterogeneity = threat(c1, "treatment_heterogeneity", cfg.treatment_heterogeneity)
     cfg.differential_trend = threat(c2, "differential_trend", cfg.differential_trend)
     cfg.anticipation = threat(c3, "anticipation", cfg.anticipation)
-    c1, c2 = st.columns(2)
-    cfg.staggered_adoption = c1.checkbox(L("threat.staggered_adoption"), value=cfg.staggered_adoption)
-    cfg.seed = int(c2.number_input(L("common.seed"), min_value=0, value=cfg.seed or 42, step=1))
+    c1, c2, c3 = st.columns(3)
+    cfg.dynamic_effects = threat(c1, "dynamic_effects", cfg.dynamic_effects)
+    cfg.staggered_adoption = c2.checkbox(L("threat.staggered_adoption"), value=cfg.staggered_adoption)
+    cfg.seed = int(c3.number_input(L("common.seed"), min_value=0, value=cfg.seed or 42, step=1))
 
     st.session_state.vw_config = cfg
 
@@ -440,7 +447,8 @@ elif page == "estimation":
                           yaxis_title=L("trend.y_axis"), height=360)
         st.plotly_chart(fig, width="stretch")
 
-        tab1, tab2 = st.tabs([L("method.did"), L("method.event_study")])
+        truth = st.session_state.virtual_truth if st.session_state.uploaded_df is None else None
+        tab1, tab2, tab3 = st.tabs([L("method.did"), L("method.event_study"), L("staggered.tab")])
 
         with tab1:
             try:
@@ -454,8 +462,8 @@ elif page == "estimation":
                 c2.metric(L("estimation.cluster_se"), f"{result.se:.4f}")
                 c3.metric(L("common.ci95"), f"[{result.ci_low:.3f}, {result.ci_high:.3f}]")
 
-                if st.session_state.virtual_truth is not None and st.session_state.uploaded_df is None:
-                    true_att = st.session_state.virtual_truth["true_att"]
+                if truth is not None:
+                    true_att = truth["true_att"]
                     st.markdown(f"#### {L('estimation.truth_title')}")
                     c1, c2, c3 = st.columns(3)
                     c1.metric(L("common.estimated_att"), f"{result.att:.4f}")
@@ -482,6 +490,36 @@ elif page == "estimation":
                               yaxis_title=L("event_study.y_axis"), height=400)
             st.plotly_chart(fig, width="stretch")
             st.caption(L("event_study.caption"))
+
+        with tab3:
+            st.caption(L("staggered.intro"))
+            try:
+                cs = cached_staggered_did(df)
+            except LocalizedError as exc:
+                st.error(exc.render(lang))
+                cs = None
+            if cs is not None:
+                c1, c2, c3 = st.columns(3)
+                c1.metric(L("common.estimated_att"), f"{cs.att:.4f}")
+                c2.metric(L("staggered.bootstrap_se"), f"{cs.se:.4f}")
+                c3.metric(L("common.ci95"), f"[{cs.ci_low:.3f}, {cs.ci_high:.3f}]")
+                rows = [{L("staggered.col.estimator"): L("staggered.twfe"), "ATT": cached_did(df).att},
+                        {L("staggered.col.estimator"): L("staggered.cs"), "ATT": cs.att}]
+                if truth is not None:
+                    rows.append({L("staggered.col.estimator"): L("common.true_att"), "ATT": truth["true_att"]})
+                st.dataframe(pd.DataFrame(rows).round(4), width="stretch", hide_index=True)
+                st.caption(F("staggered.details", cohorts=cs.n_cohorts, units=cs.n_units,
+                             comparison=L(f"staggered.comparison.{cs.comparison}")))
+                es_cs = cs.event_study
+                fig = go.Figure(go.Scatter(
+                    x=es_cs["rel_period"], y=es_cs["estimate"],
+                    error_y=dict(type="data", array=1.96 * es_cs["se"], visible=True),
+                    mode="markers+lines", name=L("staggered.cs")))
+                fig.add_hline(y=0, line_dash="dot", line_color="gray")
+                fig.add_vline(x=-0.5, line_dash="dash", line_color="red", annotation_text=L("common.treatment"))
+                fig.update_layout(title=L("staggered.event_title"), xaxis_title=L("event_study.x_axis"),
+                                  yaxis_title=L("event_study.y_axis"), height=400)
+                st.plotly_chart(fig, width="stretch")
 
 # --------------------------------------------------------------------------
 # CAUSAL METHODS (RCT, Matching, IV, RDD, Synthetic Control, DML)
@@ -561,7 +599,7 @@ elif page == "code":
     data_path = c1.text_input(L("code.data_path"), value="data.csv")
     cluster_col = c2.text_input(L("code.cluster"), value="unit")
     params = CodeGenParams(data_path=data_path, cluster_col=cluster_col)
-    code = generate_all(params)
+    code = generate_all(params, lang)
 
     tab1, tab2, tab3 = st.tabs(["Python", "R", "Stata"])
     with tab1:

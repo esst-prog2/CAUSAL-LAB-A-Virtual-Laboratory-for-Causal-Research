@@ -76,8 +76,8 @@ def estimate_rct(df: pd.DataFrame, outcome_col: str = "Y", treatment_col: str = 
         ),
         warnings=warnings,
     )
-    extra = [f"Difference in means = {diff_means:.4f} (SE {diff_se:.4f})"]
+    extra = [Msg("summary.rct.diff", value=diff_means, se=diff_se)]
     if covariate_cols:
-        extra.append(f"Lin (2013) covariate-adjusted using {covariate_cols}")
+        extra.append(Msg("summary.rct.lin", covariates=", ".join(covariate_cols)))
     result.summary_text = format_summary(result, extra)
     return result

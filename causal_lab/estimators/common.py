@@ -33,6 +33,7 @@ class MethodResult:
     warnings: list[Msg] = field(default_factory=list)
     summary_text: str = ""
     key: str = ""                     # locale key suffix: method.<key>
+    summary_lines: list[Msg] = field(default_factory=list)   # translatable summary
 
 
 def normal_inference(estimate: float, se: float) -> tuple[float, float, float]:
@@ -44,15 +45,19 @@ def normal_inference(estimate: float, se: float) -> tuple[float, float, float]:
     return estimate - Z_95 * se, estimate + Z_95 * se, p_value
 
 
-def format_summary(result: MethodResult, extra_lines: list[str] | None = None) -> str:
-    lines = [f"{result.method} — {result.estimand} = {result.estimate:.4f}"]
+def format_summary(result: MethodResult, extra_lines: list[Msg] | None = None) -> str:
+    """Store the translatable summary lines on `result` and return their
+    English text."""
+    lines = [Msg("summary.headline", method=Msg(f"method.{result.key}"), estimand=result.estimand,
+                 value=result.estimate)]
     if result.se is not None:
-        lines.append(f"SE = {result.se:.4f}, 95% CI = [{result.ci_low:.4f}, {result.ci_high:.4f}], "
-                     f"p = {result.p_value:.4f}")
-    if result.p_value is not None and result.se is None:
-        lines.append(f"Permutation p-value = {result.p_value:.4f}")
-    lines.append(f"N = {result.n_obs}")
+        lines.append(Msg("summary.inference", se=result.se, lo=result.ci_low, hi=result.ci_high,
+                         p=result.p_value))
+    elif result.p_value is not None:
+        lines.append(Msg("summary.permutation_p", p=result.p_value))
+    lines.append(Msg("summary.n", n=result.n_obs))
     lines.extend(extra_lines or [])
+    result.summary_lines = lines
     return "\n".join(lines)
 
 

@@ -5,10 +5,15 @@ Produces ready-to-run R, Python, and Stata scripts that reproduce the
 DiD analysis configured in the app, so the researcher can leave
 CAUSAL LAB and keep working in their own environment with full
 reproducibility.
+
+The code is identical in every language; only the comments and the
+printed labels follow the interface language (locale keys gen.*).
 """
 from __future__ import annotations
 
 from dataclasses import dataclass
+
+from utils.i18n import DEFAULT_LANGUAGE, t
 
 
 @dataclass
@@ -24,11 +29,14 @@ class CodeGenParams:
         return self.cluster_col or self.unit_col
 
 
-def generate_python_code(p: CodeGenParams) -> str:
+MODEL = "Y_it = alpha_i + gamma_t + beta * D_it + epsilon_it"
+
+
+def generate_python_code(p: CodeGenParams, lang: str = DEFAULT_LANGUAGE) -> str:
     return f'''"""
-CAUSAL LAB — auto-generated Python script
-Two-way fixed effects Difference-in-Differences
-Model: Y_it = alpha_i + gamma_t + beta * D_it + epsilon_it
+CAUSAL LAB — {t("gen.header_python", lang)}
+{t("gen.model_name", lang)}
+{t("gen.model", lang)}: {MODEL}
 """
 import pandas as pd
 import statsmodels.formula.api as smf
@@ -42,15 +50,15 @@ model = smf.ols(formula, data=df)
 fitted = model.fit(cov_type="cluster", cov_kwds={{"groups": df["{p.cluster()}"]}})
 
 print(fitted.summary())
-print("\\nATT estimate:", fitted.params["{p.treatment_col}"])
-print("Cluster-robust SE:", fitted.bse["{p.treatment_col}"])
+print("\\n{t("gen.att_label", lang)}:", fitted.params["{p.treatment_col}"])
+print("{t("gen.se_label", lang)}:", fitted.bse["{p.treatment_col}"])
 '''
 
 
-def generate_r_code(p: CodeGenParams) -> str:
-    return f'''# CAUSAL LAB - auto-generated R script
-# Two-way fixed effects Difference-in-Differences
-# Model: Y_it = alpha_i + gamma_t + beta * D_it + epsilon_it
+def generate_r_code(p: CodeGenParams, lang: str = DEFAULT_LANGUAGE) -> str:
+    return f'''# CAUSAL LAB - {t("gen.header_r", lang)}
+# {t("gen.model_name", lang)}
+# {t("gen.model", lang)}: {MODEL}
 
 library(fixest)
 
@@ -66,21 +74,21 @@ summary(model)
 '''
 
 
-def generate_stata_code(p: CodeGenParams) -> str:
-    return f'''* CAUSAL LAB - auto-generated Stata script
-* Two-way fixed effects Difference-in-Differences
-* Model: Y_it = alpha_i + gamma_t + beta * D_it + epsilon_it
+def generate_stata_code(p: CodeGenParams, lang: str = DEFAULT_LANGUAGE) -> str:
+    return f'''* CAUSAL LAB - {t("gen.header_stata", lang)}
+* {t("gen.model_name", lang)}
+* {t("gen.model", lang)}: {MODEL}
 
-* Requires reghdfe:  ssc install reghdfe, replace
+* {t("gen.requires_reghdfe", lang)}:  ssc install reghdfe, replace
 import delimited "{p.data_path}", clear
 
 reghdfe {p.outcome_col} {p.treatment_col}, absorb({p.unit_col} {p.time_col}) vce(cluster {p.cluster()})
 '''
 
 
-def generate_all(p: CodeGenParams) -> dict[str, str]:
+def generate_all(p: CodeGenParams, lang: str = DEFAULT_LANGUAGE) -> dict[str, str]:
     return {
-        "python": generate_python_code(p),
-        "r": generate_r_code(p),
-        "stata": generate_stata_code(p),
+        "python": generate_python_code(p, lang),
+        "r": generate_r_code(p, lang),
+        "stata": generate_stata_code(p, lang),
     }

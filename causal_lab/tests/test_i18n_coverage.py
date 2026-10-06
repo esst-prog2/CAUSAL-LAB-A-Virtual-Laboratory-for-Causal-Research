@@ -56,7 +56,9 @@ def test_dynamic_key_families_exist():
     expected |= {f"stat.{s}" for s in STATISTICS} | {"coef.slope", "coef.intercept"}
     expected |= {f"structure.{s}" for s in ("cross-section", "panel", "repeated cross-section", "time series")}
     expected |= {f"threat.{f}" for f in ("confounding", "spillovers", "serial_correlation", "treatment_heterogeneity",
-                                         "differential_trend", "anticipation", "staggered_adoption")}
+                                         "differential_trend", "anticipation", "dynamic_effects",
+                                         "staggered_adoption")}
+    expected |= {f"staggered.comparison.{c}" for c in ("never_treated", "not_yet_treated")}
     for method, spec in METHODS.items():
         expected |= {f"method.{method}", f"methods.assumption.{method}"}
         expected |= {f"mparam.{method}.{p.field}" for p in spec.params}
@@ -110,7 +112,29 @@ def test_engine_messages_render_in_french():
             assert fr != str(m), m.key          # actually translated
 
 
+def test_generated_scripts_and_summaries_follow_language():
+    from code_generator.generator import CodeGenParams, generate_all
+    from estimators.rct import estimate_rct
+    from simulation_engine.method_worlds import RCTWorldConfig, rct_world
+
+    en, fr = generate_all(CodeGenParams(), "en"), generate_all(CodeGenParams(), "fr")
+    for language in ("python", "r", "stata"):
+        assert "Différence de différences" in fr[language]
+        assert "Difference-in-Differences" in en[language]
+        # only comments, the docstring header and printed labels differ: the code is identical
+        changed = set(en[language].splitlines()) ^ set(fr[language].splitlines())
+        allowed = ("#", "*", "CAUSAL LAB", "print(", "Model", "Modèle", "Two-way", "Différence")
+        assert all(line.lstrip().startswith(allowed) for line in changed), changed
+
+    df, truth = rct_world(RCTWorldConfig(seed=1))
+    result = estimate_rct(df, covariate_cols=truth["roles"]["covariates"])
+    fr_summary = "\n".join(line.render("fr") for line in result.summary_lines)
+    assert "Essai randomisé contrôlé" in fr_summary and "Différence de moyennes" in fr_summary
+    assert result.summary_text == "\n".join(result.summary_lines)
+
+
 if __name__ == "__main__":
+    test_generated_scripts_and_summaries_follow_language()
     test_same_keys_and_placeholders()
     test_every_static_key_in_code_exists()
     test_dynamic_key_families_exist()

@@ -1,9 +1,4 @@
-# code-generation Specification
-
-## Purpose
-Produces ready-to-run R, Python, and Stata scripts that reproduce the DiD analysis configured in the app, so the researcher can leave CAUSAL LAB and keep working in their own environment with full reproducibility.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Three-language script export
 The system SHALL generate equivalent Python, R, and Stata scripts fitting the same two-way fixed-effects DiD model. Each script SHALL use the declared column names directly, without re-encoding them. Comments and printed labels SHALL be written in the interface language, while the executable code SHALL be identical across languages.
@@ -22,17 +17,3 @@ The system SHALL generate equivalent Python, R, and Stata scripts fitting the sa
 #### Scenario: French scripts
 - **WHEN** the scripts are generated with `lang = "fr"`
 - **THEN** their comments and printed labels are in French, and the lines that differ from the English scripts are only comments, headers and printed labels
-
-### Requirement: Clustering defaults to the unit column
-The system SHALL cluster standard errors on the unit column in all three generated scripts unless a different cluster column is specified.
-
-#### Scenario: No cluster column supplied
-- **WHEN** `CodeGenParams.cluster_col` is not set
-- **THEN** all three generated scripts cluster standard errors on `unit_col`
-
-### Requirement: Scripts are downloadable from the app
-The system SHALL let the researcher download each generated script directly from the Code page.
-
-#### Scenario: Viewing and downloading
-- **WHEN** the Code page is open
-- **THEN** it shows the Python, R, and Stata scripts in separate tabs with syntax highlighting, each with its own download button (`causal_lab_did.py`, `causal_lab_did.R`, `causal_lab_did.do`)

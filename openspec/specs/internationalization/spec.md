@@ -57,12 +57,17 @@ The English and French dictionaries SHALL contain exactly the same keys, and eac
 - **THEN** it passes only if both dictionaries have the same keys, the placeholders match, every key referenced in the code exists, and every dynamic key family (methods, options, levels, catalogue entries, parameters, recommendation components, diagnosis dimensions) is present
 
 ### Requirement: Deliberate English exceptions
-The system SHALL keep the following in English, and SHALL label the technical log as English in the interface:
-- generated Python, R and Stata scripts (source code);
-- the per-method technical summary log;
-- bibliographic references;
-- the names of columns from the researcher's own data.
+The system SHALL leave untranslated only text that is not interface text:
+- bibliographic references (author names, years);
+- the names of columns, units and values from the researcher's own data;
+- programming-language keywords and function names in generated scripts.
+
+Everything else SHALL follow the interface language, including the comments and printed labels of generated scripts and the per-method technical summary.
 
 #### Scenario: Technical summary
 - **WHEN** a Causal Methods result is shown in French
-- **THEN** the technical summary is inside an expander titled "Résumé technique (en anglais)"
+- **THEN** the technical summary is inside an expander titled "Résumé technique", and its lines (headline, inference, method-specific details) are in French
+
+#### Scenario: French audit including code blocks
+- **WHEN** the French render audit also inspects code blocks (generated scripts and technical summaries)
+- **THEN** it finds no English interface sentence

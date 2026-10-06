@@ -142,9 +142,8 @@ def estimate_rdd(df: pd.DataFrame, outcome_col: str = "Y", running_col: str = "X
         warnings=warnings,
     )
     result.summary_text = format_summary(result, [
-        f"Bandwidth h = {h:.4f} ({result.details['bandwidth_rule']}), "
-        f"{n_left} obs below / {n_right} above the cutoff",
-        "Sensitivity: " + ", ".join(
-            f"{r['factor']:g}h -> {r['estimate']:.3f}" for r in sensitivity),
+        Msg("summary.rdd.bandwidth", h=h, rule=result.details["bandwidth_rule"], left=n_left, right=n_right),
+        Msg("summary.rdd.sensitivity",
+            values=", ".join(f"{r['factor']:g}h -> {r['estimate']:.3f}" for r in sensitivity)),
     ])
     return result

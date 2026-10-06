@@ -119,8 +119,8 @@ def estimate_synthetic_control(df: pd.DataFrame, unit_col: str = "unit", period_
     )
     top = weights[weights["weight"] > 0.01]
     result.summary_text = format_summary(result, [
-        f"Pre-treatment RMSPE = {main['pre_rmspe']:.4f}, post/pre RMSPE ratio = {main['ratio']:.2f}",
-        f"Placebo p-value over {len(donors) + 1} units",
-        "Donor weights > 0.01: " + ", ".join(f"{r.donor}={r.weight:.3f}" for r in top.itertuples()),
+        Msg("summary.sc.rmspe", pre=main["pre_rmspe"], ratio=main["ratio"]),
+        Msg("summary.sc.placebo", units=len(donors) + 1),
+        Msg("summary.sc.weights", weights=", ".join(f"{r.donor}={r.weight:.3f}" for r in top.itertuples())),
     ])
     return result

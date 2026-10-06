@@ -84,9 +84,7 @@ def estimate_dml(df: pd.DataFrame, outcome_col: str = "Y", treatment_col: str = 
         warnings=warnings,
     )
     result.summary_text = format_summary(result, [
-        f"{n_folds}-fold cross-fitting, random-forest nuisance models "
-        f"(out-of-fold R2: outcome {result.details['r2_outcome']:.3f}, treatment {r2_d:.3f})",
-        f"Naive OLS with linear controls = {result.details['ols_estimate']:.4f} "
-        f"(SE {result.details['ols_se']:.4f})",
+        Msg("summary.dml.crossfit", folds=n_folds, r2y=result.details["r2_outcome"], r2d=r2_d),
+        Msg("summary.dml.ols", value=result.details["ols_estimate"], se=result.details["ols_se"]),
     ])
     return result

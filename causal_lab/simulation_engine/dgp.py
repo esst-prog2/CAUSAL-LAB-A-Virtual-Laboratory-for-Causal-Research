@@ -45,6 +45,7 @@ class VirtualWorldConfig:
     treatment_heterogeneity: str = "none"
     differential_trend: str = "none"   # treated units drift away before treatment
     anticipation: str = "none"         # treated units react one period early
+    dynamic_effects: str = "none"      # effect grows with time since adoption
 
     noise_sd: float = 1.0
     seed: int | None = 42
@@ -144,7 +145,14 @@ def generate(config: VirtualWorldConfig) -> tuple[pd.DataFrame, dict]:
 
     y0 = (unit_fe[None, :] + time_fe[:, None]
           + confound_strength * 0.3 * x1[None, :] * (t_grid / n_periods) + differential + eps)
-    y1 = y0 + unit_effect[None, :]
+    # Dynamic effects: a treated unit's effect grows by 25% * intensity of
+    # its base effect for every period since its own adoption. Combined
+    # with staggered adoption this is exactly the case where two-way
+    # fixed effects are biased (Goodman-Bacon 2021).
+    growth_rate = 0.25 * INTENSITY_TO_VALUE[config.dynamic_effects]
+    exposure = np.where(np.isfinite(adoption)[None, :], np.maximum(t_grid - adoption[None, :], 0), 0)
+    effect_now = unit_effect[None, :] * (1 + growth_rate * exposure)
+    y1 = y0 + effect_now
     spill_bonus = np.where(
         (spill_strength > 0) & ~is_treated_unit[None, :] & (t_grid >= neighbour_adoption[None, :]),
         spill_strength * unit_effect[None, :] * 0.5,
@@ -174,9 +182,12 @@ def generate(config: VirtualWorldConfig) -> tuple[pd.DataFrame, dict]:
         Y=y_observed.ravel(),
     ))
 
-    realized_effects = [unit_effect[u] for u in treated_units]
+    # True ATT = mean effect over the treated unit-periods actually observed
+    # (what DiD-type estimators target). Without staggering or dynamic
+    # effects it equals the mean unit effect among treated units.
+    realized_effects = effect_now[treated_now]
     truth = dict(
-        true_att=float(np.mean(realized_effects)) if realized_effects else float(config.true_att),
+        true_att=float(np.mean(realized_effects)) if realized_effects.size else float(config.true_att),
         design_att=float(config.true_att),
         treated_units=sorted(treated_units),
         adoption_period=adoption_period,

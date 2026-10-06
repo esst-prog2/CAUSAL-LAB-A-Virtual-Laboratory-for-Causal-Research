@@ -70,7 +70,7 @@ def estimate_iv(df: pd.DataFrame, outcome_col: str = "Y", treatment_col: str = "
         warnings=warnings,
     )
     result.summary_text = format_summary(result, [
-        f"First-stage F = {first_stage_f:.2f} (partial R2 = {result.details['partial_r2']:.3f})",
-        f"Naive OLS = {result.details['ols_estimate']:.4f} (SE {result.details['ols_se']:.4f})",
+        Msg("summary.iv.first_stage", f=first_stage_f, r2=result.details["partial_r2"]),
+        Msg("summary.iv.ols", value=result.details["ols_estimate"], se=result.details["ols_se"]),
     ])
     return result
