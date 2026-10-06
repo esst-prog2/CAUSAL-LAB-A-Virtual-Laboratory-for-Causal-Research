@@ -24,7 +24,7 @@
 
 - [x] 5.1 Add the `nav.methods` and related keys to `locales/en.json` and `locales/fr.json`, and verify that both files parse and have the same key set.
 - [x] 5.2 Add the Causal Methods page to `app.py`: method selector, assumption text, a virtual-world/CSV source switch with per-method parameters or column mapping, an estimate button, the metrics row with truth and bias for virtual data, the warnings list and a method-specific plot. Estimator `ValueError`s are shown with `st.error`. Verify with a headless `streamlit.testing.v1.AppTest` run that generates and estimates every method without an exception.
-- [ ] 5.3 Manual smoke test with `streamlit run causal_lab/app.py`: run each method on its virtual world, and upload a CSV for one method with a deliberately bad mapping. Verify that the error names the role.
+- [x] 5.3 Manual smoke test with `streamlit run causal_lab/app.py`: run each method on its virtual world, and upload a CSV for one method with a deliberately bad mapping. Verify that the error names the role.
 
 ## 6. Close the loop
 

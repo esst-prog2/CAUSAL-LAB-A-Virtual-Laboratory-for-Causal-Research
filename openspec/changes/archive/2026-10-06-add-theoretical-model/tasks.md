@@ -20,7 +20,7 @@
 
 - [x] 5.1 Locale keys `nav.theory` and `theory.*` in `en.json`/`fr.json`. Verify that both parse and have identical key sets.
 - [x] 5.2 `causal_lab/ui/theory_page.py` plus the sidebar entry in `app.py`: Model / Equilibrium & data / Predictions tabs, equations through `st.latex`, data sources (Virtual Lab, Causal Methods, CSV upload), equilibrium table and path chart, outcome-vs-parameter curve, and the comparison with a causal estimate. Verify with a headless `AppTest` run that solves every catalogue model with manual parameters, calibrates one model per period on a generated Virtual World, builds and solves a custom model, and shows an editor error, all without an exception.
-- [ ] 5.3 Manual smoke test in the browser: calibrate the Tullock model on an uploaded CSV, and compare a prediction with a Causal Methods estimate.
+- [x] 5.3 Manual smoke test in the browser: calibrate the Tullock model on an uploaded CSV, and compare a prediction with a Causal Methods estimate.
 
 ## 6. Close the loop
 

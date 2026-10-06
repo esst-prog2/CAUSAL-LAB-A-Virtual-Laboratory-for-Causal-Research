@@ -31,7 +31,7 @@ The system SHALL only show an Estimated-vs-True-ATT comparison when the active d
 - **THEN** the Estimation page shows the DiD estimate, standard error, and confidence interval, but does not show a "Ground truth comparison" section
 
 ### Requirement: Required columns are validated at upload time
-The system SHALL validate that an uploaded CSV contains all five required columns — `unit`, `period`, `Y`, `D`, `treated_unit` — immediately after it is parsed, before it can become the active dataset. Column names stay fixed; no column-mapping UI is offered.
+The system SHALL validate that an uploaded CSV contains all five required columns — `unit`, `period`, `Y`, `D`, `treated_unit` — immediately after it is parsed, before it can become the active dataset. Column names stay fixed for this panel/DiD upload on the Virtual Lab page; no column-mapping UI is offered there. Column mapping exists only on the separate Causal Methods page, for the methods it hosts.
 
 #### Scenario: All required columns present
 - **WHEN** an uploaded CSV parses successfully and contains `unit`, `period`, `Y`, `D`, and `treated_unit`

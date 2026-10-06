@@ -1,0 +1,38 @@
+# matching-estimation Specification
+
+## Purpose
+Estimates the average treatment effect on the treated (ATT) when treatment is non-random but assumed to depend only on observed covariates (selection on observables), via propensity-score matching and inverse probability weighting.
+
+## Requirements
+
+### Requirement: Propensity-score estimation
+The system SHALL estimate each observation's propensity score, the probability of treatment given the supplied covariates, with a logistic regression.
+
+#### Scenario: Estimating propensity scores
+- **WHEN** the matching estimator is run with an outcome, a binary treatment and at least one numeric covariate
+- **THEN** every observation receives a propensity score strictly between 0 and 1
+
+### Requirement: Nearest-neighbour matching ATT
+The system SHALL estimate the ATT by matching each treated observation to the control observation with the closest propensity score (with replacement). It SHALL report a standard error that accounts for controls being reused as matches, plus a 95% confidence interval and a p-value.
+
+#### Scenario: Matching estimate
+- **WHEN** the matching estimator is run
+- **THEN** it reports the ATT as the mean, over treated observations, of the outcome minus the matched control's outcome, together with its standard error, confidence interval, p-value and the number of distinct controls used as matches
+
+### Requirement: Inverse-probability-weighted ATT
+The system SHALL also report an inverse-probability-weighted ATT, in which control observations are weighted by p/(1-p), as a second estimate under the same assumption.
+
+#### Scenario: IPW estimate reported alongside matching
+- **WHEN** the matching estimator is run
+- **THEN** the IPW ATT and its standard error are reported next to the matching ATT
+
+### Requirement: Balance and overlap diagnostics
+The system SHALL report the standardized mean difference of every covariate before and after matching, and SHALL warn when treated propensity scores fall outside the range of control propensity scores (lack of overlap).
+
+#### Scenario: Matching improves balance
+- **WHEN** treatment depends on the covariates
+- **THEN** the balance table shows each covariate's standardized difference both in the raw sample and in the matched sample
+
+#### Scenario: Poor overlap
+- **WHEN** some treated observations have a propensity score above the largest control propensity score
+- **THEN** the result includes an overlap warning stating how many treated observations are outside the control range
