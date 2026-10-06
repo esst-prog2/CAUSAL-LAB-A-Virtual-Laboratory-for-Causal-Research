@@ -43,9 +43,17 @@ on screen     upload or generate → see the pre/post trend plot and the
   - Double Machine Learning: cross-fitted partially linear model.
   
   Each runs on its own virtual world, with a known true effect shown next to the estimate, or on an uploaded CSV whose columns you map to the method's roles.
+- Build a theoretical model of interacting agents on a "Theoretical Model" page.
+  - **Models.** Pick from a catalogue or write your own in a free editor (with safe parsing):
+    - Public choice: median voter, probabilistic voting, Tullock rent-seeking, Niskanen bureaucracy, voluntary public-good provision.
+    - Markets: Cournot, differentiated Bertrand.
+  - **Equations and equilibrium.** The app shows each agent's utility, first-order condition and best response. It solves the pure-strategy Nash equilibrium (closed form, or numerically with a check that no agent gains from a unilateral deviation).
+  - **Calibration.** Parameters are set from the data, as column statistics, filtered subgroups or regression coefficients. One equilibrium is solved per group or per period, depending on the detected data structure.
+  - **Prediction.** A treatment is modelled as a parameter shift, and the predicted effect is compared with a causal estimate (verdict: consistent / magnitude differs / sign contradicts).
 
 **Not this term:**
 - Fuzzy RD, robust bias-corrected RD inference, covariate-weighted synthetic control, and Monte Carlo / stress-test / code-generation support for the six additional methods (those pages remain DiD-only).
+- Mixed-strategy and sequential (Stackelberg, bargaining) equilibria, multidimensional strategies, and structural estimation (MLE/GMM) of the theoretical models; calibration is by explicit moments.
 - Report export (PDF/Word/LaTeX).
 - Connectors to external data sources (DHS, ACLED, WorldPop, etc.).
 - Project persistence / saved sessions.

@@ -6,3 +6,4 @@ statsmodels>=0.14
 linearmodels>=6.0
 plotly>=5.20
 scikit-learn>=1.4
+sympy>=1.12

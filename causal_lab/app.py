@@ -31,6 +31,7 @@ from robustness_engine.stress_test import run_stress_test
 from simulation_engine.dgp import VirtualWorldConfig, generate
 from simulation_engine.monte_carlo import run_monte_carlo
 from ui.methods_page import render as render_methods_page
+from ui.theory_page import render as render_theory_page
 from utils.i18n import t
 from utils.validation import REQUIRED_COLUMNS, missing_required_columns
 
@@ -94,7 +95,7 @@ with st.sidebar:
         [
             L("nav.dashboard"), L("nav.research_question"), L("nav.diagnosis"),
             L("nav.recommendation"), L("nav.virtual_lab"), L("nav.estimation"),
-            L("nav.methods"), L("nav.break_my_design"), L("nav.robustness"), L("nav.code"),
+            L("nav.methods"), L("nav.theory"), L("nav.break_my_design"), L("nav.robustness"), L("nav.code"),
             L("nav.settings"),
         ],
         label_visibility="collapsed",
@@ -404,6 +405,12 @@ elif page == L("nav.estimation"):
 # --------------------------------------------------------------------------
 elif page == L("nav.methods"):
     render_methods_page(L)
+
+# --------------------------------------------------------------------------
+# THEORETICAL MODEL (agents, equilibrium, calibration, predictions)
+# --------------------------------------------------------------------------
+elif page == L("nav.theory"):
+    render_theory_page(L)
 
 # --------------------------------------------------------------------------
 # BREAK MY DESIGN
