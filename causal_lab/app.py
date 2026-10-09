@@ -39,6 +39,7 @@ from simulation_engine.monte_carlo import run_monte_carlo
 from ui.methods_page import render as render_methods_page
 from ui.theory_page import render as render_theory_page
 from utils.i18n import LocalizedError, render, t, tf
+from utils.real_data import load_card_krueger
 from utils.validation import REQUIRED_COLUMNS, missing_required_columns
 
 st.set_page_config(page_title="CAUSAL LAB", page_icon="🔬", layout="wide")
@@ -399,6 +400,16 @@ elif page == "virtual_lab":
                 st.session_state.virtual_truth = None
                 st.session_state.virtual_cfg = None
                 st.success(F("virtual.loaded", rows=len(up_df), columns=", ".join(map(str, up_df.columns))))
+
+    # Real data shipped with the app: the raw Card & Krueger file cannot go
+    # through the CSV uploader (fixed-width .dat, no unit/period/D/Y columns).
+    if st.button(f"📂 {L('virtual.load_card_krueger')}"):
+        st.session_state.uploaded_df = load_card_krueger()
+        st.session_state.uploaded_file_id = "card_krueger_1994"
+        st.session_state.virtual_df = None
+        st.session_state.virtual_truth = None
+        st.session_state.virtual_cfg = None
+        st.success(F("virtual.card_krueger_loaded", rows=len(st.session_state.uploaded_df)))
 
     if active_df() is not None:
         st.dataframe(active_df().head(20), width="stretch")

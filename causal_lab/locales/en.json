@@ -700,5 +700,7 @@
   "gen.model": "Model",
   "gen.att_label": "ATT estimate",
   "gen.se_label": "Cluster-robust SE",
-  "gen.requires_reghdfe": "Requires reghdfe"
+  "gen.requires_reghdfe": "Requires reghdfe",
+  "virtual.load_card_krueger": "Load real data: Card & Krueger (1994) minimum wage, New Jersey vs Pennsylvania",
+  "virtual.card_krueger_loaded": "Loaded Card & Krueger (1994): {rows} store-wave observations (FTE employment, NJ treated after the April 1992 minimum-wage increase)."
 }

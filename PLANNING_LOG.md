@@ -4,6 +4,18 @@ One line per decision about this project — a requirement, a number, a name, a 
 
 ---
 
+- 2026-10-09: hw5 real use, expected vs got — differences become the next tests / bugs:
+  - (a) BUG: with only 2 periods, the Serial Correlation check raises a false WARNING. The Nickell correction 1/(T−1) = 1 turns DW = 2.00 into ρ = 1.00; the check should say "not enough periods" when T < 3.
+  - (b) NEXT TEST: our clustered SE is 1.91 versus 1.36 published. Our 95% CI [−0.97, 6.50] includes 0 (p = 0.15) while the paper reports a significant effect. To check against the paper's SE definition.
+  - (c) LIMITATION: the robust (Callaway & Sant'Anna) tab refuses the unbalanced panel (26 stores miss a wave). It should drop incomplete units instead.
+  - (d) LIMITATION: the Spillovers check uses store-id adjacency, which means nothing for these data (SHEET is not geographic). It "passes", and the 40/100 score is driven by checks that cannot be computed with 2 periods — decided by: Claude
+- 2026-10-09: hw5 real use, attempt 2 (after the fix), on the 794 store-waves.
+  - Estimation: DiD = +2.7644 FTE, clustered SE 1.9059, 95% CI [−0.971, 6.500].
+  - Break My Design: Parallel Trends WARNING "Not enough pre-treatment periods or groups to test pre-trends"; Anticipation WARNING (not enough data); Spillovers PASS; Heterogeneous Effects PASS; Serial Correlation WARNING (DW = 2.00, "corrected" ρ = 1.00); Identification Strength 40/100.
+  - Robust DiD tab: error "needs a balanced panel".
+  - Against the expectation: (1) positive effect of about +2.8 — yes, +2.76; (2) Parallel Trends not testable — yes, it reports not enough pre-treatment periods; (3) the obstacle was removed — decided by: Claude
+- 2026-10-09: hw5 smallest obstacle removed: a "Load real data: Card & Krueger (1994)" button in the Virtual Lab. It loads `utils/real_data.load_card_krueger()` as uploaded real data, with no ground truth (11 lines in app.py and 2 locale keys) — decided by: Claude
+- 2026-10-09: hw5 real use, attempt 1, with the app as it was: it could not be used on the real file. The Virtual Lab uploader only accepts `.csv` files, so `public.dat` cannot even be selected. Forced through, it is rejected: "Uploaded CSV is missing required column(s): unit, period, Y, D, treated_unit." Raw data never come in the app's five fixed columns, so expectation (3) applies — decided by: Claude
 - 2026-10-09: hw5 real use, planned before running. Input: the raw Card & Krueger file as a researcher downloads it (`njmin.zip` → `public.dat`), used through the app as it is today: Virtual Lab upload, then Estimation and Break My Design. Expected:
   - (1) a positive DiD effect of about +2.8 FTE per store, i.e. no job loss in New Jersey;
   - (2) Parallel Trends cannot really be tested, because there is only one pre-treatment period;
