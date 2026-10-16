@@ -1,3 +1,9 @@
 __pycache__/
 *.pyc
 .venv/
+.pytest_cache/
+
+# Local settings and secrets: never committed (hw6 review 8)
+**/.env
+**/.streamlit/secrets.toml
+.claude/settings.local.json
