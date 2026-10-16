@@ -4,6 +4,8 @@ One line per decision about this project — a requirement, a number, a name, a 
 
 ---
 
+- 2026-10-16: hw6 started. Branch `hw6-review` was created from main 5eb32b6 as the first operation. Each of the eight specialised reviews is committed separately, with its record in `docs/reviews/hw6-review-0N.md` — decided by: user
+- 2026-10-16: hw6 review 1 (spec vs implementation). Added `tests/test_stress_calibration.py` to enforce the spec's clean-world calibration bounds (until now only checked by hand through the spike). Fixed README drift (§1 note, §2 five columns, §4 key count, §5 real data and known limitations). Specced the hw5 Card & Krueger button (OpenSpec `2026-10-16-hw6-spec-alignment`). Found and deferred to review 3: (1) DiD clustered SE 1.91 vs 1.36 from the textbook formula, because the absorbed FE are counted in the small-sample correction; (2) SHEET 407 is two different stores merged by the loader; (3) non-computable checks count against the score — decided by: Claude
 - 2026-10-09: hw5 real use, expected vs got — differences become the next tests / bugs:
   - (a) BUG: with only 2 periods, the Serial Correlation check raises a false WARNING. The Nickell correction 1/(T−1) = 1 turns DW = 2.00 into ρ = 1.00; the check should say "not enough periods" when T < 3.
   - (b) NEXT TEST: our clustered SE is 1.91 versus 1.36 published. Our 95% CI [−0.97, 6.50] includes 0 (p = 0.15) while the paper reports a significant effect. To check against the paper's SE definition.

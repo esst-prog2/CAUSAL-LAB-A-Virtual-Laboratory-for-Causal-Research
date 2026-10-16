@@ -8,10 +8,15 @@ I open the app in the browser and upload a CSV: one row per unit per time period
 
 If I don't have real data, I click "Generate a synthetic world" first: it creates a panel with a known, chosen treatment effect, so I can check that the estimator recovers close to that number before trusting it on anything real.
 
+> **Note (hw6 review 1, 2026-10-16).** This demo is the original plan, and two parts of it differ from what is delivered (section 3):
+> - The diagnosis reports a joint test of the pre-treatment leads, with its p-value and a plausible / questionable / violated verdict. It does not report a "pre-trend slope difference".
+> - "Break My Design" runs the five diagnostic checks of section 3. It does not re-run the estimator on a placebo version of the data where the true effect is zero.
+
 ## 2. The shape
 
 ```
-in            a panel CSV (unit, time, outcome, treatment indicator) —
+in            a panel CSV with five columns (unit, period, outcome Y,
+              treatment indicator D, treated-group flag treated_unit) —
               real data or a synthetic dataset generated in-app with a
               known true effect
 out           a diagnosis of whether parallel trends plausibly hold,
@@ -70,7 +75,7 @@ A person with a messy panel CSV and a treatment date can use this version alone:
 - Given a research design declared with random assignment, the method recommendation ranks Randomized Controlled Trial above every other candidate method.
 - Given panel data where control units adjacent to a treated unit shift after treatment (Virtual World with spillovers), the "Break My Design" Spillovers check reports WARNING with the number of adjacent controls, the estimated shift and its p-value, and the overall Identification Strength score is below 100. Adjacency alone, without a shift, does not trigger it (8% false alarms on threat-free worlds, see section 5).
 - Given the same column names, the generated Python, R, and Stata scripts all fit the same two-way fixed-effects model with standard errors clustered on the same column.
-- Switching the sidebar language toggle from EN to FR redraws every page's text in French, including messages produced by the engines (stress-test details, rationales, warnings, errors, model texts), falling back to English for any translation key that's missing. Checked by `tests/test_i18n_coverage.py`: 663 keys, identical in EN and FR. A scripted French render audit of every page also found no untranslated text outside code blocks. Generated scripts, the per-method technical log (labelled "English"), references, and the user's own column names stay as they are.
+- Switching the sidebar language toggle from EN to FR redraws every page's text in French, including messages produced by the engines (stress-test details, rationales, warnings, errors, model texts), falling back to English for any translation key that's missing. Checked by `tests/test_i18n_coverage.py`: 704 keys, identical in EN and FR. A scripted French render audit of every page also found no untranslated text outside code blocks. Generated scripts, the per-method technical log (labelled "English"), references, and the user's own column names stay as they are.
 
 ## 5. What could stop this
 
@@ -79,7 +84,15 @@ A person with a messy panel CSV and a treatment date can use this version alone:
   - **Other estimators, Monte Carlo only.** The six additional estimators are checked by Monte Carlo coverage on their virtual worlds (93–100%), not yet against an external package.
   - **Staggered timing is handled.** When adoption is staggered, the app warns that two-way fixed effects can be biased and offers the Callaway & Sant'Anna estimator, which is validated by Monte Carlo (see section 3).
   - **Matching standard errors are calibrated.** Matching moved from the propensity score to the covariates, with bias correction. This brought CI coverage from a conservative 100% to 97%, and made the estimates more precise.
-- **Real data availability.** I don't yet have a real panel dataset I'm allowed to show in class. The demo will run on the synthetic "virtual world" generator by default; if I obtain a usable real dataset later (course data, a public panel dataset), I'll add it, but the project does not depend on it.
+- **Real data availability.**
+  - *Original plan:* I don't yet have a real panel dataset I'm allowed to show in class. The demo will run on the synthetic "virtual world" generator by default; if I obtain a usable real dataset later (course data, a public panel dataset), I'll add it, but the project does not depend on it.
+  - *Since hw5:* the app ships one public real dataset with documented provenance, Card & Krueger (1994), loaded from a button on the Virtual Lab page (`causal_lab/data/card_krueger_1994/SOURCE.md`). `tests/test_card_krueger.py` checks that the DiD reproduces the published +2.76 FTE effect.
+- **Known limitations found by using the app on real data** (hw5 real use, PLANNING_LOG 2026-10-09; hw6 review 1):
+  - With only two periods, the Serial Correlation check raises a false warning, and the parallel-trends and anticipation checks cannot be computed. Yet "cannot be computed" counts against the Identification Strength score, which was 40/100 on Card & Krueger.
+  - The robust (Callaway & Sant'Anna) tab refuses unbalanced panels.
+  - The Spillovers check uses unit-id adjacency, which has no geographic meaning outside the Virtual World.
+  - The clustered DiD standard error counts the absorbed unit fixed effects in its small-sample correction: 1.91 on Card & Krueger, against 1.36 by the textbook formula and in the paper. `linearmodels.PanelOLS` makes the same choice, so the "within 2% of PanelOLS" validation cannot detect it.
+  - In the Card & Krueger file, store id `SHEET` 407 is used by two different stores, a KFC in Pennsylvania and a Wendy's in New Jersey, which the loader merges into one unit.
 - **Scope creep, and it already happened.** The original version of this idea had ten modules and two languages; this README initially cut it to one estimator and one diagnosis specifically to avoid that. The tripwire fired anyway: event study, cross-method recommendation, the full stress-test battery, code generation, and the French interface were all built before the four core acceptance criteria above were validated against a known package. Section 3 now documents what was actually delivered instead of leaving this README stale about it — but the underlying risk is unchanged: the four original acceptance criteria are still the real bar, and nothing on the delivered list above substitutes for validating the estimator itself.
 - **The "Break My Design" score — recalibrated on 2026-10-06.** The hw4 spike (`spike/stress_test_calibration_results.md`) found three of the five checks useless:
   - Spillovers fired on 100% of threat-free worlds;
