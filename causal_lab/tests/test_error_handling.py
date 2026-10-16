@@ -1,13 +1,14 @@
 """Errors are explicit: reported, or caught only where expected (hw6 review 5).
 
-Each test names the silent behaviour it replaces.
+Each test names the silent behaviour it replaces. Like every test file here,
+it runs as a plain script and needs no test framework (hw6 review 6).
 """
 import sys
 from pathlib import Path
+from unittest.mock import patch
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import numpy as np
-import pytest
 
 import robustness_engine.robustness as robustness
 import robustness_engine.stress_test as stress
@@ -23,12 +24,20 @@ def _world():
     return generate(VirtualWorldConfig(n_units=40, n_periods=8, treatment_period=4, seed=5))[0]
 
 
+def _raises(exc_type, fn, *args, **kwargs):
+    try:
+        fn(*args, **kwargs)
+    except exc_type as exc:
+        return exc
+    raise AssertionError(f"expected {exc_type.__name__}")
+
+
 def test_text_treatment_is_an_error_not_a_nan_estimate():
     # Before: params.get("D", nan) returned NaN, because a text or boolean D
     # enters the formula as a category named "D[T.…]".
     df = _world()
-    with pytest.raises(LocalizedError, match="not numeric"):
-        estimate_did(df.assign(D=df["D"].map({1: "yes", 0: "no"})))
+    exc = _raises(LocalizedError, estimate_did, df.assign(D=df["D"].map({1: "yes", 0: "no"})))
+    assert "not numeric" in str(exc)
     assert estimate_did(df.assign(D=df["D"].astype(bool))).att == estimate_did(df).att
 
 
@@ -43,39 +52,31 @@ def test_upload_rejects_columns_the_estimators_cannot_use():
     assert invalid_required_columns(df.assign(D=df["D"].where(df.index > 0))) == ["D"]
 
 
-def test_a_regression_that_cannot_be_computed_is_na_and_a_bug_is_not_hidden(monkeypatch):
+def test_a_regression_that_cannot_be_computed_is_na_and_a_bug_is_not_hidden():
     # Before: any exception became a WARNING, i.e. counted as a threat.
     df = _world()
-
-    def singular(*args, **kwargs):
-        raise np.linalg.LinAlgError("Singular matrix")
-    monkeypatch.setattr(stress.smf, "ols", singular)
-    report = stress.run_stress_test(df, treatment_period=4, ids_encode_neighbourhood=True)
+    with patch.object(stress.smf, "ols", side_effect=np.linalg.LinAlgError("Singular matrix")):
+        report = stress.run_stress_test(df, treatment_period=4, ids_encode_neighbourhood=True)
     for name in ("Parallel Trends", "Anticipation", "Spillovers", "Serial Correlation"):
         check = next(c for c in report.checks if c.name == name)
         assert check.verdict == stress.NOT_APPLICABLE and "Singular matrix" in str(check.message), name
-
-    def bug(*args, **kwargs):
-        raise TypeError("a programming error")
-    monkeypatch.setattr(stress.smf, "ols", bug)
-    with pytest.raises(TypeError):
-        stress.run_stress_test(df, treatment_period=4, ids_encode_neighbourhood=True)
+    with patch.object(stress.smf, "ols", side_effect=TypeError("a programming error")):
+        _raises(TypeError, stress.run_stress_test, df, treatment_period=4, ids_encode_neighbourhood=True)
 
 
-def test_leave_one_out_skips_only_units_whose_removal_removes_the_treatment(monkeypatch):
+def test_leave_one_out_skips_only_units_whose_removal_removes_the_treatment():
     # Before: `except Exception: continue` also skipped real failures.
     df = _world()
-    calls = {"n": 0}
     real = robustness.estimate_did
+    calls = {"n": 0}
 
     def failing_on_loo(sub, *args, **kwargs):
         calls["n"] += 1
         if calls["n"] > 3:                # baseline and the two windows succeed
             raise TypeError("a programming error")
         return real(sub, *args, **kwargs)
-    monkeypatch.setattr(robustness, "estimate_did", failing_on_loo)
-    with pytest.raises(TypeError):
-        robustness.run_robustness_battery(df, 4, ids_encode_neighbourhood=False)
+    with patch.object(robustness, "estimate_did", failing_on_loo):
+        _raises(TypeError, robustness.run_robustness_battery, df, 4, ids_encode_neighbourhood=False)
 
 
 def test_matching_reports_how_many_bootstrap_replications_were_usable():
@@ -87,4 +88,9 @@ def test_matching_reports_how_many_bootstrap_replications_were_usable():
 
 
 if __name__ == "__main__":
-    sys.exit(pytest.main([__file__, "-q"]))
+    test_text_treatment_is_an_error_not_a_nan_estimate()
+    test_upload_rejects_columns_the_estimators_cannot_use()
+    test_a_regression_that_cannot_be_computed_is_na_and_a_bug_is_not_hidden()
+    test_leave_one_out_skips_only_units_whose_removal_removes_the_treatment()
+    test_matching_reports_how_many_bootstrap_replications_were_usable()
+    print("test_error_handling: OK")

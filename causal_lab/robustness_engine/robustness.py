@@ -20,7 +20,7 @@ from dataclasses import dataclass
 
 import pandas as pd
 
-from estimators.did import DiDResult, estimate_did
+from estimators.did import estimate_did
 from robustness_engine.neighbourhood import adjacent_control_ids
 from utils.i18n import LocalizedError, Msg
 

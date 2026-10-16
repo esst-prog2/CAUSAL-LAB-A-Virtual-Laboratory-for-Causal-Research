@@ -75,7 +75,7 @@ A person with a messy panel CSV and a treatment date can use this version alone:
 - Given a research design declared with random assignment, the method recommendation ranks Randomized Controlled Trial above every other candidate method.
 - Given panel data where control units adjacent to a treated unit shift after treatment (Virtual World with spillovers), the "Break My Design" Spillovers check reports WARNING with the number of adjacent controls, the estimated shift and its p-value, and the overall Identification Strength score is below 100. Adjacency alone, without a shift, does not trigger it (8% false alarms on threat-free worlds, see section 5).
 - Given the same column names, the generated Python, R, and Stata scripts all fit the same two-way fixed-effects model with standard errors clustered on the same column.
-- Switching the sidebar language toggle from EN to FR redraws every page's text in French, including messages produced by the engines (stress-test details, rationales, warnings, errors, model texts), falling back to English for any translation key that's missing. Checked by `tests/test_i18n_coverage.py`: 704 keys, identical in EN and FR. A scripted French render audit of every page also found no untranslated text outside code blocks. Generated scripts, the per-method technical log (labelled "English"), references, and the user's own column names stay as they are.
+- Switching the sidebar language toggle from EN to FR redraws every page's text in French, including messages produced by the engines (stress-test details, rationales, warnings, errors, model texts), falling back to English for any translation key that's missing. Checked by `tests/test_i18n_coverage.py`: 712 keys, identical in EN and FR. A scripted French render audit of every page also found no untranslated text outside code blocks. Generated scripts, the per-method technical log (labelled "English"), references, and the user's own column names stay as they are.
 
 ## 5. What could stop this
 
@@ -118,3 +118,15 @@ A person with a messy panel CSV and a treatment date can use this version alone:
   | Heterogeneous Effects | 10% | 100% |
 
   The clean-world score is now 92.2/100. A severe threat lowers it to 56–76. The remaining false alarms are the expected cost of testing at the 10% level; the score is still a diagnostic heuristic, not a proof.
+
+## 6. Running it
+
+```bash
+cd causal_lab
+python -m venv .venv
+source .venv/bin/activate        # Windows: .venv\Scriptsctivate
+pip install -r requirements.txt
+streamlit run app.py             # opens http://localhost:8501
+```
+
+Each file in `causal_lab/tests/` runs as a plain script (`python tests/test_card_krueger.py`) and needs nothing beyond `requirements.txt`. With pytest installed, which is a test runner and not an app dependency, `python -m pytest` from the repository root runs them all. The AppTest files drive the whole app and take about two minutes.

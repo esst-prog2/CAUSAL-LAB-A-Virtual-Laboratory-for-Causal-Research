@@ -48,10 +48,6 @@ class CheckResult:
     assessment: str | None = None   # plain-language verdict, e.g. "plausible"
 
     @property
-    def detail(self) -> str:
-        return str(self.message)
-
-    @property
     def slug(self) -> str:
         return CHECK_SLUGS[self.name]
 
@@ -70,9 +66,6 @@ class StressTestReport:
     checks: list[CheckResult] = field(default_factory=list)
     identification_strength: float | None = None   # None when no check could be computed
     n_computable: int = 0
-
-    def summary_table(self):
-        return [(c.name, c.verdict, c.detail) for c in self.checks]
 
 
 def _check_parallel_trends(df: pd.DataFrame, outcome_col, unit_col, time_col,
