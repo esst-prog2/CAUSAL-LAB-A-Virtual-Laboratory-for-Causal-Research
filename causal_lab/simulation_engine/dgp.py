@@ -27,6 +27,8 @@ import pandas as pd
 from utils.i18n import LocalizedError
 
 INTENSITY_TO_VALUE = {"none": 0.0, "low": 0.3, "medium": 0.7, "high": 1.2, "severe": 2.0}
+THREAT_LEVEL_FIELDS = ("confounding", "spillovers", "serial_correlation", "treatment_heterogeneity",
+                       "differential_trend", "anticipation", "dynamic_effects")
 
 
 @dataclass
@@ -66,6 +68,17 @@ def generate(config: VirtualWorldConfig) -> tuple[pd.DataFrame, dict]:
     """
     if not 1 <= config.treatment_period < config.n_periods:
         raise LocalizedError("err.dgp_treatment_period")
+    # Values the generator used to clip or crash on (hw6 review 7).
+    if config.n_units < 2:
+        raise LocalizedError("err.dgp_n_units")
+    if not 0 < config.share_treated < 1:
+        raise LocalizedError("err.dgp_share_treated", value=config.share_treated)
+    if not config.noise_sd > 0:
+        raise LocalizedError("err.dgp_noise_sd", value=config.noise_sd)
+    for name in THREAT_LEVEL_FIELDS:
+        if getattr(config, name) not in INTENSITY_TO_VALUE:
+            raise LocalizedError("err.dgp_level", field=name, value=getattr(config, name),
+                                 allowed=", ".join(INTENSITY_TO_VALUE))
 
     rng = np.random.default_rng(config.seed)
     n_units, n_periods = config.n_units, config.n_periods

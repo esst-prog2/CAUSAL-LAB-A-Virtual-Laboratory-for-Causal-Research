@@ -36,6 +36,7 @@ from estimators.common import Z_95
 from utils.i18n import LocalizedError
 
 N_BOOTSTRAP = 199
+COMPARISONS = ("never_treated", "not_yet_treated")
 
 
 @dataclass
@@ -104,6 +105,10 @@ def estimate_staggered_did(df: pd.DataFrame, outcome_col: str = "Y", treatment_c
                            unit_col: str = "unit", time_col: str = "period",
                            comparison: str = "never_treated", seed: int = 0,
                            n_bootstrap: int = N_BOOTSTRAP) -> StaggeredDiDResult:
+    if comparison not in COMPARISONS:
+        raise LocalizedError("err.cs_comparison", value=comparison, allowed=", ".join(COMPARISONS))
+    if n_bootstrap < 2:
+        raise LocalizedError("err.cs_bootstrap", value=n_bootstrap)
     data = df[[unit_col, time_col, outcome_col, treatment_col]].dropna()
     y, periods, first, n_dropped = _wide(data, outcome_col, unit_col, time_col, treatment_col)
     if not np.isfinite(first).any():
