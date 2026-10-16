@@ -8,10 +8,15 @@ I open the app in the browser and upload a CSV: one row per unit per time period
 
 If I don't have real data, I click "Generate a synthetic world" first: it creates a panel with a known, chosen treatment effect, so I can check that the estimator recovers close to that number before trusting it on anything real.
 
+> **Note (hw6 review 1, 2026-10-16).** This demo is the original plan, and two parts of it differ from what is delivered (section 3):
+> - The diagnosis reports a joint test of the pre-treatment leads, with its p-value and a plausible / questionable / violated verdict. It does not report a "pre-trend slope difference".
+> - "Break My Design" runs the five diagnostic checks of section 3. It does not re-run the estimator on a placebo version of the data where the true effect is zero.
+
 ## 2. The shape
 
 ```
-in            a panel CSV (unit, time, outcome, treatment indicator) —
+in            a panel CSV with five columns (unit, period, outcome Y,
+              treatment indicator D, treated-group flag treated_unit) —
               real data or a synthetic dataset generated in-app with a
               known true effect
 out           a diagnosis of whether parallel trends plausibly hold,
@@ -70,7 +75,7 @@ A person with a messy panel CSV and a treatment date can use this version alone:
 - Given a research design declared with random assignment, the method recommendation ranks Randomized Controlled Trial above every other candidate method.
 - Given panel data where control units adjacent to a treated unit shift after treatment (Virtual World with spillovers), the "Break My Design" Spillovers check reports WARNING with the number of adjacent controls, the estimated shift and its p-value, and the overall Identification Strength score is below 100. Adjacency alone, without a shift, does not trigger it (8% false alarms on threat-free worlds, see section 5).
 - Given the same column names, the generated Python, R, and Stata scripts all fit the same two-way fixed-effects model with standard errors clustered on the same column.
-- Switching the sidebar language toggle from EN to FR redraws every page's text in French, including messages produced by the engines (stress-test details, rationales, warnings, errors, model texts), falling back to English for any translation key that's missing. Checked by `tests/test_i18n_coverage.py`: 663 keys, identical in EN and FR. A scripted French render audit of every page also found no untranslated text outside code blocks. Generated scripts, the per-method technical log (labelled "English"), references, and the user's own column names stay as they are.
+- Switching the sidebar language toggle from EN to FR redraws every page's text in French, including messages produced by the engines (stress-test details, rationales, warnings, errors, model texts), falling back to English for any translation key that's missing. Checked by `tests/test_i18n_coverage.py`: 712 keys, identical in EN and FR. A scripted French render audit of every page also found no untranslated text outside code blocks. Generated scripts, the per-method technical log (labelled "English"), references, and the user's own column names stay as they are.
 
 ## 5. What could stop this
 
@@ -79,7 +84,16 @@ A person with a messy panel CSV and a treatment date can use this version alone:
   - **Other estimators, Monte Carlo only.** The six additional estimators are checked by Monte Carlo coverage on their virtual worlds (93–100%), not yet against an external package.
   - **Staggered timing is handled.** When adoption is staggered, the app warns that two-way fixed effects can be biased and offers the Callaway & Sant'Anna estimator, which is validated by Monte Carlo (see section 3).
   - **Matching standard errors are calibrated.** Matching moved from the propensity score to the covariates, with bias correction. This brought CI coverage from a conservative 100% to 97%, and made the estimates more precise.
-- **Real data availability.** I don't yet have a real panel dataset I'm allowed to show in class. The demo will run on the synthetic "virtual world" generator by default; if I obtain a usable real dataset later (course data, a public panel dataset), I'll add it, but the project does not depend on it.
+- **Real data availability.**
+  - *Original plan:* I don't yet have a real panel dataset I'm allowed to show in class. The demo will run on the synthetic "virtual world" generator by default; if I obtain a usable real dataset later (course data, a public panel dataset), I'll add it, but the project does not depend on it.
+  - *Since hw5:* the app ships one public real dataset with documented provenance, Card & Krueger (1994), loaded from a button on the Virtual Lab page (`causal_lab/data/card_krueger_1994/SOURCE.md`). `tests/test_card_krueger.py` checks that the DiD reproduces the published +2.76 FTE effect.
+- **Limitations found by using the app on real data** (hw5 real use, PLANNING_LOG 2026-10-09; hw6 review 1), **fixed in hw6 review 3** (`docs/reviews/hw6-review-03.md`):
+  - With only two periods, Serial Correlation raised a false warning, and the parallel-trends and anticipation checks could not be computed but counted against the score (40/100 on Card & Krueger). Non-computable checks are now N/A and are left out of the score, which states how many checks it is based on.
+  - The robust (Callaway & Sant'Anna) tab refused unbalanced panels. It now leaves out units missing a period and says how many (26 stores on Card & Krueger), as the R package `did` does by default.
+  - The Spillovers check used unit-id adjacency on any data. It is now N/A outside the Virtual World.
+  - The clustered DiD standard error counted the absorbed unit fixed effects in its small-sample correction: 1.91 on Card & Krueger. It now follows the Stata xtreg/reghdfe convention: 1.34, against 1.36 in the paper.
+  - Store id `SHEET` 407 is used by two different stores (a KFC in Pennsylvania, a Wendy's in New Jersey), which the loader merged into one unit. Each store is now its own unit. The DiD on Card & Krueger is now 2.75 (2.76 published).
+- **Still open:** on Card & Krueger only one check (Heterogeneous Effects) can be computed, so its score of 100/100 rests on 1 of 5 checks. The app says so, but a single number remains easy to over-read.
 - **Scope creep, and it already happened.** The original version of this idea had ten modules and two languages; this README initially cut it to one estimator and one diagnosis specifically to avoid that. The tripwire fired anyway: event study, cross-method recommendation, the full stress-test battery, code generation, and the French interface were all built before the four core acceptance criteria above were validated against a known package. Section 3 now documents what was actually delivered instead of leaving this README stale about it — but the underlying risk is unchanged: the four original acceptance criteria are still the real bar, and nothing on the delivered list above substitutes for validating the estimator itself.
 - **The "Break My Design" score — recalibrated on 2026-10-06.** The hw4 spike (`spike/stress_test_calibration_results.md`) found three of the five checks useless:
   - Spillovers fired on 100% of threat-free worlds;
@@ -104,3 +118,15 @@ A person with a messy panel CSV and a treatment date can use this version alone:
   | Heterogeneous Effects | 10% | 100% |
 
   The clean-world score is now 92.2/100. A severe threat lowers it to 56–76. The remaining false alarms are the expected cost of testing at the 10% level; the score is still a diagnostic heuristic, not a proof.
+
+## 6. Running it
+
+```bash
+cd causal_lab
+python -m venv .venv
+source .venv/bin/activate        # Windows: .venv\Scriptsctivate
+pip install -r requirements.txt
+streamlit run app.py             # opens http://localhost:8501
+```
+
+Each file in `causal_lab/tests/` runs as a plain script (`python tests/test_card_krueger.py`) and needs nothing beyond `requirements.txt`. With pytest installed, which is a test runner and not an app dependency, `python -m pytest` from the repository root runs them all. The AppTest files drive the whole app and take about two minutes.

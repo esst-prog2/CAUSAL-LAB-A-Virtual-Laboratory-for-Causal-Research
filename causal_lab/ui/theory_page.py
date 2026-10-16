@@ -30,25 +30,11 @@ from theory_engine.catalogue import CATALOGUE, build
 from theory_engine.game import (Equilibrium, Game, best_responses, build_custom_game, first_order_conditions,
                                 solve_equilibrium)
 from theory_engine.predictions import compare_with_estimate, delta_from_data, predict_shift
-from utils.i18n import LocalizedError, render as render_message, tf
+from ui.page_text import F, R, error_text
+from utils.i18n import LocalizedError
 
 VERDICT_STYLE = {"consistent": st.success, "magnitude differs": st.warning, "sign contradicts": st.error}
 VERDICT_KEY = {"consistent": "consistent", "magnitude differs": "magnitude", "sign contradicts": "sign"}
-
-
-_LANG = "en"   # set at the start of each render; read by format_func closures
-
-
-def _lang() -> str:
-    return _LANG
-
-
-def F(key: str, **params) -> str:
-    return tf(key, _lang(), **params)
-
-
-def R(message) -> str:
-    return render_message(message, _lang())
 
 
 def _state() -> dict:
@@ -62,10 +48,6 @@ def _reset_downstream(state: dict) -> None:
 
 def _tex_name(name: str) -> str:
     return r"\text{" + name.replace("_", r"\_") + "}"
-
-
-def _error_text(exc: Exception) -> str:
-    return exc.render(_lang()) if isinstance(exc, LocalizedError) else str(exc)
 
 
 # --------------------------------------------------------------------------
@@ -138,7 +120,7 @@ def _model_step(state: dict, L) -> None:
                 game = build_custom_game(L("theory.custom_name"), _parse_parameters(params_text), agents,
                                          _parse_outcomes(outcomes_text))
             except ValueError as exc:
-                st.error(_error_text(exc))
+                st.error(error_text(exc))
             else:
                 state.update(signature=f"custom:{st.session_state.get('th_ed_counter', 0)}", game=game)
                 st.session_state["th_ed_counter"] = st.session_state.get("th_ed_counter", 0) + 1
@@ -355,7 +337,7 @@ def _equilibrium_step(state: dict, L) -> None:
                     state["table"] = solve_by_scope(game, df, sources, scope, scope_col)
                     state["table_scope"] = scope
         except (CalibrationError, ValueError) as exc:
-            st.error(_error_text(exc))
+            st.error(error_text(exc))
 
     if "values" not in state:
         return
@@ -466,13 +448,13 @@ def _predictions_step(state: dict, L) -> None:
             delta = delta_from_data(df, state["sources"][param], treat_col, param)
             st.info(F("theory.delta_measured", delta=delta, source=R(state["sources"][param].describe())))
         except CalibrationError as exc:
-            st.error(_error_text(exc))
+            st.error(error_text(exc))
 
     if delta is not None and st.button(f"🔮 {L('theory.predict')}", type="primary", key=f"th_{sig}_pred_btn"):
         try:
             state["prediction"] = predict_shift(game, state["values"], param, float(delta), state["baseline"])
         except ValueError as exc:
-            st.error(_error_text(exc))
+            st.error(error_text(exc))
             state.pop("prediction", None)
 
     pred = state.get("prediction")
@@ -502,7 +484,11 @@ def _predictions_step(state: dict, L) -> None:
     else:
         est, lo, hi = estimates[choice]
     predicted = pred.effects[variable]
-    verdict = compare_with_estimate(predicted, est, lo, hi)
+    try:
+        verdict = compare_with_estimate(predicted, est, lo, hi)
+    except LocalizedError as exc:
+        st.error(error_text(exc))
+        return
     VERDICT_STYLE[verdict](F("theory.verdict_text", label=L("theory.verdict"),
                              verdict=L(f"theory.verdict.{VERDICT_KEY[verdict]}"),
                              variable=_variable_label(game, variable), predicted=predicted, est=est, lo=lo, hi=hi))
@@ -521,8 +507,6 @@ def _predictions_step(state: dict, L) -> None:
 # Page
 # --------------------------------------------------------------------------
 def render(L) -> None:
-    global _LANG
-    _LANG = st.session_state.get("lang", "en")
     st.title(f"🧮 {L('theory.title')}")
     st.caption(L("theory.intro"))
     state = _state()

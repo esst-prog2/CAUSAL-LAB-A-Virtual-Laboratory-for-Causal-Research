@@ -27,10 +27,10 @@ The system SHALL re-estimate with each treated unit dropped one at a time, up to
 - **THEN** it re-estimates once per treated unit, for at most the first 10 treated units (sorted), dropping that unit's rows each time. It reports one summary row "Leave-one-treated-unit-out (range)" whose ATT is the mean of the per-drop ATTs, whose SE is empty (not applicable), and whose note gives the min/max ATT across drops
 
 ### Requirement: Excluding spillover-adjacent controls
-The system SHALL re-estimate after excluding control units whose id is adjacent to a treated unit's id, when unit ids are numeric and such controls exist.
+The system SHALL re-estimate after excluding control units whose id is adjacent to a treated unit's id, when the caller states that unit ids encode a neighbourhood, unit ids are numeric, and such controls exist. Adjacency SHALL use the same definition as the Spillovers check (one shared function). The app SHALL state that ids encode a neighbourhood only for a generated Virtual World.
 
 #### Scenario: Adjacent controls present
-- **WHEN** unit ids are numeric and at least one control unit's id differs by exactly 1 from a treated unit's id
+- **WHEN** unit ids encode a neighbourhood, are numeric, and at least one control unit's id differs by exactly 1 from a treated unit's id
 - **THEN** the battery re-estimates on the subsample excluding those control units and reports a row "Excluding spillover-adjacent controls" noting how many were excluded
 
 #### Scenario: No adjacent controls
@@ -40,3 +40,7 @@ The system SHALL re-estimate after excluding control units whose id is adjacent 
 #### Scenario: Non-numeric unit ids
 - **WHEN** unit ids are not numeric
 - **THEN** no "Excluding spillover-adjacent controls" row is added, and the battery does not fail
+
+#### Scenario: Uploaded or real data
+- **WHEN** the active data is uploaded or bundled real data
+- **THEN** no "Excluding spillover-adjacent controls" row is added, and the Robustness page states that these unit ids do not encode a neighbourhood

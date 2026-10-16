@@ -20,6 +20,10 @@ treated"). The ATT(g, t) are then aggregated:
     event study  — ATT(e) = cohort-size-weighted average of ATT(g, g+e).
 
 Inference is by a unit-level (cluster) bootstrap with a fixed seed.
+
+Units not observed in every period are dropped and counted in `n_dropped`,
+as the reference R package `did` does by default
+(allow_unbalanced_panel = FALSE; user decision, hw6 review 3).
 """
 from __future__ import annotations
 
@@ -32,6 +36,7 @@ from estimators.common import Z_95
 from utils.i18n import LocalizedError
 
 N_BOOTSTRAP = 199
+COMPARISONS = ("never_treated", "not_yet_treated")
 
 
 @dataclass
@@ -45,17 +50,22 @@ class StaggeredDiDResult:
     n_cohorts: int
     n_units: int
     comparison: str                 # "never_treated" | "not_yet_treated"
+    n_dropped: int = 0              # units dropped because not observed in every period
 
 
 def _wide(df: pd.DataFrame, outcome_col, unit_col, time_col, treatment_col):
+    """Unit x period outcome matrix of the units observed in every period,
+    their first treated period, and the number of units dropped."""
     y = df.pivot_table(index=unit_col, columns=time_col, values=outcome_col)
-    if y.isna().any().any():
+    complete = y.notna().all(axis=1)
+    if not complete.any():
         raise LocalizedError("err.cs_unbalanced")
+    y = y[complete]
     d = df.pivot_table(index=unit_col, columns=time_col, values=treatment_col).reindex_like(y)
     periods = np.array(y.columns)
     treated_any = (d.to_numpy() == 1)
     first = np.where(treated_any.any(axis=1), periods[np.argmax(treated_any, axis=1)], np.inf)
-    return y.to_numpy(float), periods, first
+    return y.to_numpy(float), periods, first, int((~complete).sum())
 
 
 def _group_time(y: np.ndarray, periods: np.ndarray, first: np.ndarray, comparison: str):
@@ -95,8 +105,12 @@ def estimate_staggered_did(df: pd.DataFrame, outcome_col: str = "Y", treatment_c
                            unit_col: str = "unit", time_col: str = "period",
                            comparison: str = "never_treated", seed: int = 0,
                            n_bootstrap: int = N_BOOTSTRAP) -> StaggeredDiDResult:
+    if comparison not in COMPARISONS:
+        raise LocalizedError("err.cs_comparison", value=comparison, allowed=", ".join(COMPARISONS))
+    if n_bootstrap < 2:
+        raise LocalizedError("err.cs_bootstrap", value=n_bootstrap)
     data = df[[unit_col, time_col, outcome_col, treatment_col]].dropna()
-    y, periods, first = _wide(data, outcome_col, unit_col, time_col, treatment_col)
+    y, periods, first, n_dropped = _wide(data, outcome_col, unit_col, time_col, treatment_col)
     if not np.isfinite(first).any():
         raise LocalizedError("err.no_variation", column=treatment_col)
     if comparison == "never_treated" and np.isfinite(first).all():
@@ -128,4 +142,5 @@ def estimate_staggered_did(df: pd.DataFrame, outcome_col: str = "Y", treatment_c
         att=att, se=se, ci_low=att - Z_95 * se, ci_high=att + Z_95 * se,
         group_time=gt, event_study=es.reset_index(drop=True),
         n_cohorts=int(gt["cohort"].nunique()), n_units=n_units, comparison=comparison,
+        n_dropped=n_dropped,
     )

@@ -58,7 +58,22 @@ def test_dynamic_effects_truth_is_mean_over_treated_cells():
     assert abs((treated["Y1"] - treated["Y0"]).mean() - truth["true_att"]) < 1e-12
 
 
+def test_units_missing_a_period_are_dropped_and_counted():
+    # hw6 review 3 decision: like R did (allow_unbalanced_panel = FALSE).
+    # Expected: the same estimate as on the panel balanced beforehand.
+    df, _ = generate(VirtualWorldConfig(n_units=80, staggered_adoption=True, seed=6))
+    holes = df[df["unit"].isin([3, 17, 42])].groupby("unit").head(1).index
+    unbalanced = df.drop(index=holes)
+    balanced = df[~df["unit"].isin([3, 17, 42])]
+    a = estimate_staggered_did(unbalanced, n_bootstrap=20)
+    b = estimate_staggered_did(balanced, n_bootstrap=20)
+    assert a.n_dropped == 3 and b.n_dropped == 0
+    assert a.n_units == b.n_units == 77
+    assert abs(a.att - b.att) < 1e-12 and abs(a.se - b.se) < 1e-12
+
+
 if __name__ == "__main__":
+    test_units_missing_a_period_are_dropped_and_counted()
     test_cs_recovers_truth_where_twfe_is_biased()
     test_cs_matches_twfe_in_a_simple_design()
     test_event_study_aggregation_has_zero_reference()

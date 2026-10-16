@@ -15,7 +15,7 @@ from simulation_engine.monte_carlo import run_monte_carlo
 def _verdicts(**threats):
     cfg = VirtualWorldConfig(n_units=200, n_periods=20, treatment_period=10, seed=11, **threats)
     df, _ = generate(cfg)
-    report = run_stress_test(df, treatment_period=10)
+    report = run_stress_test(df, treatment_period=10, ids_encode_neighbourhood=True)
     return {c.name: c.verdict for c in report.checks}
 
 
@@ -69,7 +69,7 @@ def test_monte_carlo_coverage_reasonable():
 def test_robustness_handles_string_unit_ids():
     df, _ = generate(VirtualWorldConfig(n_units=40, n_periods=10, treatment_period=5, seed=2))
     df["unit"] = "u" + df["unit"].astype(str)
-    rows = run_robustness_battery(df, treatment_period=5)
+    rows = run_robustness_battery(df, treatment_period=5, ids_encode_neighbourhood=True)
     assert rows[0].specification.startswith("Baseline")
 
 
@@ -88,7 +88,7 @@ def test_stata_code_absorbs_declared_columns():
 
 def test_diverging_pretrends_flagged_questionable_or_violated():
     df, _ = generate(VirtualWorldConfig(n_units=200, differential_trend="severe", seed=3))
-    report = run_stress_test(df, treatment_period=10)
+    report = run_stress_test(df, treatment_period=10, ids_encode_neighbourhood=True)
     pt = next(c for c in report.checks if c.name == "Parallel Trends")
     assert pt.verdict == "WARNING"
     assert pt.assessment in ("questionable", "violated")
@@ -96,7 +96,7 @@ def test_diverging_pretrends_flagged_questionable_or_violated():
 
 def test_clean_world_parallel_trends_plausible():
     df, _ = generate(VirtualWorldConfig(n_units=200, seed=3))
-    pt = next(c for c in run_stress_test(df, treatment_period=10).checks if c.name == "Parallel Trends")
+    pt = next(c for c in run_stress_test(df, treatment_period=10, ids_encode_neighbourhood=True).checks if c.name == "Parallel Trends")
     assert pt.assessment == "plausible"
 
 

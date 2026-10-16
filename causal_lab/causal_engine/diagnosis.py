@@ -80,18 +80,6 @@ class DiagnosisResult:
             ("potential_spillovers", self.potential_spillovers),
         ]
 
-    def as_table(self) -> list[tuple[str, str]]:
-        return [
-            ("Treatment type", self.treatment_type.value),
-            ("Treatment timing", self.treatment_timing.value),
-            ("Outcome type", self.outcome_type.value),
-            ("Data structure", self.data_structure.value),
-            ("Potential endogeneity", self.potential_endogeneity.value),
-            ("Potential confounding", self.potential_confounding.value),
-            ("Treatment heterogeneity", self.treatment_heterogeneity.value),
-            ("Potential spillovers", self.potential_spillovers.value),
-        ]
-
 
 _SPILLOVER_KEYWORDS = (
     "neighbor", "neighbour", "nearby", "spatial", "adjacent",

@@ -55,3 +55,33 @@ The system SHALL infer the treatment date of uploaded data from the treatment co
 #### Scenario: Treatment without variation
 - **WHEN** an uploaded CSV has the five required columns but `D` takes a single value
 - **THEN** the upload is rejected with an error explaining that some observations must be treated and some untreated
+
+### Requirement: Bundled real dataset
+The system SHALL let the researcher load the public Card & Krueger (1994) New Jersey / Pennsylvania fast-food dataset from the Virtual Lab page. The dataset SHALL ship in the repository with its documented provenance. It SHALL be loaded as uploaded real data: it replaces the active dataset and has no ground truth. Each store SHALL be its own unit: the file's `SHEET` number is not unique (two stores share sheet 407), so the unit is the store's row in the file and `SHEET` is kept as a separate column.
+
+#### Scenario: Loading the Card & Krueger data
+- **WHEN** the researcher clicks the "Load real data: Card & Krueger (1994)" button
+- **THEN** the store-wave panel (unit, period, D, Y, treated_unit) becomes the active dataset, any Virtual World, its ground truth and its configuration snapshot are cleared, and the Estimation page shows no true-effect comparison
+
+#### Scenario: Reproducing the published effect
+- **WHEN** the DiD estimator runs on the loaded data
+- **THEN** its estimate is within ±0.1 of the published +2.76 full-time-equivalent employees per store (Card & Krueger 1994, Table 3)
+
+#### Scenario: Reproducing the published standard error
+- **WHEN** the DiD estimator runs on the loaded data
+- **THEN** its clustered standard error is within ±0.1 of the published 1.36
+
+#### Scenario: One unit per store
+- **WHEN** the data are loaded
+- **THEN** there are 410 units, none with more than two rows, and the treated indicator is constant within each unit
+
+### Requirement: Required column values are validated at upload time
+After the required columns are found, the system SHALL check their values before the upload can become the active dataset: `D` and `treated_unit` SHALL contain only 0/1 values (booleans count as 0/1) and no missing value; `period` and `Y` SHALL be numeric. The indicators of an accepted upload SHALL be stored as integers.
+
+#### Scenario: Text treatment indicator
+- **WHEN** an uploaded CSV has the five required columns but `D` contains "yes"/"no"
+- **THEN** the app shows an error naming `D` and stating the expected values, and the upload does NOT become the active dataset
+
+#### Scenario: Valid indicators
+- **WHEN** `D` and `treated_unit` contain only 0 and 1 and `period` and `Y` are numeric
+- **THEN** the upload proceeds to the remaining checks, exactly as before

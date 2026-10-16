@@ -45,17 +45,6 @@ class MethodScore:
     main_assumption: Msg | str = ""
     main_concern: Msg | str = ""
 
-    def as_dict(self):
-        return {
-            "method": self.method,
-            "overall": round(self.overall, 1),
-            "confidence": self.confidence,
-            "components": {k: round(v, 1) for k, v in self.components.items()},
-            "rationale": [str(r) for r in self.rationale],
-            "main_assumption": str(self.main_assumption),
-            "main_concern": str(self.main_concern),
-        }
-
 
 def _confidence_from_score(score: float) -> str:
     if score >= 75:

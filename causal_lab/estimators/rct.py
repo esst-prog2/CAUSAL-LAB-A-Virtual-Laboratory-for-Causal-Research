@@ -21,7 +21,7 @@ import statsmodels.api as sm
 
 from estimators.common import (MethodResult, format_summary, normal_inference,
                                require_binary, standardized_difference)
-from utils.i18n import LocalizedError, Msg
+from utils.i18n import Msg
 
 IMBALANCE_THRESHOLD = 0.1
 

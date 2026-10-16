@@ -1,5 +1,7 @@
 # CAUSAL LAB — v0.1 (MVP)
 
+> **Historical (hw6 review 6).** This is the README of the original v0.1 upload, kept for the record. Several statements are outdated: for example, RCT, matching, IV, RDD, synthetic control and DML now exist, and the French interface is complete. The current documentation is the repository's [README](../README.md).
+
 **A Virtual Laboratory for Causal Research**
 
 This is the first working MVP of CAUSAL LAB, implementing the ten

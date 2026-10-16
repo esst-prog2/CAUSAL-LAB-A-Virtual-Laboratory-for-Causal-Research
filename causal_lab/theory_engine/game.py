@@ -303,6 +303,13 @@ _TOKEN = re.compile(r"\s*(?:(?P<num>(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?)|(?P<na
 _NAME = re.compile(r"^[A-Za-z][A-Za-z0-9_]*$")
 _GLOBALS = {"Integer": sp.Integer, "Float": sp.Float, "Rational": sp.Rational, "Symbol": sp.Symbol}
 
+# Largest number of decimal digits a constant sub-expression may have. A
+# text such as 9**9**9 (369 million digits) would otherwise be evaluated
+# exactly by sympy while parsing and block the server process (hw6 review 7).
+# Chosen by Claude: the catalogue's models use exponents of at most 2, so
+# 1000 digits leaves a wide margin while staying instant to compute.
+MAX_CONSTANT_DIGITS = 1000
+
 
 def _check_tokens(text: str, allowed_names: set[str], where: str) -> None:
     if not text.strip():
@@ -323,12 +330,46 @@ def _check_tokens(text: str, allowed_names: set[str], where: str) -> None:
         pos = m.end()
 
 
+def _digits(expr: sp.Expr, where) -> float:
+    """Upper bound on log10 |value| of a constant, unevaluated expression,
+    computed without evaluating it; raises if it exceeds MAX_CONSTANT_DIGITS."""
+    if expr.is_Number:
+        value = abs(float(expr)) if expr != 0 else 0.0
+        bound = np.log10(value) if value > 0 else 0.0
+    elif isinstance(expr, sp.Pow):
+        base, exponent = (_digits(a, where) for a in expr.args)
+        if exponent > np.log10(MAX_CONSTANT_DIGITS) + 1:
+            raise LocalizedError("err.expr_too_large", where=where, digits=MAX_CONSTANT_DIGITS)
+        bound = abs(float(expr.args[1])) * max(abs(base), 1.0)
+    elif isinstance(expr, sp.Mul):
+        bound = sum(abs(_digits(a, where)) for a in expr.args)
+    else:                                   # Add, allowed functions, Rational, NumberSymbol
+        bound = max([abs(_digits(a, where)) for a in expr.args] or [0.0]) + 1
+    if bound > MAX_CONSTANT_DIGITS:
+        raise LocalizedError("err.expr_too_large", where=where, digits=MAX_CONSTANT_DIGITS)
+    return bound
+
+
+def _check_constants(expr: sp.Expr, where) -> None:
+    if not expr.free_symbols:
+        _digits(expr, where)
+        return
+    for arg in expr.args:
+        _check_constants(arg, where)
+
+
 def parse_expression(text: str, symbols: dict[str, sp.Symbol], where: str = "") -> sp.Expr:
     where = where or Msg("where.expression")
     _check_tokens(text, set(symbols), where)
+    options = dict(local_dict={**symbols, **ALLOWED_FUNCTIONS}, global_dict=dict(_GLOBALS),
+                   transformations=standard_transformations + (convert_xor,))
     try:
-        expr = parse_expr(text, local_dict={**symbols, **ALLOWED_FUNCTIONS}, global_dict=dict(_GLOBALS),
-                          transformations=standard_transformations + (convert_xor,))
+        unevaluated = parse_expr(text, evaluate=False, **{**options, "global_dict": {
+            **_GLOBALS, "Add": sp.Add, "Mul": sp.Mul, "Pow": sp.Pow}})
+        _check_constants(unevaluated, where)
+        expr = parse_expr(text, **options)
+    except LocalizedError:
+        raise
     except Exception as exc:          # syntax errors from the tokenizer-approved text
         raise LocalizedError("err.expr_parse", where=where, error=str(exc)) from None
     return sp.sympify(expr)

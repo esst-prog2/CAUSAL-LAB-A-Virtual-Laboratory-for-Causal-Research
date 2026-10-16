@@ -12,6 +12,12 @@ Standard errors are clustered at the unit level by default, which is
 the standard recommendation for panel DiD designs (Bertrand,
 Duflo & Mullainathan, 2004).
 
+Small-sample correction: CR1, G/(G-1) * (N-1)/(N-K). When the unit fixed
+effects are nested in the clusters (always true when clustering by unit),
+their dummies are not counted in K, as in Stata's xtreg, fe and reghdfe.
+Counting them inflates the SE badly on short panels: with two periods,
+N/K is close to 2 (hw6 review 3; on Card & Krueger, 1.91 instead of ~1.36).
+
 Note: this canonical two-way fixed-effects specification can be
 biased under staggered treatment timing combined with treatment
 effect heterogeneity (see the diagnosis engine's warning). v0.1 ships
@@ -26,7 +32,9 @@ from dataclasses import dataclass
 import numpy as np
 import pandas as pd
 import statsmodels.formula.api as smf
+from scipy import stats
 
+from estimators.common import Z_95
 from utils.i18n import LocalizedError
 
 
@@ -53,6 +61,13 @@ def estimate_did(df: pd.DataFrame, outcome_col: str = "Y", treatment_col: str = 
     level (or `cluster_col` if provided)."""
     if df[treatment_col].nunique() < 2:
         raise LocalizedError("err.did_no_variation", column=treatment_col)
+    # A text or boolean treatment would enter the formula as a category and
+    # the coefficient named `treatment_col` would not exist (hw6 review 5:
+    # the estimate used to come back as NaN without any error).
+    if df[treatment_col].dtype == bool:
+        df = df.assign(**{treatment_col: df[treatment_col].astype(int)})
+    if not pd.api.types.is_numeric_dtype(df[treatment_col]):
+        raise LocalizedError("err.did_non_numeric", column=treatment_col)
 
     data = df.copy()
     data[unit_col] = data[unit_col].astype("category")
@@ -64,11 +79,12 @@ def estimate_did(df: pd.DataFrame, outcome_col: str = "Y", treatment_col: str = 
     cluster_var = cluster_col or unit_col
     fitted = model.fit(cov_type="cluster", cov_kwds={"groups": data[cluster_var]})
 
-    beta = fitted.params.get(treatment_col, np.nan)
-    se = fitted.bse.get(treatment_col, np.nan)
-    t_stat = fitted.tvalues.get(treatment_col, np.nan)
-    p_value = fitted.pvalues.get(treatment_col, np.nan)
-    ci = fitted.conf_int().loc[treatment_col]
+    beta = fitted.params[treatment_col]
+    se = fitted.bse[treatment_col] * _nested_fe_factor(data, fitted, unit_col, cluster_var)
+    # Clustered statsmodels fits use normal inference (use_t is False).
+    t_stat = beta / se
+    p_value = 2 * stats.norm.sf(abs(t_stat))
+    ci = (beta - Z_95 * se, beta + Z_95 * se)
 
     summary_text = (
         f"DiD estimate (ATT) = {beta:.4f}\n"
@@ -90,3 +106,13 @@ def estimate_did(df: pd.DataFrame, outcome_col: str = "Y", treatment_col: str = 
         formula=formula,
         summary_text=summary_text,
     )
+
+
+def _nested_fe_factor(data: pd.DataFrame, fitted, unit_col: str, cluster_var: str) -> float:
+    """Rescale statsmodels' CR1 SE so the unit dummies are not counted in K
+    when every unit lies in a single cluster: sqrt((N - K) / (N - K + U - 1))."""
+    if data.groupby(unit_col, observed=True)[cluster_var].nunique().max() != 1:
+        return 1.0
+    n, k = fitted.nobs, len(fitted.params)
+    n_unit_dummies = data[unit_col].nunique() - 1
+    return float(np.sqrt((n - k) / (n - k + n_unit_dummies)))

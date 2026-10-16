@@ -29,6 +29,7 @@ import streamlit as st
 from causal_engine.diagnosis import DiagnosisResult, Level, ResearchDesignInput, diagnose
 from causal_engine.recommendation import MethodScore, component_slug, recommend
 from code_generator.generator import CodeGenParams, generate_all
+from estimators.common import Z_95
 from estimators.did import estimate_did
 from estimators.event_study import estimate_event_study
 from estimators.staggered_did import estimate_staggered_did
@@ -37,10 +38,11 @@ from robustness_engine.stress_test import run_stress_test
 from simulation_engine.dgp import VirtualWorldConfig, generate
 from simulation_engine.monte_carlo import run_monte_carlo
 from ui.methods_page import render as render_methods_page
+from ui.page_text import F, R, error_text
 from ui.theory_page import render as render_theory_page
-from utils.i18n import LocalizedError, render, t, tf
+from utils.i18n import LocalizedError, t
 from utils.real_data import load_card_krueger
-from utils.validation import REQUIRED_COLUMNS, missing_required_columns
+from utils.validation import INDICATOR_COLUMNS, REQUIRED_COLUMNS, invalid_required_columns, missing_required_columns
 
 st.set_page_config(page_title="CAUSAL LAB", page_icon="🔬", layout="wide")
 
@@ -84,14 +86,6 @@ LEVELS = ["none", "low", "medium", "high", "severe"]
 
 def L(key: str) -> str:
     return t(key, lang)
-
-
-def F(key: str, **params) -> str:
-    return tf(key, lang, **params)
-
-
-def R(message) -> str:
-    return render(message, lang)
 
 
 def yes_no(flag: bool) -> str:
@@ -143,13 +137,20 @@ def cached_staggered_did(df: pd.DataFrame):
 
 
 @st.cache_data(show_spinner=False)
-def cached_stress_test(df: pd.DataFrame, treatment_period: int):
-    return run_stress_test(df, treatment_period=treatment_period)
+def cached_stress_test(df: pd.DataFrame, treatment_period: int, ids_encode_neighbourhood: bool):
+    return run_stress_test(df, treatment_period=treatment_period,
+                           ids_encode_neighbourhood=ids_encode_neighbourhood)
 
 
 @st.cache_data(show_spinner=False)
-def cached_robustness(df: pd.DataFrame, treatment_period: int):
-    return run_robustness_battery(df, treatment_period=treatment_period)
+def cached_robustness(df: pd.DataFrame, treatment_period: int, ids_encode_neighbourhood: bool):
+    return run_robustness_battery(df, treatment_period=treatment_period,
+                                  ids_encode_neighbourhood=ids_encode_neighbourhood)
+
+
+def ids_encode_neighbourhood() -> bool:
+    """Unit ids encode a neighbourhood only in a generated Virtual World."""
+    return st.session_state.uploaded_df is None and st.session_state.virtual_cfg is not None
 
 
 LEVEL_COLOR = {
@@ -392,9 +393,12 @@ elif page == "virtual_lab":
             if missing:
                 st.error(F("virtual.missing_columns", missing=", ".join(missing),
                            expected=", ".join(REQUIRED_COLUMNS)))
+            elif invalid := invalid_required_columns(up_df):
+                st.error(F("virtual.invalid_columns", columns=", ".join(invalid)))
             elif up_df["D"].nunique() < 2:
                 st.error(L("virtual.no_variation"))
             else:
+                up_df = up_df.astype({c: int for c in INDICATOR_COLUMNS})
                 st.session_state.uploaded_df = up_df
                 st.session_state.virtual_df = None
                 st.session_state.virtual_truth = None
@@ -465,7 +469,7 @@ elif page == "estimation":
             try:
                 result = cached_did(df)
             except LocalizedError as exc:
-                st.error(exc.render(lang))
+                st.error(error_text(exc))
                 result = None
             if result is not None:
                 c1, c2, c3 = st.columns(3)
@@ -493,7 +497,7 @@ elif page == "estimation":
             fig = go.Figure()
             fig.add_trace(go.Scatter(
                 x=es.coefficients["rel_period"], y=es.coefficients["estimate"],
-                error_y=dict(type="data", array=1.96 * es.coefficients["se"], visible=True),
+                error_y=dict(type="data", array=Z_95 * es.coefficients["se"], visible=True),
                 mode="markers+lines", name=L("common.estimate")))
             fig.add_hline(y=0, line_dash="dot", line_color="gray")
             fig.add_vline(x=-0.5, line_dash="dash", line_color="red", annotation_text=L("common.treatment"))
@@ -507,7 +511,7 @@ elif page == "estimation":
             try:
                 cs = cached_staggered_did(df)
             except LocalizedError as exc:
-                st.error(exc.render(lang))
+                st.error(error_text(exc))
                 cs = None
             if cs is not None:
                 c1, c2, c3 = st.columns(3)
@@ -521,10 +525,12 @@ elif page == "estimation":
                 st.dataframe(pd.DataFrame(rows).round(4), width="stretch", hide_index=True)
                 st.caption(F("staggered.details", cohorts=cs.n_cohorts, units=cs.n_units,
                              comparison=L(f"staggered.comparison.{cs.comparison}")))
+                if cs.n_dropped:
+                    st.caption(F("staggered.dropped", n=cs.n_dropped))
                 es_cs = cs.event_study
                 fig = go.Figure(go.Scatter(
                     x=es_cs["rel_period"], y=es_cs["estimate"],
-                    error_y=dict(type="data", array=1.96 * es_cs["se"], visible=True),
+                    error_y=dict(type="data", array=Z_95 * es_cs["se"], visible=True),
                     mode="markers+lines", name=L("staggered.cs")))
                 fig.add_hline(y=0, line_dash="dot", line_color="gray")
                 fig.add_vline(x=-0.5, line_dash="dash", line_color="red", annotation_text=L("common.treatment"))
@@ -554,7 +560,7 @@ elif page == "break_my_design":
         st.info(L("common.no_dataset"))
     else:
         treatment_period, _ = treatment_setup(df)
-        report = cached_stress_test(df, treatment_period)
+        report = cached_stress_test(df, treatment_period, ids_encode_neighbourhood())
 
         pt = next(c for c in report.checks if c.name == "Parallel Trends")
         if pt.assessment:
@@ -562,15 +568,19 @@ elif page == "break_my_design":
                 "### " + F("break.pt_banner", assessment=L(f"assessment.{pt.assessment}")))
 
         st.subheader(L("break.results"))
+        style = {"PASS": ("✓", st.success), "WARNING": ("⚠", st.warning), "N/A": ("–", st.info)}
         for check in report.checks:
-            icon = "✓" if check.verdict == "PASS" else "⚠"
-            show = st.success if check.verdict == "PASS" else st.warning
+            icon, show = style[check.verdict]
             show(f"**{L(f'check.{check.slug}')}** {icon} {L(f'verdict.{check.verdict}')} — {R(check.message)}")
 
         st.divider()
         st.subheader(L("break.strength"))
-        st.progress(report.identification_strength / 100)
-        st.markdown(f"### {report.identification_strength:.0f} / 100")
+        if report.identification_strength is None:
+            st.info(L("break.no_score"))
+        else:
+            st.progress(report.identification_strength / 100)
+            st.markdown(f"### {report.identification_strength:.0f} / 100")
+            st.caption(F("break.score_basis", k=report.n_computable, n=len(report.checks)))
         st.caption(L("break.disclaimer"))
 
 # --------------------------------------------------------------------------
@@ -583,7 +593,7 @@ elif page == "robustness":
         st.info(L("common.no_dataset"))
     else:
         treatment_period, _ = treatment_setup(df)
-        rows = cached_robustness(df, treatment_period)
+        rows = cached_robustness(df, treatment_period, ids_encode_neighbourhood())
         col_spec, col_att, col_se, col_n, col_note = (L("robustness.col.specification"), "ATT", L("common.se"),
                                                       "N", L("robustness.col.note"))
         table = pd.DataFrame([{
@@ -591,10 +601,12 @@ elif page == "robustness":
             col_se: round(r.se, 4), col_n: r.n_obs, col_note: R(r.note),
         } for r in rows])
         st.dataframe(table, width="stretch")
+        if not ids_encode_neighbourhood():
+            st.caption(L("robustness.adjacent_na"))
 
         fig = go.Figure(go.Scatter(
             x=table[col_att], y=table[col_spec], mode="markers",
-            error_x=dict(type="data", array=(table[col_se] * 1.96).fillna(0), visible=True),
+            error_x=dict(type="data", array=(table[col_se] * Z_95).fillna(0), visible=True),
             marker=dict(size=10),
         ))
         fig.add_vline(x=rows[0].att, line_dash="dot", line_color="gray", annotation_text=L("robustness.baseline_mark"))

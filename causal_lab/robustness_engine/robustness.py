@@ -20,8 +20,9 @@ from dataclasses import dataclass
 
 import pandas as pd
 
-from estimators.did import DiDResult, estimate_did
-from utils.i18n import Msg
+from estimators.did import estimate_did
+from robustness_engine.neighbourhood import adjacent_control_ids
+from utils.i18n import LocalizedError, Msg
 
 
 @dataclass
@@ -33,10 +34,12 @@ class RobustnessRow:
     note: Msg | str = ""
 
 
-def run_robustness_battery(df: pd.DataFrame, treatment_period: int,
+def run_robustness_battery(df: pd.DataFrame, treatment_period: int, *, ids_encode_neighbourhood: bool,
                             outcome_col: str = "Y", unit_col: str = "unit",
                             time_col: str = "period", treatment_col: str = "D",
                             treated_unit_col: str = "treated_unit") -> list[RobustnessRow]:
+    """`ids_encode_neighbourhood` must be stated explicitly, as for the stress
+    test: the adjacent-controls row is only added where it is True."""
     rows: list[RobustnessRow] = []
 
     # 1. Baseline specification.
@@ -60,7 +63,7 @@ def run_robustness_battery(df: pd.DataFrame, treatment_period: int,
         try:
             res = estimate_did(sub, outcome_col, treatment_col, unit_col, time_col)
             loo_atts.append(res.att)
-        except Exception:
+        except LocalizedError:      # dropping this unit leaves no treatment variation
             continue
     if loo_atts:
         rows.append(RobustnessRow(
@@ -73,14 +76,8 @@ def run_robustness_battery(df: pd.DataFrame, treatment_period: int,
 
     # 4. Drop control units directly adjacent to a treated unit
     #    (a control-group definition robust to local spillovers).
-    #    Adjacency is defined on numeric unit ids (unit id distance 1).
-    adjacent_controls: set = set()
-    if pd.api.types.is_numeric_dtype(df[unit_col]):
-        treated_ids = set(df.loc[df[treated_unit_col] == 1, unit_col].unique())
-        adjacent_controls = {
-            c for c in df.loc[df[treated_unit_col] == 0, unit_col].unique()
-            if (c - 1) in treated_ids or (c + 1) in treated_ids
-        }
+    #    Only where unit ids encode a neighbourhood (the Virtual World).
+    adjacent_controls = adjacent_control_ids(df, unit_col, treated_unit_col) if ids_encode_neighbourhood else set()
     if adjacent_controls:
         sub = df[~df[unit_col].isin(adjacent_controls)]
         res = estimate_did(sub, outcome_col, treatment_col, unit_col, time_col)
