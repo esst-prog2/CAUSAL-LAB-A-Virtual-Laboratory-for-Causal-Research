@@ -69,7 +69,7 @@ def test_monte_carlo_coverage_reasonable():
 def test_robustness_handles_string_unit_ids():
     df, _ = generate(VirtualWorldConfig(n_units=40, n_periods=10, treatment_period=5, seed=2))
     df["unit"] = "u" + df["unit"].astype(str)
-    rows = run_robustness_battery(df, treatment_period=5)
+    rows = run_robustness_battery(df, treatment_period=5, ids_encode_neighbourhood=True)
     assert rows[0].specification.startswith("Baseline")
 
 

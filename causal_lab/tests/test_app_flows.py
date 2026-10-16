@@ -60,6 +60,22 @@ def test_language_switch_keeps_the_page():
     assert at.session_state.page == "break_my_design"
 
 
+def test_pages_with_shared_language_helpers_follow_the_session_language():
+    # hw6 review 4: the Methods and Theory pages now read the language from
+    # the session, through ui/page_text.py, instead of a module global.
+    # The model selector's labels go through R() inside a format_func closure.
+    from theory_engine.catalogue import CATALOGUE
+    from utils.i18n import render
+    first = next(iter(CATALOGUE.values()))
+    expected = {lang: f"{render(first.category, lang)} — {render(first.label, lang)}" for lang in ("en", "fr")}
+    assert expected["en"] != expected["fr"]
+    at = _run_app()
+    at.sidebar.radio[0].set_value("fr").run()
+    _goto(at, "methods")
+    _goto(at, "theory")
+    assert at.selectbox[0].options[0] == expected["fr"]
+
+
 def test_uploaded_data_has_no_ground_truth_and_a_later_generation_wins():
     original = st.file_uploader
     st.file_uploader = (lambda *a, key=None, **k: _Upload(_panel_csv()) if key is None else None)
@@ -102,6 +118,7 @@ def test_card_krueger_button_loads_real_data_without_truth():
 if __name__ == "__main__":
     test_dashboard_shortcut_opens_its_page()
     test_language_switch_keeps_the_page()
+    test_pages_with_shared_language_helpers_follow_the_session_language()
     test_uploaded_data_has_no_ground_truth_and_a_later_generation_wins()
     test_analysis_keeps_the_generating_configuration()
     test_card_krueger_button_loads_real_data_without_truth()

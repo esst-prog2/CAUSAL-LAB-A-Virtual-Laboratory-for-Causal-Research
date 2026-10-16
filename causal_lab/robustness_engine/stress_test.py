@@ -21,6 +21,7 @@ import pandas as pd
 import statsmodels.formula.api as smf
 from scipy import stats
 
+from robustness_engine.neighbourhood import adjacent_control_ids
 from utils.i18n import Msg
 
 PASS, WARNING, NOT_APPLICABLE = "PASS", "WARNING", "N/A"
@@ -167,10 +168,9 @@ def _check_spillovers(df: pd.DataFrame, outcome_col, unit_col, time_col,
         return CheckResult("Spillovers", NOT_APPLICABLE, Msg("stress.spillovers.no_neighbourhood"))
     if not pd.api.types.is_numeric_dtype(df[unit_col]):
         return CheckResult("Spillovers", NOT_APPLICABLE, Msg("stress.spillovers.non_numeric"))
-    treated_ids = set(df.loc[df[treated_unit_col] == 1, unit_col].unique())
+    adjacent = adjacent_control_ids(df, unit_col, treated_unit_col)
     controls = df[df[treated_unit_col] == 0].copy()
-    controls["adjacent"] = controls[unit_col].apply(
-        lambda c: int((c - 1) in treated_ids or (c + 1) in treated_ids))
+    controls["adjacent"] = controls[unit_col].isin(adjacent).astype(int)
     n_adjacent = controls.loc[controls["adjacent"] == 1, unit_col].nunique()
     n_far = controls.loc[controls["adjacent"] == 0, unit_col].nunique()
     if n_adjacent < 2 or n_far < 2:

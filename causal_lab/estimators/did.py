@@ -34,6 +34,7 @@ import pandas as pd
 import statsmodels.formula.api as smf
 from scipy import stats
 
+from estimators.common import Z_95
 from utils.i18n import LocalizedError
 
 
@@ -76,8 +77,7 @@ def estimate_did(df: pd.DataFrame, outcome_col: str = "Y", treatment_col: str = 
     # Clustered statsmodels fits use normal inference (use_t is False).
     t_stat = beta / se
     p_value = 2 * stats.norm.sf(abs(t_stat))
-    z = stats.norm.ppf(0.975)
-    ci = (beta - z * se, beta + z * se)
+    ci = (beta - Z_95 * se, beta + Z_95 * se)
 
     summary_text = (
         f"DiD estimate (ATT) = {beta:.4f}\n"

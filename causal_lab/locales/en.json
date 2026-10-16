@@ -251,6 +251,7 @@
   "robustness.loo_note": "min={lo:.3f}, max={hi:.3f} across {n} unit(s) dropped",
   "robustness.adjacent": "Excluding spillover-adjacent controls",
   "robustness.adjacent_note": "{n} control unit(s) excluded",
+  "robustness.adjacent_na": "No \"excluding spillover-adjacent controls\" row: the unit ids of these data do not encode a neighbourhood (only Virtual World ids do).",
   "solve.closed_form": "Closed-form equilibrium (verified against unilateral deviations).",
   "solve.closed_form_failed": "The closed-form profile failed the deviation check at these parameter values.",
   "solve.none": "No pure-strategy Nash equilibrium was found: best-response iteration did not reach a profile without profitable unilateral deviations.",

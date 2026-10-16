@@ -23,7 +23,7 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
-from estimators.common import MethodResult
+from estimators.common import Z_95, MethodResult
 from estimators.dml import estimate_dml
 from estimators.iv import estimate_iv
 from estimators.matching import estimate_matching
@@ -32,7 +32,8 @@ from estimators.rdd import estimate_rdd
 from estimators.synthetic_control import estimate_synthetic_control
 from simulation_engine import method_worlds as mw
 from utils.column_mapping import METHOD_ROLES, prepare_mapped_frame, validate_mapping
-from utils.i18n import LocalizedError, render as render_message, tf
+from ui.page_text import F, R, error_text
+from utils.i18n import LocalizedError
 
 
 @dataclass(frozen=True)
@@ -75,21 +76,6 @@ METHODS: dict[str, MethodSpec] = {
 }
 
 NO_COLUMN = "—"
-
-
-_LANG = "en"   # set at the start of each render; read by format_func closures
-
-
-def _lang() -> str:
-    return _LANG
-
-
-def F(key: str, **params) -> str:
-    return tf(key, _lang(), **params)
-
-
-def R(message) -> str:
-    return render_message(message, _lang())
 
 
 def _state(method: str) -> dict:
@@ -146,7 +132,7 @@ def _virtual_world_inputs(method: str, spec: MethodSpec, state: dict, L) -> None
         try:
             df, truth = spec.world(spec.config_cls(**{k: v for k, v in values.items() if k in valid_fields}))
         except LocalizedError as exc:
-            st.error(exc.render(_lang()))
+            st.error(error_text(exc))
             return
         state.update(df=df, truth=truth, mapping=dict(truth["roles"]), options=_virtual_options(method, truth),
                      source="virtual", result=None, error=None, dropped=0)
@@ -257,7 +243,7 @@ def _comparison_chart(result: MethodResult, name: str, other: float, other_se: f
                       truth: dict | None, L) -> go.Figure:
     fig = go.Figure(go.Scatter(
         x=[result.estimate, other], y=[name, other_name], mode="markers", marker=dict(size=12),
-        error_x=dict(type="data", array=[1.96 * result.se, 1.96 * other_se], visible=True)))
+        error_x=dict(type="data", array=[Z_95 * result.se, Z_95 * other_se], visible=True)))
     if truth is not None:
         fig.add_vline(x=truth["true_effect"], line_dash="dash", line_color="green",
                       annotation_text=L("methods.true_effect"))
@@ -369,8 +355,6 @@ def _plots(method: str, result: MethodResult, state: dict, L) -> None:
 # Page
 # --------------------------------------------------------------------------
 def render(L) -> None:
-    global _LANG
-    _LANG = st.session_state.get("lang", "en")
     st.title(f"🧭 {L('methods.title')}")
     st.caption(L("methods.intro"))
 

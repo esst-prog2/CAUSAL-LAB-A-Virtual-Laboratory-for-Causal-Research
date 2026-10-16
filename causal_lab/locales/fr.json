@@ -251,6 +251,7 @@
   "robustness.loo_note": "min={lo:.3f}, max={hi:.3f} sur {n} unité(s) retirée(s)",
   "robustness.adjacent": "Sans les témoins voisins (débordements)",
   "robustness.adjacent_note": "{n} unité(s) témoin(s) exclue(s)",
+  "robustness.adjacent_na": "Pas de ligne « Sans les témoins voisins » : les identifiants d'unité de ces données ne codent pas un voisinage (seuls ceux du Monde virtuel le font).",
   "solve.closed_form": "Équilibre en forme fermée (vérifié contre les déviations unilatérales).",
   "solve.closed_form_failed": "Le profil en forme fermée échoue au test de déviation pour ces valeurs de paramètres.",
   "solve.none": "Aucun équilibre de Nash en stratégies pures n'a été trouvé : l'itération des meilleures réponses n'a pas atteint de profil sans déviation unilatérale profitable.",
