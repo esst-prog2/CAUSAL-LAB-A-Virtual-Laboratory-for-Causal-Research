@@ -124,9 +124,18 @@ A person with a messy panel CSV and a treatment date can use this version alone:
 ```bash
 cd causal_lab
 python -m venv .venv
-source .venv/bin/activate        # Windows: .venv\Scriptsctivate
+source .venv/bin/activate        # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 streamlit run app.py             # opens http://localhost:8501
 ```
 
 Each file in `causal_lab/tests/` runs as a plain script (`python tests/test_card_krueger.py`) and needs nothing beyond `requirements.txt`. With pytest installed, which is a test runner and not an app dependency, `python -m pytest` from the repository root runs them all. The AppTest files drive the whole app and take about two minutes.
+
+The stress-test calibration (1,200 simulated worlds, about 6 minutes) must be given a new output file; a relative name is taken from the `spike/` folder:
+
+```bash
+python spike/stress_test_calibration.py results_2026-10-16.md              # creates spike/results_2026-10-16.md
+python spike/stress_test_calibration.py results_2026-10-16.md --overwrite  # replaces it, only if you mean to
+```
+
+Without an output name, or if the file already exists, the script stops before simulating anything and changes no file; `--overwrite` is the only way to replace a file. `spike/stress_test_calibration_results.md` (hw4, 2026-10-03) and `spike/stress_test_calibration_results_after_fix.md` (2026-10-06) are historical records; do not overwrite them. These rules are tested by `causal_lab/tests/test_calibration_output.py`, which runs a copy of the script in a temporary folder.
