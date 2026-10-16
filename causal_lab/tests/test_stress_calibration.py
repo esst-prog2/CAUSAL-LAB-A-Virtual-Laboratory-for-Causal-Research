@@ -34,7 +34,7 @@ def test_clean_world_false_alarms_and_mean_score_meet_the_spec():
     for seed in range(N_WORLDS):
         cfg = VirtualWorldConfig(seed=seed)
         df, _ = generate(cfg)
-        report = run_stress_test(df, treatment_period=cfg.treatment_period)
+        report = run_stress_test(df, treatment_period=cfg.treatment_period, ids_encode_neighbourhood=True)
         scores.append(report.identification_strength)
         for check in report.checks:
             alarms[check.name] = alarms.get(check.name, 0) + (check.verdict == "WARNING")

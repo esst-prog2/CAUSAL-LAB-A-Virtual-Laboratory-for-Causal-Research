@@ -49,7 +49,7 @@ def test_dynamic_key_families_exist():
              "methods", "theory", "break_my_design", "robustness", "code", "settings"]
     expected |= {f"nav.{p}" for p in pages}
     expected |= {f"check.{s}" for s in CHECK_SLUGS.values()}
-    expected |= {f"verdict.{v}" for v in ("PASS", "WARNING")}
+    expected |= {f"verdict.{v}" for v in ("PASS", "WARNING", "N/A")}
     expected |= {f"assessment.{a}" for a in ("plausible", "questionable", "violated")}
     expected |= {f"level.{lv}" for lv in ("LOW", "MEDIUM", "HIGH", "UNKNOWN")}
     expected |= {f"intensity.{i}" for i in ("none", "low", "medium", "high", "severe")}
@@ -95,7 +95,7 @@ def test_engine_messages_render_in_french():
     from theory_engine.catalogue import CATALOGUE, build
 
     df, _ = generate(VirtualWorldConfig(n_units=60, seed=1, spillovers="high"))
-    report = run_stress_test(df, treatment_period=10)
+    report = run_stress_test(df, treatment_period=10, ids_encode_neighbourhood=True)
     design = ResearchDesignInput(research_question="effect on neighboring territories", treatment_timing="staggered")
     diag = diagnose(design)
     messages = [c.message for c in report.checks] + list(diag.notes)

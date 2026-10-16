@@ -5,7 +5,9 @@ Real-world datasets shipped with CAUSAL LAB.
 Pennsylvania fast-food file (data/card_krueger_1994/public.dat, see
 SOURCE.md there) and returns it in the app's panel format:
 
-    unit          store id (SHEET)
+    unit          store number: the row of the store in public.dat (1-410).
+                  SHEET is not a unique key (two different stores share
+                  sheet 407), so it is kept as the `sheet` column only.
     period        0 = wave 1 (Feb-Mar 1992), 1 = wave 2 (Nov-Dec 1992)
     treated_unit  1 for New Jersey stores (STATE = 1), 0 for Pennsylvania
     D             treated_unit * period
@@ -46,7 +48,7 @@ def load_card_krueger(path: Path | None = None) -> pd.DataFrame:
     for period, suffix in ((0, ""), (1, "2")):
         fte = raw[f"EMPPT{suffix}"] * 0.5 + raw[f"EMPFT{suffix}"] + raw[f"NMGRS{suffix}"]
         waves.append(pd.DataFrame({
-            "unit": raw["SHEET"].astype(int), "period": period,
+            "unit": raw.index + 1, "sheet": raw["SHEET"].astype(int), "period": period,
             "treated_unit": raw["STATE"].astype(int), "D": raw["STATE"].astype(int) * period,
             "Y": fte, "chain": raw["CHAIN"].astype(int),
         }))

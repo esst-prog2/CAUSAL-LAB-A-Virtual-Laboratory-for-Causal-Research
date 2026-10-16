@@ -68,7 +68,8 @@ def run_batch(threat_kwargs: dict, n_reps: int = N_REPS) -> tuple[dict[str, floa
         df, _truth = generate(cfg)
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", category=SingularMatrixWarning)
-            report = run_stress_test(df, treatment_period=cfg.treatment_period)
+            report = run_stress_test(df, treatment_period=cfg.treatment_period,
+                                     ids_encode_neighbourhood=True)
         for check in report.checks:
             if check.verdict == "WARNING":
                 warning_counts[check.name] += 1

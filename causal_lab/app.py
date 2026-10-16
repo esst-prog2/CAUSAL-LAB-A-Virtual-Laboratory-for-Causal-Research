@@ -143,8 +143,9 @@ def cached_staggered_did(df: pd.DataFrame):
 
 
 @st.cache_data(show_spinner=False)
-def cached_stress_test(df: pd.DataFrame, treatment_period: int):
-    return run_stress_test(df, treatment_period=treatment_period)
+def cached_stress_test(df: pd.DataFrame, treatment_period: int, ids_encode_neighbourhood: bool):
+    return run_stress_test(df, treatment_period=treatment_period,
+                           ids_encode_neighbourhood=ids_encode_neighbourhood)
 
 
 @st.cache_data(show_spinner=False)
@@ -521,6 +522,8 @@ elif page == "estimation":
                 st.dataframe(pd.DataFrame(rows).round(4), width="stretch", hide_index=True)
                 st.caption(F("staggered.details", cohorts=cs.n_cohorts, units=cs.n_units,
                              comparison=L(f"staggered.comparison.{cs.comparison}")))
+                if cs.n_dropped:
+                    st.caption(F("staggered.dropped", n=cs.n_dropped))
                 es_cs = cs.event_study
                 fig = go.Figure(go.Scatter(
                     x=es_cs["rel_period"], y=es_cs["estimate"],
@@ -554,7 +557,9 @@ elif page == "break_my_design":
         st.info(L("common.no_dataset"))
     else:
         treatment_period, _ = treatment_setup(df)
-        report = cached_stress_test(df, treatment_period)
+        # Unit ids encode a neighbourhood only in a generated Virtual World.
+        virtual_world = st.session_state.uploaded_df is None and st.session_state.virtual_cfg is not None
+        report = cached_stress_test(df, treatment_period, virtual_world)
 
         pt = next(c for c in report.checks if c.name == "Parallel Trends")
         if pt.assessment:
@@ -562,15 +567,19 @@ elif page == "break_my_design":
                 "### " + F("break.pt_banner", assessment=L(f"assessment.{pt.assessment}")))
 
         st.subheader(L("break.results"))
+        style = {"PASS": ("✓", st.success), "WARNING": ("⚠", st.warning), "N/A": ("–", st.info)}
         for check in report.checks:
-            icon = "✓" if check.verdict == "PASS" else "⚠"
-            show = st.success if check.verdict == "PASS" else st.warning
+            icon, show = style[check.verdict]
             show(f"**{L(f'check.{check.slug}')}** {icon} {L(f'verdict.{check.verdict}')} — {R(check.message)}")
 
         st.divider()
         st.subheader(L("break.strength"))
-        st.progress(report.identification_strength / 100)
-        st.markdown(f"### {report.identification_strength:.0f} / 100")
+        if report.identification_strength is None:
+            st.info(L("break.no_score"))
+        else:
+            st.progress(report.identification_strength / 100)
+            st.markdown(f"### {report.identification_strength:.0f} / 100")
+            st.caption(F("break.score_basis", k=report.n_computable, n=len(report.checks)))
         st.caption(L("break.disclaimer"))
 
 # --------------------------------------------------------------------------
