@@ -20,6 +20,9 @@ from utils.real_data import load_card_krueger
 PUBLISHED_DID = 2.76      # Card & Krueger (1994), Table 3 — chosen by the user, not computed here
 TOLERANCE = 0.1           # rounding + sample definition, chosen by the user
 PUBLISHED_SE = 1.36       # same table, logged by the user on 2026-10-09 (hw6 review 3 decision)
+# Checked on the printed page (2026-10-16): Table 3, p. 780, column (iii). 2.76 (1.36) is row 3, all
+# available observations; the balanced sample that a fixed-effects DiD uses is row 4, 2.75 (1.34).
+# The user-chosen values and tolerance above are left unchanged; both rows lie within them.
 N_STORES = 410            # "410 stores", same log entry
 
 
