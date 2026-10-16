@@ -26,6 +26,11 @@ from utils.i18n import Msg
 
 PASS, WARNING, NOT_APPLICABLE = "PASS", "WARNING", "N/A"
 
+# Failures of the regression itself on degenerate data (singular design,
+# no residual degrees of freedom). The check is then not computable: N/A,
+# with the error shown. Any other exception is a bug and is not hidden.
+NUMERICAL_ERRORS = (ValueError, np.linalg.LinAlgError, ZeroDivisionError)
+
 # Locale key suffix of each check's display name (check.<slug>).
 CHECK_SLUGS = {
     "Parallel Trends": "parallel_trends", "Anticipation": "anticipation", "Spillovers": "spillovers",
@@ -98,8 +103,8 @@ def _check_parallel_trends(df: pd.DataFrame, outcome_col, unit_col, time_col,
                                p_value=p_value, assessment=assessment)
         return CheckResult("Parallel Trends", "PASS", Msg("stress.pt.plausible", p=p_value),
                            p_value=p_value, assessment=assessment)
-    except Exception as exc:  # pragma: no cover - defensive
-        return CheckResult("Parallel Trends", "WARNING", Msg("stress.error", error=str(exc)))
+    except NUMERICAL_ERRORS as exc:
+        return CheckResult("Parallel Trends", NOT_APPLICABLE, Msg("stress.error", error=str(exc)))
 
 
 def _check_serial_correlation(df: pd.DataFrame, outcome_col, unit_col, time_col,
@@ -114,7 +119,10 @@ def _check_serial_correlation(df: pd.DataFrame, outcome_col, unit_col, time_col,
     data[unit_col] = data[unit_col].astype("category")
     data[time_col] = data[time_col].astype("category")
     formula = f"{outcome_col} ~ {treatment_col} + C({unit_col}) + C({time_col})"
-    resid = smf.ols(formula, data=data).fit().resid.values
+    try:
+        resid = smf.ols(formula, data=data).fit().resid.values
+    except NUMERICAL_ERRORS as exc:
+        return CheckResult("Serial Correlation", NOT_APPLICABLE, Msg("stress.error", error=str(exc)))
 
     # Durbin-Watson computed *within* units only: consecutive rows
     # belonging to different units must not be differenced.
@@ -154,8 +162,8 @@ def _check_anticipation(df: pd.DataFrame, outcome_col, unit_col, time_col,
             return CheckResult("Anticipation", "WARNING", Msg("stress.anticipation.warning", p=p_value),
                                p_value=p_value)
         return CheckResult("Anticipation", "PASS", Msg("stress.anticipation.pass", p=p_value), p_value=p_value)
-    except Exception as exc:  # pragma: no cover
-        return CheckResult("Anticipation", "WARNING", Msg("stress.error", error=str(exc)))
+    except NUMERICAL_ERRORS as exc:
+        return CheckResult("Anticipation", NOT_APPLICABLE, Msg("stress.error", error=str(exc)))
 
 
 def _check_spillovers(df: pd.DataFrame, outcome_col, unit_col, time_col,
@@ -185,8 +193,8 @@ def _check_spillovers(df: pd.DataFrame, outcome_col, unit_col, time_col,
                                             cov_kwds={"groups": controls[unit_col]})
         p_value = float(fitted.pvalues["adj_post"])
         effect = float(fitted.params["adj_post"])
-    except Exception as exc:  # pragma: no cover - defensive
-        return CheckResult("Spillovers", "WARNING", Msg("stress.error", error=str(exc)))
+    except NUMERICAL_ERRORS as exc:
+        return CheckResult("Spillovers", NOT_APPLICABLE, Msg("stress.error", error=str(exc)))
     if p_value < 0.10:
         return CheckResult("Spillovers", "WARNING",
                            Msg("stress.spillovers.warning", n=n_adjacent, effect=effect, p=p_value),

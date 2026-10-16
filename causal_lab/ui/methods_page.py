@@ -282,7 +282,7 @@ def _plots(method: str, result: MethodResult, state: dict, L) -> None:
                                                       ("std_diff_after", L("methods.after_matching"))], L),
                         width="stretch")
         c1, c2, c3 = st.columns(3)
-        c1.metric(L("methods.ipw_att"), f"{d['ipw_att']:.4f}", help=F("methods.bootstrap_se", se=d["ipw_se"]))
+        c1.metric(L("methods.ipw_att"), f"{d['ipw_att']:.4f}", help=F("methods.bootstrap_se", se=d["ipw_se"], n=d["ipw_bootstrap_used"]))
         c2.metric(L("methods.naive_difference"), f"{d['naive_difference']:.4f}")
         c3.metric(L("methods.controls_used"), d["n_controls_used"])
         st.caption(R(d["notes"]))

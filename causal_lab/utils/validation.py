@@ -14,6 +14,20 @@ import pandas as pd
 REQUIRED_COLUMNS = ("unit", "period", "Y", "D", "treated_unit")
 
 
+INDICATOR_COLUMNS = ("D", "treated_unit")     # 0/1 indicators
+NUMERIC_COLUMNS = ("period", "Y")
+
+
+def invalid_required_columns(df: pd.DataFrame) -> list[str]:
+    """Required columns whose values the estimators cannot use: indicators
+    that are not all 0/1 (booleans count as 0/1), and a non-numeric period
+    or outcome. Assumes no required column is missing (hw6 review 5)."""
+    bad = [c for c in INDICATOR_COLUMNS
+           if df[c].isna().any() or not df[c].isin([0, 1]).all()]
+    bad += [c for c in NUMERIC_COLUMNS if not pd.api.types.is_numeric_dtype(df[c])]
+    return bad
+
+
 def missing_required_columns(df: pd.DataFrame) -> list[str]:
     """Return the required columns absent from `df`, in canonical order."""
     return [c for c in REQUIRED_COLUMNS if c not in df.columns]

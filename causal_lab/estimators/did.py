@@ -61,6 +61,13 @@ def estimate_did(df: pd.DataFrame, outcome_col: str = "Y", treatment_col: str = 
     level (or `cluster_col` if provided)."""
     if df[treatment_col].nunique() < 2:
         raise LocalizedError("err.did_no_variation", column=treatment_col)
+    # A text or boolean treatment would enter the formula as a category and
+    # the coefficient named `treatment_col` would not exist (hw6 review 5:
+    # the estimate used to come back as NaN without any error).
+    if df[treatment_col].dtype == bool:
+        df = df.assign(**{treatment_col: df[treatment_col].astype(int)})
+    if not pd.api.types.is_numeric_dtype(df[treatment_col]):
+        raise LocalizedError("err.did_non_numeric", column=treatment_col)
 
     data = df.copy()
     data[unit_col] = data[unit_col].astype("category")
@@ -72,8 +79,8 @@ def estimate_did(df: pd.DataFrame, outcome_col: str = "Y", treatment_col: str = 
     cluster_var = cluster_col or unit_col
     fitted = model.fit(cov_type="cluster", cov_kwds={"groups": data[cluster_var]})
 
-    beta = fitted.params.get(treatment_col, np.nan)
-    se = fitted.bse.get(treatment_col, np.nan) * _nested_fe_factor(data, fitted, unit_col, cluster_var)
+    beta = fitted.params[treatment_col]
+    se = fitted.bse[treatment_col] * _nested_fe_factor(data, fitted, unit_col, cluster_var)
     # Clustered statsmodels fits use normal inference (use_t is False).
     t_stat = beta / se
     p_value = 2 * stats.norm.sf(abs(t_stat))

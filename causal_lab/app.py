@@ -42,7 +42,7 @@ from ui.page_text import F, R, error_text
 from ui.theory_page import render as render_theory_page
 from utils.i18n import LocalizedError, t
 from utils.real_data import load_card_krueger
-from utils.validation import REQUIRED_COLUMNS, missing_required_columns
+from utils.validation import INDICATOR_COLUMNS, REQUIRED_COLUMNS, invalid_required_columns, missing_required_columns
 
 st.set_page_config(page_title="CAUSAL LAB", page_icon="🔬", layout="wide")
 
@@ -393,9 +393,12 @@ elif page == "virtual_lab":
             if missing:
                 st.error(F("virtual.missing_columns", missing=", ".join(missing),
                            expected=", ".join(REQUIRED_COLUMNS)))
+            elif invalid := invalid_required_columns(up_df):
+                st.error(F("virtual.invalid_columns", columns=", ".join(invalid)))
             elif up_df["D"].nunique() < 2:
                 st.error(L("virtual.no_variation"))
             else:
+                up_df = up_df.astype({c: int for c in INDICATOR_COLUMNS})
                 st.session_state.uploaded_df = up_df
                 st.session_state.virtual_df = None
                 st.session_state.virtual_truth = None

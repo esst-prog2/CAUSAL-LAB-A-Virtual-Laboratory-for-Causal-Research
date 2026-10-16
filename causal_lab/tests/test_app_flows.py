@@ -95,6 +95,22 @@ def test_uploaded_data_has_no_ground_truth_and_a_later_generation_wins():
         st.file_uploader = original
 
 
+def test_upload_with_a_text_treatment_is_rejected():
+    # hw6 review 5: D = "yes"/"no" used to load, then every DiD came back NaN.
+    df, _ = generate(VirtualWorldConfig(n_units=20, n_periods=6, treatment_period=3, seed=9))
+    df["D"] = df["D"].map({1: "yes", 0: "no"})
+    csv = df[["unit", "period", "D", "Y", "treated_unit"]].to_csv(index=False).encode()
+    original = st.file_uploader
+    st.file_uploader = (lambda *a, key=None, **k: _Upload(csv) if key is None else None)
+    try:
+        at = AppTest.from_file(APP, default_timeout=TIMEOUT).run()
+        _goto(at, "virtual_lab")
+        assert at.session_state.uploaded_df is None
+        assert any("D" in e.value and "0/1" in e.value for e in at.error), [e.value for e in at.error]
+    finally:
+        st.file_uploader = original
+
+
 def test_analysis_keeps_the_generating_configuration():
     at = _run_app()
     _goto(at, "virtual_lab")
@@ -120,6 +136,7 @@ if __name__ == "__main__":
     test_language_switch_keeps_the_page()
     test_pages_with_shared_language_helpers_follow_the_session_language()
     test_uploaded_data_has_no_ground_truth_and_a_later_generation_wins()
+    test_upload_with_a_text_treatment_is_rejected()
     test_analysis_keeps_the_generating_configuration()
     test_card_krueger_button_loads_real_data_without_truth()
     print("test_app_flows: OK")

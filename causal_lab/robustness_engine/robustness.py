@@ -22,7 +22,7 @@ import pandas as pd
 
 from estimators.did import DiDResult, estimate_did
 from robustness_engine.neighbourhood import adjacent_control_ids
-from utils.i18n import Msg
+from utils.i18n import LocalizedError, Msg
 
 
 @dataclass
@@ -63,7 +63,7 @@ def run_robustness_battery(df: pd.DataFrame, treatment_period: int, *, ids_encod
         try:
             res = estimate_did(sub, outcome_col, treatment_col, unit_col, time_col)
             loo_atts.append(res.att)
-        except Exception:
+        except LocalizedError:      # dropping this unit leaves no treatment variation
             continue
     if loo_atts:
         rows.append(RobustnessRow(

@@ -34,6 +34,7 @@ import numpy as np
 import pandas as pd
 import statsmodels.api as sm
 from sklearn.neighbors import NearestNeighbors
+from statsmodels.tools.sm_exceptions import PerfectSeparationError
 
 from estimators.common import (MethodResult, format_summary, normal_inference,
                                require_binary, standardized_difference)
@@ -109,7 +110,7 @@ def estimate_matching(df: pd.DataFrame, outcome_col: str = "Y", treatment_col: s
             continue
         try:
             boot.append(_ipw_att(y[idx], d[idx], _propensity(data.iloc[idx], treatment_col, covariate_cols)))
-        except Exception:   # perfect separation in a resample
+        except (PerfectSeparationError, np.linalg.LinAlgError):   # degenerate resample
             continue
     ipw_se = float(np.std(boot, ddof=1)) if len(boot) > 1 else float("nan")
 
@@ -134,7 +135,7 @@ def estimate_matching(df: pd.DataFrame, outcome_col: str = "Y", treatment_col: s
         estimate=att, se=se, ci_low=ci_low, ci_high=ci_high, p_value=p_value,
         n_obs=len(data),
         details=dict(
-            ipw_att=ipw, ipw_se=ipw_se,
+            ipw_att=ipw, ipw_se=ipw_se, ipw_bootstrap_used=len(boot),
             naive_difference=float(y[t_idx].mean() - y[c_idx].mean()),
             n_treated=n1, n_control=len(c_idx), n_controls_used=int(np.sum(k_used > 0)),
             propensity=pd.DataFrame({"propensity": ps, "treated": d}),
