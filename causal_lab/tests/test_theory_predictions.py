@@ -34,7 +34,21 @@ def test_verdicts():
     assert compare_with_estimate(-0.1, 0.4, -0.2, 1.0) == VERDICT_CONSISTENT
 
 
+def test_estimate_outside_its_interval_is_rejected():
+    # Reversed interval, or an estimate outside its own CI: data-entry errors
+    # that used to be swapped or ignored silently (hw6 review 2).
+    from utils.i18n import LocalizedError
+    for args in ((0.5, 1.0, 1.2, 0.7), (0.5, 2.0, 0.7, 1.2)):
+        try:
+            compare_with_estimate(*args)
+        except LocalizedError as exc:
+            assert "confidence interval" in str(exc)
+        else:
+            raise AssertionError(f"accepted inconsistent estimate/CI {args}")
+
+
 if __name__ == "__main__":
+    test_estimate_outside_its_interval_is_rejected()
     test_prize_shift_raises_total_effort_by_half_delta()
     test_delta_from_treated_minus_control()
     test_verdicts()

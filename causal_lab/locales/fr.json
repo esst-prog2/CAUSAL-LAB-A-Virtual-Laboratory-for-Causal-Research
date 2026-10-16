@@ -702,5 +702,6 @@
   "gen.se_label": "Écart-type robuste (clusters)",
   "gen.requires_reghdfe": "Nécessite reghdfe",
   "virtual.load_card_krueger": "Charger des données réelles : Card & Krueger (1994), salaire minimum, New Jersey vs Pennsylvanie",
-  "virtual.card_krueger_loaded": "Card & Krueger (1994) chargé : {rows} observations magasin-vague (emploi en ETP, NJ traité après la hausse du salaire minimum d'avril 1992)."
+  "virtual.card_krueger_loaded": "Card & Krueger (1994) chargé : {rows} observations magasin-vague (emploi en ETP, NJ traité après la hausse du salaire minimum d'avril 1992).",
+  "err.pred_bad_ci": "L'estimation causale {estimate:g} doit se trouver dans son intervalle de confiance à 95 % [{lo:g}, {hi:g}] ; vérifiez les valeurs saisies."
 }

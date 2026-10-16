@@ -73,9 +73,13 @@ VERDICT_SIGN = "sign contradicts"
 
 def compare_with_estimate(predicted: float, estimate: float, ci_low: float, ci_high: float) -> str:
     """Spec rule: inside the CI -> consistent; CI excludes zero on the
-    opposite side of the prediction -> sign contradicts; else magnitude differs."""
-    if ci_low > ci_high:
-        ci_low, ci_high = ci_high, ci_low
+    opposite side of the prediction -> sign contradicts; else magnitude differs.
+
+    The estimate must lie inside its own interval. A reversed or
+    inconsistent interval is a data-entry error, so it is reported
+    instead of being silently swapped (hw6 review 2)."""
+    if not ci_low <= estimate <= ci_high:
+        raise LocalizedError("err.pred_bad_ci", estimate=estimate, lo=ci_low, hi=ci_high)
     if ci_low <= predicted <= ci_high:
         return VERDICT_CONSISTENT
     if (ci_low > 0 and predicted < 0) or (ci_high < 0 and predicted > 0):

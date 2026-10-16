@@ -502,7 +502,11 @@ def _predictions_step(state: dict, L) -> None:
     else:
         est, lo, hi = estimates[choice]
     predicted = pred.effects[variable]
-    verdict = compare_with_estimate(predicted, est, lo, hi)
+    try:
+        verdict = compare_with_estimate(predicted, est, lo, hi)
+    except LocalizedError as exc:
+        st.error(_error_text(exc))
+        return
     VERDICT_STYLE[verdict](F("theory.verdict_text", label=L("theory.verdict"),
                              verdict=L(f"theory.verdict.{VERDICT_KEY[verdict]}"),
                              variable=_variable_label(game, variable), predicted=predicted, est=est, lo=lo, hi=hi))
