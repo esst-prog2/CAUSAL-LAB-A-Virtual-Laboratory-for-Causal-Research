@@ -93,7 +93,17 @@ A person with a messy panel CSV and a treatment date can use this version alone:
   - The Spillovers check used unit-id adjacency on any data. It is now N/A outside the Virtual World.
   - The clustered DiD standard error counted the absorbed unit fixed effects in its small-sample correction: 1.91 on Card & Krueger. It now follows the Stata xtreg/reghdfe convention: 1.34. That is exactly the published SE for the same sample: Card & Krueger (1994), Table 3, p. 780, row 4 (balanced sample), 2.75 (1.34). The 1.36 printed in row 3 is for all available observations, a different sample (verified against the printed table on 2026-10-16).
   - Store id `SHEET` 407 is used by two different stores (a KFC in Pennsylvania, a Wendy's in New Jersey), which the loader merged into one unit. Each store is now its own unit. The DiD on Card & Krueger is now 2.75 (2.76 published).
-- **Still open:** on Card & Krueger only one check (Heterogeneous Effects) can be computed, so its score of 100/100 rests on 1 of 5 checks. The app says so, but a single number remains easy to over-read.
+- **Card & Krueger score, reviewed on 2026-10-20:** 100/100 rests on 1 of 5 checks. This is correct under the documented rules, not a bug:
+  - Parallel Trends and Anticipation need two pre-treatment periods, and the data have one;
+  - Serial Correlation needs three periods, and the data have two;
+  - Spillovers is N/A on real data (user decision of 2026-10-16);
+  - the computable check, Heterogeneous Effects, gives a variance ratio of 0.61 (New Jersey vs. Pennsylvania), so it passes.
+
+  `tests/test_stress_not_applicable.py` pins each reason. The app states the 1-of-5 basis, but a single number remains easy to over-read.
+- **Minimum dependency versions, tested on 2026-10-20 (Python 3.11):** installing exactly the minima of `requirements.txt` revealed two verified defects. `requirements.txt` was left unchanged pending a decision:
+  - pip then resolves pyarrow 26, which needs NumPy ≥ 2.0, so `import pyarrow` fails with `numpy==1.26` and Streamlit's tables would break. With pyarrow 21 instead, 29 of the 30 test files pass at the minima;
+  - the failing one, `test_app_flows.py`, shows that switching the language sends the user back to the dashboard with Streamlit 1.50 to 1.63. The page is kept only from 1.64 onwards: the language-dependent labels of the navigation widget change its identity in older versions.
+- **Statistical convention of two checks:** Parallel Trends and Spillovers use statsmodels' default cluster correction, which counts the unit dummies. That is the convention hw6 review 3 replaced in the DiD estimator. It makes both checks somewhat conservative, i.e. they warn less often. It is pinned, not endorsed, by `tests/test_stress_hand_computed_regressions.py`; changing it would change the calibrated verdicts and needs a decision.
 - **Scope creep, and it already happened.** The original version of this idea had ten modules and two languages; this README initially cut it to one estimator and one diagnosis specifically to avoid that. The tripwire fired anyway: event study, cross-method recommendation, the full stress-test battery, code generation, and the French interface were all built before the four core acceptance criteria above were validated against a known package. Section 3 now documents what was actually delivered instead of leaving this README stale about it — but the underlying risk is unchanged: the four original acceptance criteria are still the real bar, and nothing on the delivered list above substitutes for validating the estimator itself.
 - **The "Break My Design" score — recalibrated on 2026-10-06.** The hw4 spike (`spike/stress_test_calibration_results.md`) found three of the five checks useless:
   - Spillovers fired on 100% of threat-free worlds;
@@ -128,6 +138,8 @@ source .venv/bin/activate        # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 streamlit run app.py             # opens http://localhost:8501
 ```
+
+`causal_lab/.streamlit/config.toml` makes the server listen on this machine only and turns off Streamlit's usage statistics, as the app promises ("Your data remain local"; "no data is sent anywhere"). To share the app on a network on purpose: `streamlit run app.py --server.address 0.0.0.0`.
 
 Each file in `causal_lab/tests/` runs as a plain script (`python tests/test_card_krueger.py`) and needs nothing beyond `requirements.txt`. With pytest installed, which is a test runner and not an app dependency, `python -m pytest` from the repository root runs them all. The AppTest files drive the whole app and take about two minutes.
 
