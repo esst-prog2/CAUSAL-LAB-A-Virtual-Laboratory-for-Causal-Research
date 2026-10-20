@@ -222,6 +222,14 @@ def _check_heterogeneous_effects(df: pd.DataFrame, outcome_col, unit_col, time_c
                        statistic=var_ratio, p_value=p_value)
 
 
+def identification_strength(checks: list[CheckResult]) -> float | None:
+    """Score = 100 * PASS / (checks that are not N/A); None when every check is N/A."""
+    computable = [c for c in checks if c.verdict != NOT_APPLICABLE]
+    if not computable:
+        return None
+    return 100 * sum(c.verdict == PASS for c in computable) / len(computable)
+
+
 def run_stress_test(df: pd.DataFrame, treatment_period: int, *, ids_encode_neighbourhood: bool,
                      outcome_col: str = "Y", unit_col: str = "unit", time_col: str = "period",
                      treatment_col: str = "D", treated_unit_col: str = "treated_unit") -> StressTestReport:
@@ -236,7 +244,6 @@ def run_stress_test(df: pd.DataFrame, treatment_period: int, *, ids_encode_neigh
         _check_serial_correlation(df, outcome_col, unit_col, time_col, treatment_col),
         _check_heterogeneous_effects(df, outcome_col, unit_col, time_col, treated_unit_col, treatment_period),
     ]
-    computable = [c for c in checks if c.verdict != NOT_APPLICABLE]
-    n_pass = sum(1 for c in computable if c.verdict == PASS)
-    score = 100 * n_pass / len(computable) if computable else None
-    return StressTestReport(checks=checks, identification_strength=score, n_computable=len(computable))
+    n_computable = sum(c.verdict != NOT_APPLICABLE for c in checks)
+    return StressTestReport(checks=checks, identification_strength=identification_strength(checks),
+                            n_computable=n_computable)

@@ -21,10 +21,11 @@ def test_two_period_real_data_reports_na_instead_of_warnings():
     verdicts = {c.name: c.verdict for c in report.checks}
     for name in ("Parallel Trends", "Anticipation", "Spillovers", "Serial Correlation"):
         assert verdicts[name] == NOT_APPLICABLE, verdicts
-    computable = [c for c in report.checks if c.verdict != NOT_APPLICABLE]
-    assert report.n_computable == len(computable) == 1
-    expected = 100 * sum(c.verdict == "PASS" for c in computable) / len(computable)
-    assert report.identification_strength == expected
+    (only,) = [c for c in report.checks if c.verdict != NOT_APPLICABLE]
+    assert report.n_computable == 1
+    # Constants, not the program's formula (instructor feedback on hw6): with a
+    # single computable check the score is 100 if it passes and 0 if it warns.
+    assert report.identification_strength == {"PASS": 100.0, "WARNING": 0.0}[only.verdict]
 
 
 def test_spillovers_need_ids_that_encode_a_neighbourhood():
