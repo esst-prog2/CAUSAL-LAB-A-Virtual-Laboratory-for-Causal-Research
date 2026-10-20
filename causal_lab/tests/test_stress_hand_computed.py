@@ -38,6 +38,25 @@ def test_heterogeneity_variance_ratio_and_p_value_by_hand():
     assert check.verdict == PASS
 
 
+def test_heterogeneity_unequal_groups_warns_by_hand():
+    # Added in the review of PR #8: with two groups of 3, a variance computed
+    # with ddof=0 gives the same ratio, and the case above never reaches WARNING.
+    # Treated changes 1, 2, 3: variance 2/2 = 1, numerator df = 2.
+    # Control changes 1, 1.5, 2, 1.5, 1.5: mean 1.5, squared deviations 0.25 + 0 + 0.25 + 0 + 0 = 0.5,
+    #   variance 0.5/4 = 0.125, denominator df = 4.
+    # Variance ratio = 1 / 0.125 = 8.0 (with ddof=0 it would be (2/3) / 0.1 = 6.67).
+    # For F(2, d2) the density is (1 + 2x/d2)^-(d2/2 + 1), so P(F > x) = (1 + 2x/d2)^(-d2/2):
+    #   P(F(2, 4) > 8) = (1 + 4)^-2 = 1/25 = 0.04 < 0.10, so the verdict is WARNING.
+    rows = []
+    for unit, (treated, change) in enumerate([(1, 1), (1, 2), (1, 3),
+                                              (0, 1), (0, 1.5), (0, 2), (0, 1.5), (0, 1.5)]):
+        rows += [(unit, 0, treated, 0, 0.0), (unit, 1, treated, treated, float(change))]
+    check = _check_heterogeneous_effects(_panel(rows), "Y", "unit", "period", "treated_unit", 1)
+    assert abs(check.statistic - 8.0) < 1e-12, check.statistic
+    assert abs(check.p_value - 0.04) < 1e-12, check.p_value
+    assert check.verdict == WARNING
+
+
 def test_serial_correlation_durbin_watson_by_hand():
     # Units A and B, periods 0, 1, 2; only B is treated, in period 2 (D = 1 in one cell).
     #   Y_A = (0, 0, 5), Y_B = (0, 4, 7).
@@ -74,6 +93,7 @@ def test_score_counts_pass_over_computable_checks():
 
 if __name__ == "__main__":
     test_heterogeneity_variance_ratio_and_p_value_by_hand()
+    test_heterogeneity_unequal_groups_warns_by_hand()
     test_serial_correlation_durbin_watson_by_hand()
     test_score_counts_pass_over_computable_checks()
     print("test_stress_hand_computed: OK")
