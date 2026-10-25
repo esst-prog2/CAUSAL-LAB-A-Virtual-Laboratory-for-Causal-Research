@@ -1,4 +1,4 @@
-"""The six Causal Methods estimators checked against established implementations.
+"""The Causal Methods estimators and Callaway & Sant'Anna checked against established implementations.
 
 Each estimator runs on a committed dataset and is compared with the value an
 external reference package gives on the same data, with the same settings
@@ -27,7 +27,8 @@ from estimators.dml import estimate_dml
 from estimators.iv import estimate_iv
 from estimators.matching import estimate_matching
 from estimators.rct import estimate_rct
-from estimators.rdd import estimate_rdd
+from estimators.rdd import estimate_rdd, ik_bandwidth
+from estimators.staggered_did import estimate_staggered_did
 from estimators.synthetic_control import estimate_synthetic_control
 
 EXPECTED = json.loads((Path(__file__).resolve().parent / "external_reference" / "expected.json")
@@ -57,6 +58,23 @@ def test_iv_matches_estimatr():
     result = estimate_iv(load("iv"), instrument_cols=["Z"], control_cols=["W"])
     _close(result.estimate, "iv.estimate")
     _close(result.se, "iv.se")
+
+
+def test_iv_first_stage_f_matches_estimatr():
+    # estimatr::iv_robust(..., se_type = "HC0", diagnostics = TRUE): first-stage F of Z.
+    result = estimate_iv(load("iv"), instrument_cols=["Z"], control_cols=["W"])
+    _close(result.details["first_stage_f"], "iv.first_stage_f")
+
+
+def test_ik_bandwidth_is_close_to_rdrobust_0_80():
+    # R rdrobust 0.80, rdbwselect(bwselect = "IK", kernel = "tri", p = 1): the last
+    # implementation of Imbens & Kalyanaraman (2012) by rdrobust's authors. The gap was
+    # 0.4% when this test was written (pilot steps differ in detail). R rdd 0.57 gives
+    # 0.752 instead: it follows the 2009 working paper (regularization 720 instead of
+    # 2160, pooled variance), which a line-by-line port reproduces to 1e-15.
+    data = load("rdd")
+    h = ik_bandwidth(data["X"].to_numpy(float), data["Y"].to_numpy(float), 0.0)
+    _close(h, "rdd.ik_bandwidth", rel=0.01)
 
 
 def test_rdd_matches_rdrobust():
@@ -112,6 +130,22 @@ def test_dml_matches_doubleml():
                               n_folds=SETTINGS["dml_folds"], seed=SETTINGS["dml_seed"])
     _close(result.estimate, "dml.estimate")
     _close(result.se, "dml.se")
+
+
+def test_callaway_santanna_matches_did():
+    # R did: att_gt(base_period = "universal", control_group = ...), then aggte "simple"
+    # (overall ATT) and "dynamic" (event study). Point estimates must agree to rounding.
+    # SEs: Causal Lab bootstraps units (199 draws), did is analytical; with 199 draws the
+    # bootstrap SE alone has a Monte Carlo error of about 5%, hence 15% (4% observed).
+    for ours, theirs in (("never_treated", "nevertreated"), ("not_yet_treated", "notyettreated")):
+        result = estimate_staggered_did(load("cs"), comparison=ours)
+        _close(result.att, f"cs.{theirs}.att")
+        _close(result.se, f"cs.{theirs}.se", rel=0.15)
+        for row in result.event_study.itertuples():
+            _close(row.estimate, f"cs.{theirs}.event.{row.rel_period}")
+        # The reference period e = -1 is 0 by construction in did and left out by Causal Lab.
+        assert EXPECTED[f"cs.{theirs}.event.-1"] == 0.0
+        assert -1 not in set(result.event_study["rel_period"])
 
 
 if __name__ == "__main__":
