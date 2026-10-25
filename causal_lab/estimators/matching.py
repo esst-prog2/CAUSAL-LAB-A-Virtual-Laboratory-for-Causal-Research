@@ -6,7 +6,8 @@ treatment is as good as random.
 1. Covariate matching (Abadie & Imbens 2006, 2011): each treated unit is
    matched, with replacement, to the control closest in Mahalanobis
    distance on X. The bias from inexact matches is removed with a
-   regression of Y on X among controls:
+   regression of Y on X among the matched controls, weighted by how often
+   each is used (as in R Matching and Stata nnmatch):
 
        Y0hat_i = Y_j(i) + mu0(X_i) - mu0(X_j(i))
 
@@ -19,8 +20,8 @@ treatment is as good as random.
    estimated by matching each control to its nearest other control.
    Matching on the covariates themselves (a known metric) is the setting
    for which this variance is derived; matching on an *estimated*
-   propensity score makes it conservative (Abadie & Imbens 2016). On the
-   Matching virtual world it gives 97% coverage for a nominal 95%.
+   propensity score makes it conservative (Abadie & Imbens 2016). On 500
+   Matching virtual worlds it gives 95.8% coverage for a nominal 95%.
    The bootstrap is not used: it is invalid for nearest-neighbour
    matching (Abadie & Imbens 2008).
 2. The propensity score p(X) (logit) is still estimated, for the overlap
@@ -81,9 +82,17 @@ def estimate_matching(df: pd.DataFrame, outcome_col: str = "Y", treatment_col: s
     nn = NearestNeighbors(n_neighbors=2).fit(z[c_idx])
     match = c_idx[nn.kneighbors(z[t_idx], n_neighbors=1, return_distance=False)[:, 0]]
 
-    # Bias correction with a linear regression of Y on X among controls.
-    design_c = np.column_stack([np.ones(len(c_idx)), x[c_idx]])
-    beta = np.linalg.lstsq(design_c, y[c_idx], rcond=None)[0]
+    # Bias correction with a linear regression of Y on X among the controls
+    # used as matches, each weighted by the number of times it is used
+    # (Abadie & Imbens 2011; R Matching, Stata nnmatch). Until 2026-10-25 the
+    # regression used every control: equally good on 500 Matching worlds
+    # (RMSE 0.092 vs. 0.094, coverage 96.8% vs. 95.8%), but it did not
+    # reproduce the reference implementations.
+    k_used = np.bincount(match, minlength=len(y))
+    used = np.flatnonzero(k_used > 0)
+    root_w = np.sqrt(k_used[used])
+    design_c = np.column_stack([np.ones(len(used)), x[used]])
+    beta = np.linalg.lstsq(design_c * root_w[:, None], y[used] * root_w, rcond=None)[0]
 
     def mu0(rows):
         return np.column_stack([np.ones(len(rows)), x[rows]]) @ beta
@@ -94,7 +103,7 @@ def estimate_matching(df: pd.DataFrame, outcome_col: str = "Y", treatment_col: s
     # Abadie-Imbens variance; sigma2 from each control's nearest other control.
     neighbour = c_idx[nn.kneighbors(z[c_idx], n_neighbors=2, return_distance=False)[:, 1]]
     sigma2 = (y[c_idx] - y[neighbour]) ** 2 / 2
-    k_used = np.bincount(match, minlength=len(y))[c_idx]
+    k_used = k_used[c_idx]
     n1 = len(t_idx)
     variance = (np.sum((y[t_idx] - y0_hat - att) ** 2) + np.sum(k_used * (k_used - 1) * sigma2)) / n1 ** 2
     se = float(np.sqrt(variance))

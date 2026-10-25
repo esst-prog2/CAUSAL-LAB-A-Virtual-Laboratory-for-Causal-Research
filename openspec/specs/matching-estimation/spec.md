@@ -13,7 +13,7 @@ The system SHALL estimate each observation's propensity score, the probability o
 - **THEN** every observation receives a propensity score strictly between 0 and 1
 
 ### Requirement: Nearest-neighbour matching ATT
-The system SHALL estimate the ATT by matching each treated observation, with replacement, to the control observation closest in Mahalanobis distance on the covariates. The bias from inexact matches SHALL be removed with a linear regression of the outcome on the covariates among controls (Abadie & Imbens 2011). The system SHALL report the Abadie-Imbens standard error, which accounts for controls being reused as matches, together with a 95% confidence interval and a p-value.
+The system SHALL estimate the ATT by matching each treated observation, with replacement, to the control observation closest in Mahalanobis distance on the covariates. The bias from inexact matches SHALL be removed with a linear regression of the outcome on the covariates among the controls used as matches, each weighted by the number of times it is used (Abadie & Imbens 2011; R Matching, Stata nnmatch). The system SHALL report the Abadie-Imbens standard error, which accounts for controls being reused as matches, together with a 95% confidence interval and a p-value.
 
 #### Scenario: Matching estimate
 - **WHEN** the matching estimator is run
@@ -21,7 +21,11 @@ The system SHALL estimate the ATT by matching each treated observation, with rep
 
 #### Scenario: Calibrated standard error
 - **WHEN** the estimator is run on 60 seeded Matching virtual worlds
-- **THEN** the 95% CI covers the true ATT in between 88% and 100% of them, and the mean standard error is within 0.8–1.25 times the sampling standard deviation of the estimates (measured on 200 worlds: 97% coverage, ratio 1.09)
+- **THEN** the 95% CI covers the true ATT in between 88% and 100% of them, and the mean standard error is within 0.8–1.25 times the sampling standard deviation of the estimates (measured on 500 worlds: 95.8% coverage, ratio 1.06)
+
+#### Scenario: Reproducing R Matching
+- **WHEN** the estimator and R `Matching::Match(estimand = "ATT", M = 1, Weight = 2, BiasAdjust = TRUE, Var.calc = 1)` run on the same data
+- **THEN** the ATT and its standard error agree to floating-point rounding
 
 ### Requirement: Inverse-probability-weighted ATT
 The system SHALL also report an inverse-probability-weighted ATT, in which control observations are weighted by p/(1-p), as a second estimate under the same assumption.

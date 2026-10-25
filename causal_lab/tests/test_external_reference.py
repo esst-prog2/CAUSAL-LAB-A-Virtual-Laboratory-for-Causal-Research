@@ -87,28 +87,23 @@ def test_rdd_matches_rdrobust():
 
 
 # Matching: R Matching::Match(estimand = "ATT", M = 1, Weight = 2 (Mahalanobis),
-# BiasAdjust = TRUE, Var.calc = 1). Both pick the same matches, but the bias
-# correction regression differs: Causal Lab fits Y on X on all controls, R
-# (like Stata's nnmatch and Abadie & Imbens 2011) on the matched controls
-# weighted by their use. Both are consistent; they differ in finite samples.
-#
-# 1. matching_linear.csv: controls are exactly linear in X, so both
-#    regressions recover the same coefficients and everything else (matches,
-#    bias correction, Abadie-Imbens variance) must agree exactly.
-# 2. matching.csv: noisy controls; only the regression sample differs. The
-#    gap was 0.04 SE (estimate) and 0.03% (SE) when this test was written.
+# BiasAdjust = TRUE, Var.calc = 1). Since 2026-10-25 Causal Lab fits the bias
+# correction regression as R does (matched controls weighted by their use), so
+# both datasets must agree to rounding. Before, it used all controls: the
+# estimate on matching.csv was 0.04 SE away. matching_linear.csv (controls
+# exactly linear in X) agreed even then, since there both regressions recover
+# the same coefficients; it now checks matches and variance on their own.
 
-def test_matching_matches_r_matching_exactly_when_the_bias_regression_cannot_differ():
+def test_matching_matches_r_matching_when_the_bias_regression_cannot_differ():
     result = estimate_matching(load("matching_linear"), covariate_cols=["X1", "X2"])
     _close(result.estimate, "matching_linear.adjusted.estimate")
     _close(result.se, "matching_linear.adjusted.se")
 
 
-def test_matching_is_close_to_r_matching_on_noisy_data():
+def test_matching_matches_r_matching_on_noisy_data():
     result = estimate_matching(load("matching"), covariate_cols=["X1", "X2"])
-    gap = abs(result.estimate - EXPECTED["matching.adjusted.estimate"])
-    assert gap < 0.1 * result.se, (result.estimate, EXPECTED["matching.adjusted.estimate"], result.se)
-    _close(result.se, "matching.adjusted.se", rel=0.01)
+    _close(result.estimate, "matching.adjusted.estimate")
+    _close(result.se, "matching.adjusted.se")
 
 
 def test_synthetic_control_matches_pysyncon():

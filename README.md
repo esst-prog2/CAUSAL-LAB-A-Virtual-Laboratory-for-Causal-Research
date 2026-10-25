@@ -88,7 +88,7 @@ A person with a messy panel CSV and a treatment date can use this version alone:
     | RCT (difference in means, Lin 2013), HC2 | R `estimatr` (`lm_robust`, `lm_lin`) | estimate and SE to rounding |
     | IV (2SLS), HC0 | R `estimatr` (`iv_robust`) | estimate and SE to rounding |
     | Sharp RDD, fixed bandwidth, triangular kernel, HC1 | `rdrobust` (conventional) | estimate to rounding, SE to 3e-5 |
-    | Matching (ATT, bias-corrected, Abadie-Imbens SE) | R `Matching` (Sekhon) | to rounding when the bias regression cannot differ; see below |
+    | Matching (ATT, bias-corrected, Abadie-Imbens SE) | R `Matching` (Sekhon) | estimate and SE to rounding (since 2026-10-25, see below) |
     | Synthetic control weights | `pysyncon` (custom V) | weights to 1e-5 |
     | DML (partially linear) | `DoubleML` (same folds and forests) | estimate and SE to rounding |
     | IV first-stage F (HC0) | R `estimatr` (`diagnostics = TRUE`) | to rounding |
@@ -103,9 +103,18 @@ A person with a messy panel CSV and a treatment date can use this version alone:
     - unweighted Callaway & Sant'Anna aggregation.
 
     On the IK bandwidth, R `rdd` 0.57 gives a different value (0.752 instead of 0.625). It follows the 2009 working paper (a regularization of 720 instead of 2160, pooled variance); a line-by-line port of it reproduces its value exactly, so the gap is that choice, not an error. Causal Lab follows the published 2012 version.
-  - **Matching: one documented difference.** Causal Lab fits the bias-correction regression on all controls; R `Matching`, Stata `nnmatch` and Abadie & Imbens (2011) fit it on the matched controls, weighted by how often each is used. Both are consistent. The matches are identical, so on the noisy test dataset the estimates differ by 0.04 SE only (2.020 vs. 2.014).
+  - **Matching: aligned with R and Stata on 2026-10-25.** Causal Lab used to fit the bias-correction regression on all controls. R `Matching`, Stata `nnmatch` and Abadie & Imbens (2011) fit it on the matched controls, weighted by how often each is used. With identical matches, that was the only difference: 0.04 SE on the noisy test dataset.
+
+    On 500 Matching worlds the two were equally good:
+
+    | Bias regression | Bias | RMSE | Coverage |
+    |---|---|---|---|
+    | All controls (before) | −0.006 | 0.092 | 96.8% |
+    | Matched controls, weighted by use (now) | −0.006 | 0.094 | 95.8% |
+
+    The reference convention was adopted so that results can be reproduced exactly in R or Stata.
   - **Staggered timing is handled.** When adoption is staggered, the app warns that two-way fixed effects can be biased and offers the Callaway & Sant'Anna estimator, which is validated by Monte Carlo (see section 3) and, since 2026-10-25, against the R package `did` by its authors.
-  - **Matching standard errors are calibrated.** Matching moved from the propensity score to the covariates, with bias correction. This brought CI coverage from a conservative 100% to 97%, and made the estimates more precise.
+  - **Matching standard errors are calibrated.** Matching moved from the propensity score to the covariates, with bias correction. This brought CI coverage from a conservative 100% to 97%, and made the estimates more precise (95.8% on 500 worlds since the bias regression follows R and Stata).
 - **Real data availability.**
   - *Original plan:* I don't yet have a real panel dataset I'm allowed to show in class. The demo will run on the synthetic "virtual world" generator by default; if I obtain a usable real dataset later (course data, a public panel dataset), I'll add it, but the project does not depend on it.
   - *Since hw5:* the app ships one public real dataset with documented provenance, Card & Krueger (1994), loaded from a button on the Virtual Lab page (`causal_lab/data/card_krueger_1994/SOURCE.md`). `tests/test_card_krueger.py` checks that the DiD reproduces the published +2.76 FTE effect.
