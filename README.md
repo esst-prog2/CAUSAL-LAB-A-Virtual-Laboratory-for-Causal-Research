@@ -189,6 +189,8 @@ streamlit run app.py             # opens http://localhost:8501
 
 `causal_lab/.streamlit/config.toml` makes the server listen on this machine only and turns off Streamlit's usage statistics, as the app promises ("Your data remain local"; "no data is sent anywhere"). To share the app on a network on purpose: `streamlit run app.py --server.address 0.0.0.0`.
 
+GitHub Actions (`.github/workflows/tests.yml`) runs the whole suite on every push and pull request twice, on Python 3.11: once with the newest versions pip resolves, once with exactly the minima of `requirements.txt`. It also runs `openspec validate --specs`.
+
 Each file in `causal_lab/tests/` runs as a plain script (`python tests/test_card_krueger.py`) and needs nothing beyond `requirements.txt`. With pytest installed, which is a test runner and not an app dependency, `python -m pytest` from the repository root runs them all. The AppTest files drive the whole app and take about two minutes.
 
 The stress-test calibration (1,200 simulated worlds, about 6 minutes) must be given a new output file; a relative name is taken from the `spike/` folder:
