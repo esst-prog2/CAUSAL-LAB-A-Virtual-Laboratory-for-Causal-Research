@@ -33,6 +33,8 @@ from estimators.common import Z_95
 from estimators.did import estimate_did
 from estimators.event_study import estimate_event_study
 from estimators.staggered_did import estimate_staggered_did
+from report_engine.builder import build_report
+from report_engine.render import FORMATS, render_report, to_markdown
 from robustness_engine.robustness import run_robustness_battery
 from robustness_engine.stress_test import run_stress_test
 from simulation_engine.dgp import VirtualWorldConfig, generate
@@ -42,6 +44,7 @@ from ui.page_text import F, R, error_text
 from ui.theory_page import render as render_theory_page
 from utils.i18n import LocalizedError, t, tf
 from utils.project_file import EXTENSION, apply_project, load_project, project_file_name, save_project
+from utils import session_data
 from utils.real_data import load_card_krueger
 from utils.validation import INDICATOR_COLUMNS, REQUIRED_COLUMNS, invalid_required_columns, missing_required_columns
 
@@ -80,7 +83,7 @@ lang = st.session_state.lang
 PAGES = [
     "dashboard", "research_question", "diagnosis", "recommendation",
     "virtual_lab", "estimation", "methods", "theory", "break_my_design",
-    "robustness", "code", "settings",
+    "robustness", "code", "report", "settings",
 ]
 LEVELS = ["none", "low", "medium", "high", "severe"]
 
@@ -100,20 +103,12 @@ def go_to(page_id: str) -> None:
 def active_df() -> pd.DataFrame | None:
     """Whichever dataset is currently loaded: an uploaded real-world
     dataset takes priority over the simulated Virtual World data."""
-    if st.session_state.uploaded_df is not None:
-        return st.session_state.uploaded_df
-    return st.session_state.virtual_df
+    return session_data.active_data(st.session_state)
 
 
 def treatment_setup(df: pd.DataFrame) -> tuple[int, bool]:
-    """(treatment period, staggered?) for the active dataset: taken from
-    the configuration that generated the Virtual World, or inferred from
-    the first period in which each unit has D == 1 for uploaded data."""
-    if st.session_state.uploaded_df is None and st.session_state.virtual_cfg is not None:
-        cfg = st.session_state.virtual_cfg
-        return cfg.treatment_period, cfg.staggered_adoption
-    first_treated = df.loc[df["D"] == 1].groupby("unit")["period"].min()
-    return int(first_treated.min()), first_treated.nunique() > 1
+    """(treatment period, staggered?) for the active dataset."""
+    return session_data.treatment_setup(st.session_state, df)
 
 
 def option_select(container, label_key: str, options: list[str], current: str) -> str:
@@ -167,7 +162,7 @@ def open_project_from_upload() -> None:
 
 def ids_encode_neighbourhood() -> bool:
     """Unit ids encode a neighbourhood only in a generated Virtual World."""
-    return st.session_state.uploaded_df is None and st.session_state.virtual_cfg is not None
+    return session_data.ids_encode_neighbourhood(st.session_state)
 
 
 LEVEL_COLOR = {
@@ -653,6 +648,28 @@ elif page == "code":
     with tab3:
         st.code(code["stata"], language="stata")
         st.download_button(F("code.download", language="Stata"), code["stata"], "causal_lab_did.do")
+
+# --------------------------------------------------------------------------
+# REPORT
+# --------------------------------------------------------------------------
+elif page == "report":
+    st.title(f"📄 {L('report.title')}")
+    st.caption(L("report.intro"))
+    fmt = st.radio(L("report.format"), list(FORMATS), horizontal=True, key="report_format",
+                   format_func=lambda f: L(f"report.format.{f}"))
+    if st.button(f"📄 {L('report.generate')}", type="primary"):
+        with st.spinner(L("report.generate")):
+            built = build_report(st.session_state, lang)
+            st.session_state.report_output = (fmt, render_report(built, fmt), to_markdown(built))
+    output = st.session_state.get("report_output")
+    if output is not None:
+        out_fmt, content, preview = output
+        extension, mime = FORMATS[out_fmt]
+        st.success(F("report.ready", size=f"{len(content) / 1024:.0f}"))
+        st.download_button(f"⬇️ {F('report.download', format=L(f'report.format.{out_fmt}'))}", content,
+                           file_name=project_file_name(st.session_state).replace(EXTENSION, extension), mime=mime)
+        with st.expander(L("report.preview")):
+            st.markdown(preview)
 
 # --------------------------------------------------------------------------
 # SETTINGS
