@@ -62,6 +62,22 @@ def test_rdd_inference_choice_and_fuzzy_world_on_the_page():
     assert at.session_state["method_data"]["rdd"]["result"] is None       # stale result cleared
 
 
+def test_rdd_inference_choice_survives_leaving_the_page():
+    # A widget's key is dropped when its page is left: without restoring it, coming
+    # back reverted the choice to conventional and cleared the robust result.
+    at = _app_with_result("rdd")
+    at.radio(key="mw_rdd_inference").set_value("robust").run()
+    next(b for b in at.button if b.key == "mw_rdd_run").click().run()
+    assert at.session_state["method_data"]["rdd"]["result"].details["inference"] == "robust"
+    at.session_state["page"] = "dashboard"
+    at.run()
+    at.session_state["page"] = "methods"
+    at.run()
+    assert not at.exception
+    assert at.radio(key="mw_rdd_inference").value == "robust"
+    assert at.session_state["method_data"]["rdd"]["result"] is not None
+
+
 def test_covariate_synthetic_control_shows_its_predictors():
     at = _app_with_result("synthetic_control", n_covariates=2)
     tables = [d.value for d in at.dataframe]

@@ -39,6 +39,7 @@ from robustness_engine.robustness import run_robustness_battery
 from robustness_engine.stress_test import run_stress_test
 from simulation_engine.dgp import VirtualWorldConfig, generate
 from simulation_engine.monte_carlo import run_monte_carlo
+from ui.data_sources_page import render as render_data_sources_page
 from ui.methods_page import render as render_methods_page
 from ui.page_text import F, R, error_text
 from ui.theory_page import render as render_theory_page
@@ -77,12 +78,14 @@ if "uploaded_file_id" not in st.session_state:
     st.session_state.uploaded_file_id = None
 if "page" not in st.session_state:
     st.session_state.page = "dashboard"
+if "connectors_enabled" not in st.session_state:
+    st.session_state.connectors_enabled = False      # no network request until turned on in Settings
 
 lang = st.session_state.lang
 
 PAGES = [
     "dashboard", "research_question", "diagnosis", "recommendation",
-    "virtual_lab", "estimation", "methods", "theory", "break_my_design",
+    "virtual_lab", "data_sources", "estimation", "methods", "theory", "break_my_design",
     "robustness", "code", "report", "settings",
 ]
 LEVELS = ["none", "low", "medium", "high", "severe"]
@@ -559,6 +562,12 @@ elif page == "methods":
     render_methods_page(L)
 
 # --------------------------------------------------------------------------
+# EXTERNAL DATA (DHS, WorldPop, ACLED; off until enabled in Settings)
+# --------------------------------------------------------------------------
+elif page == "data_sources":
+    render_data_sources_page(L)
+
+# --------------------------------------------------------------------------
 # THEORETICAL MODEL (agents, equilibrium, calibration, predictions)
 # --------------------------------------------------------------------------
 elif page == "theory":
@@ -680,6 +689,15 @@ elif page == "settings":
     st.write(F("settings.current_language", language=st.session_state.lang.upper()))
     st.info(L("settings.local_mode_note"))
     st.caption(L("settings.build_note"))
+
+    st.divider()
+    st.subheader(f"🌍 {L('settings.connectors')}")
+    # A widget's own key is dropped when its page is left, so the choice lives in
+    # connectors_enabled and the toggle only mirrors it.
+    st.toggle(L("settings.connectors_toggle"), value=st.session_state.connectors_enabled,
+              key="connectors_toggle", on_change=lambda: st.session_state.update(
+                  connectors_enabled=st.session_state.connectors_toggle))
+    st.caption(L("settings.connectors_note"))
 
     st.divider()
     st.subheader(f"💾 {L('project.title')}")
