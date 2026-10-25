@@ -112,6 +112,21 @@ def make_datasets() -> None:
             rows.append((unit, period, first, treated, unit_effect + 0.2 * period + effect + rng.normal()))
     pd.DataFrame(rows, columns=["unit", "period", "first", "D", "Y"]).to_csv(HERE / "cs.csv", index=False)
 
+    # Fuzzy RD (drawn after the above): 60% follow the cutoff rule, the rest take
+    # the treatment at random; effect 2 of the treatment received.
+    n = 3000
+    x = rng.uniform(-1, 1, n)
+    complier = rng.uniform(size=n) < 0.6
+    d = np.where(complier, (x >= 0).astype(int), rng.integers(0, 2, n))
+    y = 0.5 + 0.8 * x - 0.6 * x ** 2 + 2.0 * d + rng.normal(scale=0.5, size=n)
+    pd.DataFrame(dict(Y=y, X=x, D=d)).to_csv(HERE / "rdd_fuzzy.csv", index=False)
+
+    # Synthetic control with three covariates: Causal Lab's own world, seed 5.
+    sys.path.insert(0, str(HERE.parent.parent))
+    from simulation_engine.method_worlds import SyntheticControlWorldConfig, synthetic_control_world
+    sc_cov, _ = synthetic_control_world(SyntheticControlWorldConfig(seed=5, n_covariates=3))
+    sc_cov.to_csv(HERE / "sc_cov.csv", index=False)
+
 
 def r_references() -> tuple[dict, dict]:
     run = subprocess.run([RSCRIPT, str(HERE / "reference.R"), str(HERE), OLD_RDROBUST_LIB],
@@ -131,8 +146,17 @@ def rdd_reference() -> dict:
     df = load("rdd")
     fit = rdrobust(df["Y"].to_numpy(), df["X"].to_numpy(), c=0, h=RDD_BANDWIDTH, kernel="triangular",
                    p=1, vce="hc1")
-    return {"rdd.estimate": float(fit.coef.iloc[0, 0]), "rdd.se": float(fit.se.iloc[0, 0]),
-            "rdd.n_left": int(fit.N_h[0]), "rdd.n_right": int(fit.N_h[1])}
+    out = {"rdd.estimate": float(fit.coef.iloc[0, 0]), "rdd.se": float(fit.se.iloc[0, 0]),
+           "rdd.n_left": int(fit.N_h[0]), "rdd.n_right": int(fit.N_h[1]),
+           # rows: Conventional, Bias-Corrected, Robust (b = h when only h is given)
+           "rdd.robust.estimate_bc": float(fit.coef.iloc[1, 0]), "rdd.robust.se": float(fit.se.iloc[2, 0])}
+    fz = load("rdd_fuzzy")
+    fit = rdrobust(fz["Y"].to_numpy(float), fz["X"].to_numpy(float), c=0, h=RDD_BANDWIDTH, kernel="triangular",
+                   p=1, vce="hc1", fuzzy=fz["D"].to_numpy(float))
+    out.update({"rdd_fuzzy.estimate": float(fit.coef.iloc[0, 0]), "rdd_fuzzy.se": float(fit.se.iloc[0, 0]),
+                "rdd_fuzzy.robust.estimate_bc": float(fit.coef.iloc[1, 0]),
+                "rdd_fuzzy.robust.se": float(fit.se.iloc[2, 0])})
+    return out
 
 
 def sc_reference() -> dict:
@@ -153,8 +177,26 @@ def sc_reference() -> dict:
     synth.fit(dataprep=prep, custom_V=v)
     weights = synth.weights(round=12)
     post = list(range(SC_TREATMENT_PERIOD, int(df["period"].max()) + 1))
-    return {"sc.estimate": float(synth.att(time_period=post)["att"]),
-            **{f"sc.weight.{u}": float(weights[u]) for u in donors}}
+    out = {"sc.estimate": float(synth.att(time_period=post)["att"]),
+           **{f"sc.weight.{u}": float(weights[u]) for u in donors}}
+
+    # With covariates, V is searched (Nelder-Mead from equal V, as Causal Lab's first
+    # start). The problem is not convex, so only the pre-treatment fit is compared.
+    cov = load("sc_cov")
+    covs = ["X1", "X2", "X3"]
+    donors = sorted(u for u in cov["unit"].unique() if u != "treated")
+    pre = sorted(p for p in cov["period"].unique() if p < 20)
+    prep = Dataprep(foo=cov, predictors=covs, predictors_op="mean", dependent="Y", unit_variable="unit",
+                    time_variable="period", treatment_identifier="treated", controls_identifier=donors,
+                    time_predictors_prior=pre, special_predictors=[("Y", pre, "mean")], time_optimize_ssr=pre)
+    synth = Synth()
+    synth.fit(dataprep=prep, optim_method="Nelder-Mead", optim_initial="equal")
+    w = pd.Series(synth.weights(round=12)).reindex(donors).to_numpy()
+    wide = cov.pivot(index="period", columns="unit", values="Y")
+    gaps = wide["treated"].to_numpy()[:len(pre)] - wide[donors].to_numpy()[:len(pre)] @ w
+    out.update({"sc_cov.pre_mspe": float(np.mean(gaps ** 2)),
+                "sc_cov.estimate": float(synth.att(time_period=sorted(set(cov["period"]) - set(pre)))["att"])})
+    return out
 
 
 def dml_reference() -> dict:

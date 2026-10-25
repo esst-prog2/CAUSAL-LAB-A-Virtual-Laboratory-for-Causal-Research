@@ -25,6 +25,7 @@ import streamlit as st
 
 from estimators.common import Z_95, MethodResult
 from code_generator.methods import code_options, generate_method_code
+from estimators.rdd import INFERENCES
 from estimators.registry import run_method, virtual_options
 from robustness_engine.method_stress import run_method_stress_test
 from simulation_engine.method_monte_carlo import run_method_monte_carlo
@@ -63,11 +64,12 @@ METHODS: dict[str, MethodSpec] = {
                       Param("instrument_strength", 0.0, 3.0, 0.05), Param("endogeneity", 0.0, 3.0, 0.1))),
     "rdd": MethodSpec(mw.RDDWorldConfig, mw.rdd_world,
                       (Param("n", 200, 50000, 100), Param("effect", -5.0, 5.0, 0.1), Param("cutoff", -5.0, 5.0, 0.1),
-                       Param("curvature", 0.0, 5.0, 0.1), Param("noise_sd", 0.05, 5.0, 0.05))),
+                       Param("curvature", 0.0, 5.0, 0.1), Param("noise_sd", 0.05, 5.0, 0.05),
+                       Param("compliance", 0.05, 1.0, 0.05))),
     "synthetic_control": MethodSpec(mw.SyntheticControlWorldConfig, mw.synthetic_control_world,
                                     (Param("n_donors", 3, 80, 1), Param("n_periods", 6, 100, 1),
                                      Param("treatment_period", 2, 99, 1), Param("effect", -10.0, 10.0, 0.1),
-                                     Param("noise_sd", 0.0, 3.0, 0.05))),
+                                     Param("noise_sd", 0.0, 3.0, 0.05), Param("n_covariates", 0, 10, 1))),
     "dml": MethodSpec(mw.DMLWorldConfig, mw.dml_world,
                       (Param("n", 200, 10000, 100), Param("theta", -5.0, 5.0, 0.1),
                        Param("n_covariates", 3, 50, 1), Param("nonlinearity", 0.0, 3.0, 0.1))),
@@ -107,7 +109,10 @@ def _virtual_world_inputs(method: str, spec: MethodSpec, state: dict, L) -> None
         except LocalizedError as exc:
             st.error(error_text(exc))
             return
-        state.update(df=df, truth=truth, mapping=dict(truth["roles"]), options=virtual_options(method, truth),
+        options = virtual_options(method, truth)
+        if method == "rdd":
+            options["inference"] = st.session_state.get("mw_rdd_inference", "conventional")
+        state.update(df=df, truth=truth, mapping=dict(truth["roles"]), options=options,
                      source="virtual", result=None, error=None, dropped=0, config=asdict(config),
                      stress=None, mc=None)
         st.success(F("methods.generated", rows=len(df), estimand=truth["estimand"], value=truth["true_effect"]))
@@ -147,6 +152,7 @@ def _upload_inputs(method: str, state: dict, L) -> None:
                                             key=f"mw_{method}_cutoff")
         bw = st.number_input(L("methods.bandwidth"), min_value=0.0, value=0.0, key=f"mw_{method}_bw")
         options["bandwidth"] = bw or None
+        options["inference"] = st.session_state.get("mw_rdd_inference", "conventional")
     if method == "synthetic_control" and mapping.get("unit") in raw.columns and mapping.get("period") in raw.columns:
         units = sorted(raw[mapping["unit"]].dropna().unique().tolist(), key=str)
         periods = sorted(raw[mapping["period"]].dropna().unique().tolist())
@@ -295,6 +301,12 @@ def _plots(method: str, result: MethodResult, state: dict, L) -> None:
         rule = L("methods.rule_user") if d["bandwidth_rule"] == "user" else d["bandwidth_rule"]
         st.caption(F("methods.rdd_caption", rule=rule, below=man["count_below"], above=man["count_above"],
                      p=man["p_value"], notes=R(d["notes"])))
+        rb = d["robust"]
+        st.caption(F("methods.rdd_robust_caption", estimate=rb["estimate_bc"], se=rb["se"], lo=rb["ci_low"],
+                     hi=rb["ci_high"], p=rb["p_value"]))
+        if d["first_stage"] is not None:
+            fs = d["first_stage"]
+            st.caption(F("methods.rdd_first_stage_caption", jump=fs["jump"], se=fs["se"], f=fs["f"]))
     elif method == "synthetic_control":
         paths, tp = d["paths"], d["treatment_period"]
         c1, c2 = st.columns(2)
@@ -316,6 +328,10 @@ def _plots(method: str, result: MethodResult, state: dict, L) -> None:
         st.markdown(f"**{L('methods.donor_weights')}**")
         st.dataframe(_translated_table(d["weights"][d["weights"]["weight"] > 1e-3].round(4), L), width="stretch")
         st.caption(F("methods.sc_caption", pre=d["pre_rmspe"], ratio=d["rmspe_ratio"], units=d["n_donors"] + 1))
+        if d["predictors"] is not None:
+            st.markdown(f"**{L('methods.sc_predictors_title')}**")
+            st.dataframe(_translated_table(d["predictors"].round(4), L), width="stretch")
+            st.caption(L("methods.sc_predictors_caption"))
     elif method == "dml":
         st.plotly_chart(_comparison_chart(result, "DML", d["ols_estimate"], d["ols_se"],
                                           L("methods.naive_ols_linear"), truth, L), width="stretch")
@@ -337,6 +353,13 @@ def render(L) -> None:
     spec = METHODS[method]
     state = _state(method)
     st.info(f"**{L('methods.assumption')}:** {L(f'methods.assumption.{method}')}")
+
+    if method == "rdd":
+        inference = st.radio(L("methods.rdd_inference"), list(INFERENCES), horizontal=True, key="mw_rdd_inference",
+                             format_func=lambda v: L(f"methods.rdd_inference.{v}"))
+        if state["options"] and state["options"].get("inference", "conventional") != inference:
+            state["options"] = {**state["options"], "inference": inference}
+            state.update(result=None, stress=None, mc=None)       # results belong to the other inference
 
     source = st.radio(L("methods.source"), ["virtual", "upload"], horizontal=True, key=f"mw_{method}_source",
                       format_func=lambda s: L("methods.source_virtual") if s == "virtual" else L("methods.source_upload"))
@@ -430,12 +453,16 @@ def _monte_carlo_section(method: str, state: dict, L) -> None:
     st.caption(F("methods.mc_intro", seed=config.seed))
     reps = int(st.number_input(L("methods.mc_reps"), min_value=2, max_value=2000, value=MC_DEFAULT_REPS[method],
                                step=1, key=f"mw_{method}_mc_reps"))
-    st.caption(F("methods.mc_time", seconds=reps * MC_SECONDS[method] * _size_factor(method, config)))
+    # The V search of a covariate synthetic control costs about 25 times the outcome-only fit.
+    slow = 25 if method == "synthetic_control" and getattr(config, "n_covariates", 0) else 1
+    st.caption(F("methods.mc_time", seconds=reps * MC_SECONDS[method] * _size_factor(method, config) * slow))
     if st.button(f"🎲 {L('methods.mc_run')}", key=f"mw_{method}_mc_run"):
         bar = st.progress(0.0)
         try:
+            extra = {"inference": state["options"].get("inference", "conventional")} if method == "rdd" else None
             state["mc"] = run_method_monte_carlo(method, config, n_reps=reps, base_seed=config.seed,
-                                                 progress=lambda done, total: bar.progress(done / total))
+                                                 progress=lambda done, total: bar.progress(done / total),
+                                                 extra_options=extra)
         except LocalizedError as exc:
             st.error(error_text(exc))
     mc = state.get("mc")

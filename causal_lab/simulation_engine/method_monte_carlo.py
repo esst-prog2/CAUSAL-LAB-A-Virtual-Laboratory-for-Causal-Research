@@ -39,7 +39,9 @@ class MethodMonteCarloSummary:
 
 
 def run_method_monte_carlo(method: str, config, n_reps: int = 100, base_seed: int = 0,
-                           progress: Callable[[int, int], None] | None = None) -> MethodMonteCarloSummary:
+                           progress: Callable[[int, int], None] | None = None,
+                           extra_options: dict | None = None) -> MethodMonteCarloSummary:
+    """`extra_options` are added to the options each world implies (e.g. the RDD inference)."""
     if n_reps < 2:
         raise LocalizedError("err.mc_reps", value=n_reps)
     world = WORLDS[method]
@@ -48,7 +50,8 @@ def run_method_monte_carlo(method: str, config, n_reps: int = 100, base_seed: in
     for r in range(n_reps):
         df, truth = world.generate(replace(config, seed=base_seed + r))
         try:
-            result = run_method(method, df, dict(truth["roles"]), virtual_options(method, truth), light=True)
+            result = run_method(method, df, dict(truth["roles"]), {**virtual_options(method, truth), **(extra_options or {})},
+                                light=True)
         except LocalizedError:
             failed += 1
             continue

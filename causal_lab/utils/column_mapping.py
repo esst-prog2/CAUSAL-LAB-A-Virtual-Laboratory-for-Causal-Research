@@ -50,11 +50,13 @@ METHOD_ROLES: dict[str, tuple[Role, ...]] = {
     "rdd": (
         Role("outcome", "role.outcome"),
         Role("running", "role.running"),
+        Role("treatment", "role.treatment_fuzzy", required=False),     # given: fuzzy RD
     ),
     "synthetic_control": (
         Role("unit", "role.unit", numeric=False),
         Role("period", "role.period"),
         Role("outcome", "role.outcome"),
+        Role("covariates", "role.sc_predictors", multi=True, required=False),     # given: predictors with V
     ),
     "dml": (
         Role("outcome", "role.outcome"),

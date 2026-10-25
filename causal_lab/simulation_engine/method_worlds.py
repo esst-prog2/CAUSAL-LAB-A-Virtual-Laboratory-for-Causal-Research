@@ -104,7 +104,7 @@ def iv_world(cfg: IVWorldConfig) -> tuple[pd.DataFrame, dict]:
 
 
 # --------------------------------------------------------------------------
-# Regression Discontinuity (sharp)
+# Regression Discontinuity (sharp, or fuzzy when compliance < 1)
 # --------------------------------------------------------------------------
 @dataclass
 class RDDWorldConfig:
@@ -113,19 +113,29 @@ class RDDWorldConfig:
     cutoff: float = 0.0
     curvature: float = 1.0              # non-linearity of E[Y|X]
     noise_sd: float = 0.5
+    compliance: float = 1.0             # share following the cutoff rule; the others take D at random
     seed: int = 42
 
 
 def rdd_world(cfg: RDDWorldConfig) -> tuple[pd.DataFrame, dict]:
+    if not 0 < cfg.compliance <= 1:
+        raise LocalizedError("err.rdd_compliance", value=cfg.compliance)
     rng = np.random.default_rng(cfg.seed)
     x = rng.uniform(cfg.cutoff - 1, cfg.cutoff + 1, cfg.n)
     xc = x - cfg.cutoff
     d = (x >= cfg.cutoff).astype(int)
     mu = 0.5 + 0.8 * xc + cfg.curvature * (-0.6 * xc ** 2 + 0.4 * xc ** 3)
-    y = mu + cfg.effect * d + rng.normal(0, cfg.noise_sd, cfg.n)
+    noise = rng.normal(0, cfg.noise_sd, cfg.n)
+    if cfg.compliance < 1:              # drawn after the sharp world's draws, which stay unchanged
+        complier = rng.uniform(size=cfg.n) < cfg.compliance
+        d = np.where(complier, d, rng.integers(0, 2, cfg.n))
+    y = mu + cfg.effect * d + noise
     df = pd.DataFrame({"Y": y, "X": x, "D": d})
-    return df, dict(true_effect=float(cfg.effect), estimand=Msg("estimand.rdd"),
-                    roles=dict(outcome="Y", running="X", cutoff=cfg.cutoff))
+    roles = dict(outcome="Y", running="X", cutoff=cfg.cutoff)
+    if cfg.compliance < 1:
+        roles["treatment"] = "D"        # fuzzy: the effect is the jump in Y over the jump in D
+    return df, dict(true_effect=float(cfg.effect),
+                    estimand=Msg("estimand.rdd_fuzzy" if cfg.compliance < 1 else "estimand.rdd"), roles=roles)
 
 
 # --------------------------------------------------------------------------
@@ -139,6 +149,7 @@ class SyntheticControlWorldConfig:
     effect: float = -2.0
     n_factors: int = 2
     noise_sd: float = 0.3
+    n_covariates: int = 0               # time-invariant unit traits that reflect the factor loadings
     seed: int = 42
 
 
@@ -171,10 +182,17 @@ def synthetic_control_world(cfg: SyntheticControlWorldConfig) -> tuple[pd.DataFr
         "period": np.repeat(np.arange(cfg.n_periods), n_units),
         "Y": y.ravel(),
     })
+    roles = dict(unit="unit", period="period", outcome="Y", treated_unit="treated",
+                 treatment_period=cfg.treatment_period)
+    if cfg.n_covariates:                # drawn after the outcome, which stays unchanged
+        mixing = rng.normal(0, 1, (cfg.n_factors, cfg.n_covariates))
+        traits = loadings @ mixing + rng.normal(0, 0.1, (n_units, cfg.n_covariates))
+        names_x = [f"X{k + 1}" for k in range(cfg.n_covariates)]
+        for k, name in enumerate(names_x):
+            df[name] = np.tile(traits[:, k], cfg.n_periods)
+        roles["covariates"] = names_x
     return df, dict(true_effect=float(cfg.effect), estimand=Msg("estimand.sc"),
-                    true_weights=dict(zip(names[1:], true_w.round(4))),
-                    roles=dict(unit="unit", period="period", outcome="Y",
-                               treated_unit="treated", treatment_period=cfg.treatment_period))
+                    true_weights=dict(zip(names[1:], true_w.round(4))), roles=roles)
 
 
 # --------------------------------------------------------------------------
