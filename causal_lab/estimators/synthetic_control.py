@@ -58,14 +58,24 @@ def _fit_weights(y1_pre: np.ndarray, y0_pre: np.ndarray) -> tuple[np.ndarray, bo
     return w / w.sum(), bool(res.success)
 
 
+# With fewer predictors than donors the predictor fit has many exact solutions,
+# and different NNLS implementations pick different ones (scipy 1.15 and 1.17
+# disagreed on 14 of 300 test problems). A tiny ridge term makes the solution
+# unique, so every correct solver returns the same weights (identical across
+# scipy 1.15-1.17 on those problems); its penalty, 1e-6 * |w|^2, is negligible.
+RIDGE = 1e-3
+
+
 def _simplex_weights(x1: np.ndarray, x0: np.ndarray, v: np.ndarray) -> np.ndarray:
-    """argmin_w (x1 - x0 w)' diag(v) (x1 - x0 w) on the simplex: non-negative
-    least squares with the sum-to-one constraint as a heavily weighted row."""
+    """argmin_w (x1 - x0 w)' diag(v) (x1 - x0 w) + RIDGE^2 |w|^2 on the simplex:
+    non-negative least squares with the sum-to-one constraint as a heavily
+    weighted row. Needs scipy >= 1.15, whose rewritten NNLS does not stall."""
     root_v = np.sqrt(v)
+    n_donors = x0.shape[1]
     penalty = 1e4 * (1 + np.abs(x0).max())
-    a = np.vstack([root_v[:, None] * x0, np.full((1, x0.shape[1]), penalty)])
-    b = np.concatenate([root_v * x1, [penalty]])
-    w = nnls(a, b, maxiter=50 * a.shape[1])[0]
+    a = np.vstack([root_v[:, None] * x0, RIDGE * np.eye(n_donors), np.full((1, n_donors), penalty)])
+    b = np.concatenate([root_v * x1, np.zeros(n_donors), [penalty]])
+    w = nnls(a, b, maxiter=50 * n_donors)[0]
     return w / w.sum()
 
 

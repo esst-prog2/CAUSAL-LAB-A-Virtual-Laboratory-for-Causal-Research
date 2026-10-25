@@ -180,6 +180,11 @@ A person with a messy panel CSV and a treatment date can use this version alone:
   - the failing one, `test_app_flows.py`, shows that switching the language sends the user back to the dashboard with Streamlit 1.50 to 1.63. The page is kept only from 1.64 onwards: the language-dependent labels of the navigation widget change its identity in older versions.
 
   **Fixed on 2026-10-25 by raising the minima** (user decision): `streamlit>=1.64` and `numpy>=2.0`. NumPy 2 in turn needs the first NumPy-2 releases of pandas (2.2.2), scipy (1.13), statsmodels (0.14.2) and scikit-learn (1.4.2). In a fresh Python 3.11 environment with exactly these minima (pip resolved pyarrow 25.0.1), all 143 tests pass.
+
+  **scipy raised again, to 1.15, later on 2026-10-25** (for the covariate synthetic control):
+  - the NNLS of scipy 1.13 and 1.14 stalled on 11% of the inner weight problems ("Maximum number of iterations reached"), which the minimum-versions CI job caught;
+  - scipy 1.15 rewrote NNLS;
+  - a small ridge term makes those problems' solution unique, so scipy 1.15 and 1.17 now return identical weights.
 - **Statistical convention of two checks:** Parallel Trends and Spillovers used statsmodels' default cluster correction, which counts the unit dummies. That is the convention hw6 review 3 replaced in the DiD estimator, and it made both checks somewhat conservative. **Aligned with the DiD on 2026-10-25** (user decision): they now use `estimators.did.nested_fe_factor`, and `tests/test_stress_hand_computed_regressions.py` pins the new hand values (cluster factor 28/15 instead of 14/3). Re-running the calibration spike on the same 1,200 worlds (`spike/stress_test_calibration_results_2026-10-25.md`):
 
   | Check | False alarm (clean), before → after | Detection (severe), before → after |
