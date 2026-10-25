@@ -87,6 +87,7 @@
   "assessment.violated": "violated",
   "stress.error": "Test could not be computed ({error}).",
   "stress.pt.not_enough": "Not enough pre-treatment periods or groups to test pre-trends.",
+  "stress.pt.too_few_units": "Only {n} units: with fewer than {minimum}, the bootstrap test of pre-trends cannot reach the 10% level, so it is not run.",
   "stress.pt.plausible": "Parallel trends: plausible. No evidence of differential pre-treatment trends (p = {p:.3f}).",
   "stress.pt.questionable": "Parallel trends: questionable. The joint test of pre-treatment group-specific trends rejects equal trends (p = {p:.3f}); differential pre-trends threaten the parallel-trends assumption.",
   "stress.pt.violated": "Parallel trends: violated. The joint test of pre-treatment group-specific trends rejects equal trends (p = {p:.3f}); differential pre-trends threaten the parallel-trends assumption.",

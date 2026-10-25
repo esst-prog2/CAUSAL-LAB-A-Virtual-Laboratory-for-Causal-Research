@@ -87,6 +87,7 @@
   "assessment.violated": "violées",
   "stress.error": "Le test n'a pas pu être calculé ({error}).",
   "stress.pt.not_enough": "Pas assez de périodes pré-traitement ou de groupes pour tester les tendances préalables.",
+  "stress.pt.too_few_units": "Seulement {n} unités : avec moins de {minimum}, le test bootstrap des tendances préalables ne peut pas atteindre le seuil de 10 %, il n'est donc pas effectué.",
   "stress.pt.plausible": "Tendances parallèles : plausibles. Aucun signe de tendances pré-traitement différentes (p = {p:.3f}).",
   "stress.pt.questionable": "Tendances parallèles : douteuses. Le test joint des tendances pré-traitement propres à chaque groupe rejette l'égalité des tendances (p = {p:.3f}) ; des tendances préalables différentes menacent l'hypothèse de tendances parallèles.",
   "stress.pt.violated": "Tendances parallèles : violées. Le test joint des tendances pré-traitement propres à chaque groupe rejette l'égalité des tendances (p = {p:.3f}) ; des tendances préalables différentes menacent l'hypothèse de tendances parallèles.",

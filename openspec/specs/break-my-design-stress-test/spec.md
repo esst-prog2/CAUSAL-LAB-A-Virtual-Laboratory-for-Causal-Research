@@ -6,13 +6,17 @@ Runs a fixed battery of five diagnostic checks against a fitted DiD design on ac
 ## Requirements
 
 ### Requirement: Parallel-trends pre-test
-The system SHALL test for differential pre-treatment trends between treated and comparison units. It SHALL use a full-rank model: unit and period fixed effects plus one treated-group × pre-period dummy for every pre-treatment period except the last, which is the reference. The joint Wald test SHALL use unit-clustered CR1 covariance in which K does not count the unit dummies, as in the DiD estimator, with an F(q, G − 1) reference distribution. It SHALL attach a plain-language verdict:
+The system SHALL test for differential pre-treatment trends between treated and comparison units. It SHALL use a full-rank model: unit and period fixed effects plus one treated-group × pre-period dummy for every pre-treatment period except the last, which is the reference. The p-value of the joint test SHALL come from a wild cluster restricted bootstrap of the unit-clustered Wald statistic, with Rademacher weights:
+- all 2^G sign patterns when 2^G ≤ 1,000 (G = number of units);
+- otherwise 999 draws with a fixed seed, p = (1 + exceedances) / 1,000.
+
+It SHALL attach a plain-language verdict:
 - "plausible" when p ≥ 0.10;
 - "questionable" when 0.01 ≤ p < 0.10;
 - "violated" when p < 0.01.
 
 #### Scenario: Rejecting equal pre-trends
-- **WHEN** the joint Wald test of the treated-group × pre-period dummies on the pre-treatment subsample yields p < 0.10
+- **WHEN** the bootstrap test of the treated-group × pre-period dummies on the pre-treatment subsample yields p < 0.10
 - **THEN** the "Parallel Trends" check returns WARNING. It reports the p-value and the verdict ("questionable" or "violated"), and states that differential pre-trends threaten the parallel-trends assumption
 
 #### Scenario: Diverging pre-trends in a synthetic world
@@ -24,8 +28,16 @@ The system SHALL test for differential pre-treatment trends between treated and 
 - **THEN** the "Parallel Trends" check returns N/A with a message that there is not enough pre-treatment data to test pre-trends
 
 #### Scenario: Small-sample correction worked out by hand
-- **WHEN** the check runs on 4 units and 2 pre-treatment periods whose treated changes are 5 and 7 and control changes are −1 and 1
-- **THEN** F = 36 / (28/15) = 135/7 on (1, 3) degrees of freedom, p = 0.0219, and the verdict is "questionable"
+- **WHEN** the check runs on 5 units and 2 pre-treatment periods whose treated changes are 19 and 21 and control changes are −1, 0 and 1
+- **THEN** only the observed sign pattern and its opposite reach the observed Wald statistic, so p = 2/32 = 0.0625 and the verdict is "questionable"
+
+#### Scenario: Too few units to reach the 10% level
+- **WHEN** the pre-treatment subsample has fewer than 5 units, so that no Rademacher p-value can fall below 2/2^4 = 0.125
+- **THEN** the "Parallel Trends" check returns N/A, stating the number of units and the minimum, instead of a PASS it could never fail
+
+#### Scenario: Calibrated false-alarm rate
+- **WHEN** the check runs on 1,000 default Virtual Worlds without threats
+- **THEN** it warns on about 10% of them (10.4% measured on 2026-10-25), not on 18% as the asymptotic F(q, G − 1) test did
 
 ### Requirement: Anticipation check
 The system SHALL test whether treated units' outcomes move in the period immediately before treatment. It SHALL compare each unit's change between the last two pre-treatment periods, treated versus control, which removes unit fixed effects.
