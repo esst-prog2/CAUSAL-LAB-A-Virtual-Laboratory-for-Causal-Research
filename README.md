@@ -81,7 +81,19 @@ A person with a messy panel CSV and a treatment date can use this version alone:
 
 - **Statistical correctness.**
   - **DiD, validated.** The DiD estimator is validated against `linearmodels.PanelOLS` on the same synthetic data, including staggered and serially correlated worlds. The coefficients agree to 1e-8 and the clustered SEs to within 2%.
-  - **Other estimators, Monte Carlo only.** The six additional estimators are checked by Monte Carlo coverage on their virtual worlds (93–100%), not yet against an external package.
+  - **Other estimators, validated since 2026-10-25.** The six additional estimators are checked by Monte Carlo coverage on their virtual worlds (93–100%) and, by `tests/test_external_reference.py`, against an established implementation on committed datasets:
+
+    | Estimator | Reference | Agreement |
+    |---|---|---|
+    | RCT (difference in means, Lin 2013), HC2 | R `estimatr` (`lm_robust`, `lm_lin`) | estimate and SE to rounding |
+    | IV (2SLS), HC0 | R `estimatr` (`iv_robust`) | estimate and SE to rounding |
+    | Sharp RDD, fixed bandwidth, triangular kernel, HC1 | `rdrobust` (conventional) | estimate to rounding, SE to 3e-5 |
+    | Matching (ATT, bias-corrected, Abadie-Imbens SE) | R `Matching` (Sekhon) | to rounding when the bias regression cannot differ; see below |
+    | Synthetic control weights | `pysyncon` (custom V) | weights to 1e-5 |
+    | DML (partially linear) | `DoubleML` (same folds and forests) | estimate and SE to rounding |
+
+    The reference values are stored in `tests/external_reference/expected.json`, so the tests need neither R nor these packages; `make_reference.py` there regenerates them. Seven deliberately wrong versions of the estimators (HC1 instead of HC2, a uniform kernel, no bias correction, etc.) all make the test fail. Not covered: the Imbens-Kalyanaraman bandwidth itself (`rdrobust` selects bandwidths with a different rule) and the IV first-stage F.
+  - **Matching: one documented difference.** Causal Lab fits the bias-correction regression on all controls; R `Matching`, Stata `nnmatch` and Abadie & Imbens (2011) fit it on the matched controls, weighted by how often each is used. Both are consistent. The matches are identical, so on the noisy test dataset the estimates differ by 0.04 SE only (2.020 vs. 2.014).
   - **Staggered timing is handled.** When adoption is staggered, the app warns that two-way fixed effects can be biased and offers the Callaway & Sant'Anna estimator, which is validated by Monte Carlo (see section 3).
   - **Matching standard errors are calibrated.** Matching moved from the propensity score to the covariates, with bias correction. This brought CI coverage from a conservative 100% to 97%, and made the estimates more precise.
 - **Real data availability.**

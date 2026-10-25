@@ -1,0 +1,5 @@
+# Only for regenerating expected.json with make_reference.py; the tests do not need these.
+# Also needs R with the estimatr and Matching packages.
+rdrobust==2.1.1
+pysyncon==1.7.0
+DoubleML==0.11.4
