@@ -35,7 +35,7 @@ FORMAT = "causal-lab-project"
 VERSION = 1
 EXTENSION = ".causallab"
 MAX_UNCOMPRESSED_BYTES = 1_000_000_000      # refuse archives that unpack to more than 1 GB
-METHOD_FIELDS = ("truth", "mapping", "options", "source", "dropped", "file_id")
+METHOD_FIELDS = ("truth", "mapping", "options", "source", "dropped", "file_id", "config")
 
 
 # --------------------------------------------------------------------------

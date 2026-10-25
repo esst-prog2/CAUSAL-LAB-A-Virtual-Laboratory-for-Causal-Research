@@ -63,7 +63,10 @@ def _mahalanobis_coordinates(x: np.ndarray) -> np.ndarray:
 
 
 def estimate_matching(df: pd.DataFrame, outcome_col: str = "Y", treatment_col: str = "D",
-                      covariate_cols: list[str] | None = None, seed: int = 0) -> MethodResult:
+                      covariate_cols: list[str] | None = None, seed: int = 0,
+                      n_bootstrap: int | None = None) -> MethodResult:
+    """`n_bootstrap` resamples for the IPW standard error (default N_BOOTSTRAP;
+    0 skips it, as the Monte Carlo does: it only evaluates the matching ATT)."""
     covariate_cols = list(covariate_cols or [])
     if not covariate_cols:
         raise LocalizedError("err.needs_covariate", method=Msg("method.matching"))
@@ -113,7 +116,7 @@ def estimate_matching(df: pd.DataFrame, outcome_col: str = "Y", treatment_col: s
     ipw = _ipw_att(y, d, ps)
     rng = np.random.default_rng(seed)
     boot = []
-    for _ in range(N_BOOTSTRAP):
+    for _ in range(N_BOOTSTRAP if n_bootstrap is None else n_bootstrap):
         idx = rng.integers(0, len(y), len(y))
         if d[idx].min() == d[idx].max():
             continue

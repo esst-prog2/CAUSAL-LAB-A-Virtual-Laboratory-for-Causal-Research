@@ -6,7 +6,7 @@ Produces ready-to-run R, Python, and Stata scripts that reproduce the DiD analys
 ## Requirements
 
 ### Requirement: Three-language script export
-The system SHALL generate equivalent Python, R, and Stata scripts fitting the same two-way fixed-effects DiD model. Each script SHALL use the declared column names directly, without re-encoding them. Comments and printed labels SHALL be written in the interface language, while the executable code SHALL be identical across languages.
+The system SHALL generate equivalent Python, R, and Stata scripts fitting the same two-way fixed-effects DiD model. Each script SHALL use the declared column names directly, without re-encoding them. Comments and printed labels SHALL be written in the interface language, while the executable code SHALL be identical across languages. The Python script SHALL apply the app's small-sample correction (unit dummies nested in the clusters not counted), so that it prints the app's standard error.
 
 #### Scenario: Generating all three
 - **WHEN** `generate_all(params, lang)` is called with a data file path, outcome/treatment/unit/time column names, an optional cluster column, and a language
@@ -22,6 +22,10 @@ The system SHALL generate equivalent Python, R, and Stata scripts fitting the sa
 #### Scenario: French scripts
 - **WHEN** the scripts are generated with `lang = "fr"`
 - **THEN** their comments and printed labels are in French, and the lines that differ from the English scripts are only comments, headers and printed labels
+
+#### Scenario: Python reproduces the app's standard error
+- **WHEN** the Python script runs on the Card & Krueger data
+- **THEN** it prints the app's ATT and standard error (1.34), not the 1.91 of statsmodels' default correction
 
 ### Requirement: Clustering defaults to the unit column
 The system SHALL cluster standard errors on the unit column in all three generated scripts unless a different cluster column is specified.
