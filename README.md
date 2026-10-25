@@ -105,7 +105,15 @@ A person with a messy panel CSV and a treatment date can use this version alone:
   - the failing one, `test_app_flows.py`, shows that switching the language sends the user back to the dashboard with Streamlit 1.50 to 1.63. The page is kept only from 1.64 onwards: the language-dependent labels of the navigation widget change its identity in older versions.
 
   **Fixed on 2026-10-25 by raising the minima** (user decision): `streamlit>=1.64` and `numpy>=2.0`. NumPy 2 in turn needs the first NumPy-2 releases of pandas (2.2.2), scipy (1.13), statsmodels (0.14.2) and scikit-learn (1.4.2). In a fresh Python 3.11 environment with exactly these minima (pip resolved pyarrow 25.0.1), all 143 tests pass.
-- **Statistical convention of two checks:** Parallel Trends and Spillovers use statsmodels' default cluster correction, which counts the unit dummies. That is the convention hw6 review 3 replaced in the DiD estimator. It makes both checks somewhat conservative, i.e. they warn less often. It is pinned, not endorsed, by `tests/test_stress_hand_computed_regressions.py`; changing it would change the calibrated verdicts and needs a decision.
+- **Statistical convention of two checks:** Parallel Trends and Spillovers used statsmodels' default cluster correction, which counts the unit dummies. That is the convention hw6 review 3 replaced in the DiD estimator, and it made both checks somewhat conservative. **Aligned with the DiD on 2026-10-25** (user decision): they now use `estimators.did.nested_fe_factor`, and `tests/test_stress_hand_computed_regressions.py` pins the new hand values (cluster factor 28/15 instead of 14/3). Re-running the calibration spike on the same 1,200 worlds (`spike/stress_test_calibration_results_2026-10-25.md`):
+
+  | Check | False alarm (clean), before → after | Detection (severe), before → after |
+  |---|---|---|
+  | Parallel Trends | 14% → **20%** | 100% → 100% |
+  | Spillovers | 8% → 9% | 100% → 100% |
+  | Anticipation, Serial Correlation, Heterogeneous Effects | unchanged (not affected) | unchanged |
+
+  The clean-world score falls from 92.2 to 90.8. **Open issue:** at a nominal 10% level, Parallel Trends now raises a false alarm on 20% of clean worlds. The old convention was hiding a known weakness: a clustered Wald test of many leads at once over-rejects when the number of clusters is moderate. A small-sample correction of that test is a separate decision.
 - **Scope creep, and it already happened.** The original version of this idea had ten modules and two languages; this README initially cut it to one estimator and one diagnosis specifically to avoid that. The tripwire fired anyway: event study, cross-method recommendation, the full stress-test battery, code generation, and the French interface were all built before the four core acceptance criteria above were validated against a known package. Section 3 now documents what was actually delivered instead of leaving this README stale about it — but the underlying risk is unchanged: the four original acceptance criteria are still the real bar, and nothing on the delivered list above substitutes for validating the estimator itself.
 - **The "Break My Design" score — recalibrated on 2026-10-06.** The hw4 spike (`spike/stress_test_calibration_results.md`) found three of the five checks useless:
   - Spillovers fired on 100% of threat-free worlds;
@@ -129,7 +137,7 @@ A person with a messy panel CSV and a treatment date can use this version alone:
   | Serial Correlation | 0% | 100% |
   | Heterogeneous Effects | 10% | 100% |
 
-  The clean-world score is now 92.2/100. A severe threat lowers it to 56–76. The remaining false alarms are the expected cost of testing at the 10% level; the score is still a diagnostic heuristic, not a proof.
+  The clean-world score is now 92.2/100 (90.8 since the cluster convention was aligned on 2026-10-25, see above). A severe threat lowers it to 56–76. The remaining false alarms are the expected cost of testing at the 10% level; the score is still a diagnostic heuristic, not a proof.
 
 ## 6. Running it
 

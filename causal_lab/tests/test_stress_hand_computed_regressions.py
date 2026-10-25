@@ -19,14 +19,18 @@ Facts used, with their source:
     df_resid_inference = G - 1 (base/covtype.py), which f_test uses as the
     F denominator; HC1 = HC0 * N/(N-K); coefficient p-values use the normal
     distribution (use_t is False).
+    Since 2026-10-25 Parallel Trends and Spillovers rescale that covariance
+    as the DiD does (estimators.did.nested_fe_factor): the unit dummies,
+    nested in the unit clusters, are not counted in K (Stata xtreg/reghdfe).
 (d) F(1, 3) is t(3) squared, and for 3 degrees of freedom
     P(|T| > t) = 1 - (2/pi) * (atan(a) + a / (1 + a^2)) with a = t / sqrt(3).
     Two-sided normal: p = erfc(|z| / sqrt(2)).
 
 In every design below each group has 2 units whose changes are m - 1 and
 m + 1, so every first-difference residual is +-1 and (b) gives HC0 = 2/4 + 2/4 = 1.
-With 4 units and 2 periods, N = 8 and K = 6 (intercept, regressor, 3 unit
-dummies, 1 period dummy), so the cluster factor in (c) is 4/3 * 7/2 = 14/3.
+With 4 units and 2 periods, N = 8 and K = 3 (intercept, regressor, 1 period
+dummy; the 3 unit dummies are not counted), so the cluster factor in (c) is
+4/3 * 7/5 = 28/15. (Counting them, K = 6, gave 4/3 * 7/2 = 14/3 before.)
 """
 import sys
 from math import atan, erfc, pi, sqrt
@@ -38,7 +42,7 @@ import pandas as pd
 from robustness_engine.stress_test import (NOT_APPLICABLE, PASS, WARNING, _check_anticipation,
                                            _check_parallel_trends, _check_spillovers)
 
-CLUSTER_VAR = 14 / 3          # HC0 of 1, times the cluster factor in (c)
+CLUSTER_VAR = 28 / 15         # HC0 of 1, times the cluster factor in (c)
 
 
 def _p_f_1_3(f_stat: float) -> float:
@@ -78,29 +82,30 @@ def test_parallel_trends_equal_pre_trends_by_hand():
 
 
 def test_parallel_trends_questionable_by_hand():
-    # Treated 9, 11 (mean 10); controls -1, 1 (mean 0): coefficient -10, variance 14/3,
-    # F = 100 / (14/3) = 150/7 = 21.43 on (1, G - 1 = 3) degrees of freedom; by (d) p = 0.018986.
+    # Treated 5, 7 (mean 6); controls -1, 1 (mean 0): coefficient -6, variance 28/15,
+    # F = 36 / (28/15) = 135/7 = 19.29 on (1, G - 1 = 3) degrees of freedom; by (d) p = 0.021875.
     # 0.01 <= p < 0.10: WARNING, "questionable".
-    check = _pt({1: 9, 2: 11, 3: -1, 4: 1}, {1, 2})
-    expected = _p_f_1_3(150 / 7)
-    assert abs(check.p_value - expected) < 1e-9, (check.p_value, expected)
+    check = _pt({1: 5, 2: 7, 3: -1, 4: 1}, {1, 2})
+    expected = _p_f_1_3(135 / 7)
+    assert abs(check.p_value - expected) < 1e-9 and 0.01 < expected < 0.05, (check.p_value, expected)
     assert check.verdict == WARNING and check.assessment == "questionable"
 
 
 def test_parallel_trends_warns_between_five_and_ten_percent_by_hand():
     # Pins the 10% warning threshold: a p between 0.05 and 0.10 must still warn.
-    # Treated 5, 7 (mean 6); controls -1, 1: F = 36 / (14/3) = 54/7 = 7.71; by (d) p = 0.069137.
-    check = _pt({1: 5, 2: 7, 3: -1, 4: 1}, {1, 2})
-    expected = _p_f_1_3(54 / 7)
+    # Treated 3, 5 (mean 4); controls -1, 1: F = 16 / (28/15) = 60/7 = 8.57; by (d) p = 0.061114.
+    check = _pt({1: 3, 2: 5, 3: -1, 4: 1}, {1, 2})
+    expected = _p_f_1_3(60 / 7)
     assert abs(check.p_value - expected) < 1e-9 and 0.05 < expected < 0.10, (check.p_value, expected)
     assert check.verdict == WARNING and check.assessment == "questionable"
 
 
 def test_parallel_trends_violated_by_hand():
-    # Treated 21, 23 (mean 22); controls -1, 1: F = 484 / (14/3) = 726/7 = 103.71,
-    # by (d) p = 0.002018 < 0.01: "violated".
-    check = _pt({1: 21, 2: 23, 3: -1, 4: 1}, {1, 2})
-    expected = _p_f_1_3(726 / 7)
+    # Treated 9, 11 (mean 10); controls -1, 1: F = 100 / (28/15) = 375/7 = 53.57,
+    # by (d) p = 0.005268 < 0.01: "violated". (Counting the unit dummies, this
+    # design gave F = 150/7 and p = 0.019: only "questionable".)
+    check = _pt({1: 9, 2: 11, 3: -1, 4: 1}, {1, 2})
+    expected = _p_f_1_3(375 / 7)
     assert abs(check.p_value - expected) < 1e-9, (check.p_value, expected)
     assert check.verdict == WARNING and check.assessment == "violated"
 
@@ -162,12 +167,22 @@ def _spill(changes, ids_encode_neighbourhood=True):
 
 
 def test_spillovers_shift_by_hand():
-    # Adjacent 3, 5 (mean 4); far -1, 1 (mean 0): effect 4, variance 14/3,
-    # z = 4 / sqrt(14/3) = 1.851640, p = erfc(z / sqrt(2)) = 0.064078 < 0.10: WARNING.
-    check = _spill({4: 3, 6: 5, 10: -1, 12: 1})
-    z = 4 / sqrt(CLUSTER_VAR)
-    assert abs(check.statistic - 4.0) < 1e-9, check.statistic
+    # Adjacent 2, 4 (mean 3); far -1, 1 (mean 0): effect 3, variance 28/15,
+    # z = 3 / sqrt(28/15) = 2.195775, p = erfc(z / sqrt(2)) = 0.028108 < 0.10: WARNING.
+    check = _spill({4: 2, 6: 4, 10: -1, 12: 1})
+    z = 3 / sqrt(CLUSTER_VAR)
+    assert abs(check.statistic - 3.0) < 1e-9, check.statistic
     assert abs(check.p_value - erfc(z / sqrt(2))) < 1e-9, check.p_value
+    assert check.verdict == WARNING
+
+
+def test_spillovers_small_shift_by_hand():
+    # Pins the 10% threshold. Adjacent 1.5, 3.5 (mean 2.5); far -1, 1: effect 2.5,
+    # z = 2.5 / sqrt(28/15) = 1.829813, p = 0.067278: still WARNING.
+    check = _spill({4: 1.5, 6: 3.5, 10: -1, 12: 1})
+    z = 2.5 / sqrt(CLUSTER_VAR)
+    assert abs(check.statistic - 2.5) < 1e-9, check.statistic
+    assert abs(check.p_value - erfc(z / sqrt(2))) < 1e-9 and 0.05 < check.p_value < 0.10, check.p_value
     assert check.verdict == WARNING
 
 

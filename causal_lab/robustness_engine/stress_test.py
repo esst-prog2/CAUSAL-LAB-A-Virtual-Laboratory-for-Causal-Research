@@ -21,6 +21,7 @@ import pandas as pd
 import statsmodels.formula.api as smf
 from scipy import stats
 
+from estimators.did import nested_fe_factor
 from robustness_engine.neighbourhood import adjacent_control_ids
 from utils.i18n import Msg
 
@@ -88,7 +89,10 @@ def _check_parallel_trends(df: pd.DataFrame, outcome_col, unit_col, time_col,
     try:
         fitted = smf.ols(formula, data=pre).fit(
             cov_type="cluster", cov_kwds={"groups": pre[unit_col]})
-        wald = fitted.f_test([f"{t} = 0" for t in interaction_terms])
+        # Same small-sample correction as the DiD: unit dummies not counted in K.
+        factor = nested_fe_factor(pre, fitted, unit_col, unit_col)
+        wald = fitted.f_test([f"{t} = 0" for t in interaction_terms],
+                             cov_p=fitted.cov_params() * factor ** 2)
         p_value = float(np.asarray(wald.pvalue))
         assessment = parallel_trends_assessment(p_value)
         if p_value < 0.10:
@@ -184,8 +188,10 @@ def _check_spillovers(df: pd.DataFrame, outcome_col, unit_col, time_col,
         fitted = smf.ols(f"{outcome_col} ~ adj_post + C({unit_col}) + C({time_col})",
                          data=controls).fit(cov_type="cluster",
                                             cov_kwds={"groups": controls[unit_col]})
-        p_value = float(fitted.pvalues["adj_post"])
         effect = float(fitted.params["adj_post"])
+        # Same small-sample correction as the DiD: unit dummies not counted in K.
+        se = float(fitted.bse["adj_post"]) * nested_fe_factor(controls, fitted, unit_col, unit_col)
+        p_value = float(2 * stats.norm.sf(abs(effect / se)))
     except NUMERICAL_ERRORS as exc:
         return CheckResult("Spillovers", NOT_APPLICABLE, Msg("stress.error", error=str(exc)))
     if p_value < 0.10:

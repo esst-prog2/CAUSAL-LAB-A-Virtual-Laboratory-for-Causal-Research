@@ -6,7 +6,7 @@ Runs a fixed battery of five diagnostic checks against a fitted DiD design on ac
 ## Requirements
 
 ### Requirement: Parallel-trends pre-test
-The system SHALL test for differential pre-treatment trends between treated and comparison units. It SHALL use a full-rank model: unit and period fixed effects plus one treated-group × pre-period dummy for every pre-treatment period except the last, which is the reference. It SHALL attach a plain-language verdict:
+The system SHALL test for differential pre-treatment trends between treated and comparison units. It SHALL use a full-rank model: unit and period fixed effects plus one treated-group × pre-period dummy for every pre-treatment period except the last, which is the reference. The joint Wald test SHALL use unit-clustered CR1 covariance in which K does not count the unit dummies, as in the DiD estimator, with an F(q, G − 1) reference distribution. It SHALL attach a plain-language verdict:
 - "plausible" when p ≥ 0.10;
 - "questionable" when 0.01 ≤ p < 0.10;
 - "violated" when p < 0.01.
@@ -23,6 +23,10 @@ The system SHALL test for differential pre-treatment trends between treated and 
 - **WHEN** the pre-treatment subsample has fewer than 2 distinct periods or fewer than 2 treated/control groups
 - **THEN** the "Parallel Trends" check returns N/A with a message that there is not enough pre-treatment data to test pre-trends
 
+#### Scenario: Small-sample correction worked out by hand
+- **WHEN** the check runs on 4 units and 2 pre-treatment periods whose treated changes are 5 and 7 and control changes are −1 and 1
+- **THEN** F = 36 / (28/15) = 135/7 on (1, 3) degrees of freedom, p = 0.0219, and the verdict is "questionable"
+
 ### Requirement: Anticipation check
 The system SHALL test whether treated units' outcomes move in the period immediately before treatment. It SHALL compare each unit's change between the last two pre-treatment periods, treated versus control, which removes unit fixed effects.
 
@@ -35,7 +39,7 @@ The system SHALL test whether treated units' outcomes move in the period immedia
 - **THEN** the "Anticipation" check returns N/A
 
 ### Requirement: Spillover adjacency check
-The system SHALL test whether control units adjacent to a treated unit (unit id distance 1) change after treatment differently from the other controls. On control units only, it SHALL use a DiD regression with unit and period fixed effects and SEs clustered by unit. Adjacency alone SHALL NOT trigger a warning. The caller SHALL state explicitly whether unit ids encode a neighbourhood; the app states it only for a generated Virtual World.
+The system SHALL test whether control units adjacent to a treated unit (unit id distance 1) change after treatment differently from the other controls. On control units only, it SHALL use a DiD regression with unit and period fixed effects and SEs clustered by unit, with the same CR1 correction as the DiD estimator (unit dummies not counted in K) and a normal p-value. Adjacency alone SHALL NOT trigger a warning. The caller SHALL state explicitly whether unit ids encode a neighbourhood; the app states it only for a generated Virtual World.
 
 #### Scenario: Adjacent control units exist
 - **WHEN** the adjacent × post coefficient has p < 0.10
