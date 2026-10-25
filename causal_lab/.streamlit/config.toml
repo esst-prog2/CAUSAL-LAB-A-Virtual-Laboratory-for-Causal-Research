@@ -1,0 +1,17 @@
+# Streamlit settings for CAUSAL LAB (read when the app is started from this
+# folder: `cd causal_lab && streamlit run app.py`, as in the README).
+# Only settings that contradicted what the app tells its user are set here;
+# everything else keeps Streamlit's defaults.
+
+[server]
+# The app says "Your data remain local" and the README opens it at
+# http://localhost:8501. Streamlit's default address (unset) listens on every
+# network interface, so anyone on the same network could open the app.
+# To share it on purpose, override this when starting it:
+#   streamlit run app.py --server.address 0.0.0.0
+address = "localhost"
+
+[browser]
+# The app says "no data is sent anywhere". Streamlit's default sends usage
+# statistics from the browser to Streamlit's servers.
+gatherUsageStats = false
