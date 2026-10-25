@@ -40,7 +40,8 @@ from simulation_engine.monte_carlo import run_monte_carlo
 from ui.methods_page import render as render_methods_page
 from ui.page_text import F, R, error_text
 from ui.theory_page import render as render_theory_page
-from utils.i18n import LocalizedError, t
+from utils.i18n import LocalizedError, t, tf
+from utils.project_file import EXTENSION, apply_project, load_project, project_file_name, save_project
 from utils.real_data import load_card_krueger
 from utils.validation import INDICATOR_COLUMNS, REQUIRED_COLUMNS, invalid_required_columns, missing_required_columns
 
@@ -148,6 +149,22 @@ def cached_robustness(df: pd.DataFrame, treatment_period: int, ids_encode_neighb
                                   ids_encode_neighbourhood=ids_encode_neighbourhood)
 
 
+def open_project_from_upload() -> None:
+    """File-uploader callback: replace the session by the opened project.
+    Runs before the script, so the page and language can still be set."""
+    uploaded = st.session_state.get("project_upload")
+    if uploaded is None:
+        return
+    try:
+        state = load_project(uploaded.getvalue())
+    except LocalizedError as exc:
+        st.session_state.project_message = ("error", R(exc.msg))
+        return
+    apply_project(st.session_state, state)
+    st.session_state.page = "settings"
+    st.session_state.project_message = ("ok", tf("project.opened", state["lang"], name=uploaded.name))
+
+
 def ids_encode_neighbourhood() -> bool:
     """Unit ids encode a neighbourhood only in a generated Virtual World."""
     return st.session_state.uploaded_df is None and st.session_state.virtual_cfg is not None
@@ -198,13 +215,15 @@ if page == "dashboard":
     c4.metric(L("home.metric.dataset"), yes_no(active_df() is not None))
 
     st.divider()
-    cols = st.columns(3)
+    cols = st.columns(4)
     cols[0].button(f"📝 {L('home.start_project')}", width="stretch",
                    on_click=go_to, args=("research_question",))
     cols[1].button(f"🧪 {L('home.start_experiment')}", width="stretch",
                    on_click=go_to, args=("virtual_lab",))
     cols[2].button(f"💥 {L('home.diagnose')}", width="stretch",
                    on_click=go_to, args=("break_my_design",))
+    cols[3].button(f"💾 {L('home.project')}", width="stretch",
+                   on_click=go_to, args=("settings",))
 
 # --------------------------------------------------------------------------
 # STEP 1-5: RESEARCH QUESTION WIZARD
@@ -639,7 +658,24 @@ elif page == "code":
 # SETTINGS
 # --------------------------------------------------------------------------
 elif page == "settings":
-    st.title(f"⚙️ {L('settings.language')}")
+    st.title(f"⚙️ {L('nav.settings')}")
+    st.subheader(L("settings.language"))
     st.write(F("settings.current_language", language=st.session_state.lang.upper()))
     st.info(L("settings.local_mode_note"))
     st.caption(L("settings.build_note"))
+
+    st.divider()
+    st.subheader(f"💾 {L('project.title')}")
+    st.caption(L("project.intro"))
+    c1, c2 = st.columns(2)
+    with c1:
+        st.download_button(f"💾 {L('project.save')}", data=save_project(st.session_state),
+                           file_name=project_file_name(st.session_state),
+                           mime="application/zip", type="primary", width="stretch")
+        st.caption(L("project.save_note"))
+    with c2:
+        st.file_uploader(L("project.open"), type=[EXTENSION.lstrip(".")], key="project_upload",
+                         on_change=open_project_from_upload)
+    if st.session_state.get("project_message"):
+        kind, text = st.session_state.pop("project_message")
+        (st.success if kind == "ok" else st.error)(text)

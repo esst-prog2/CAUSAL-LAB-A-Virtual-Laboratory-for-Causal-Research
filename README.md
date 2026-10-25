@@ -62,7 +62,10 @@ on screen     upload or generate → see the pre/post trend plot and the
 - Mixed-strategy and sequential (Stackelberg, bargaining) equilibria, multidimensional strategies, and structural estimation (MLE/GMM) of the theoretical models; calibration is by explicit moments.
 - Report export (PDF/Word/LaTeX).
 - Connectors to external data sources (DHS, ACLED, WorldPop, etc.).
-- Project persistence / saved sessions.
+- ~~Project persistence / saved sessions.~~ Built on 2026-10-25, see below.
+
+**Built anyway on 2026-10-25 (user decision).** The user chose to build the excluded features after all, knowing that this departs from the scope above and from the advice to stay on one method (issue #1). Each one is a separate pull request with its own OpenSpec change:
+- **Saving and opening projects** (Settings page). A `.causallab` file is a zip of a JSON manifest and Parquet datasets. It holds the research design, the Virtual Lab settings and ground truth, the real data, and every Causal Methods dataset and mapping. Results are recomputed on opening, and the Theoretical Model page is not saved. The file never leaves the computer, and nothing in it is pickled.
 
 A person with a messy panel CSV and a treatment date can use this version alone: upload, see whether parallel trends look reasonable, get a DiD estimate. Nothing else needs to exist for that to be useful — everything above it is additional, not a prerequisite for it.
 
