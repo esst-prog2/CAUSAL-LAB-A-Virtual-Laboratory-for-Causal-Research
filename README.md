@@ -4,10 +4,25 @@ A small tool that lets someone with a panel dataset and a treatment date find ou
 
 ## 1. The demo
 
-I open the app in the browser and upload a CSV: one row per unit per time period, a treatment date, and an outcome column. It shows a plot of average outcomes for treated and untreated units over time, with the treatment date marked. Below it, a diagnosis panel says "Parallel trends: questionable — pre-trend slope difference is 0.34, p = 0.02" and "Recommended: difference-in-differences, but check anticipation effects first." I click "Run DiD" and it shows a coefficient, a standard error, and a two-way fixed-effects regression table. I click "Break this design" and it re-runs the same estimator on a version of the data where I know the true effect is zero, so I can see whether the method still finds a false effect.
+**1. A world where I know the answer.** On **Virtual Lab** I click **Generate Virtual World**: 100 units over 20 periods, with a true effect of −0.50 that I chose. On **Estimation**, the difference-in-differences gives −0.49, 95% CI [−0.66, −0.33]. The method recovers the truth. **Break My Design** runs its five checks. All pass, and the Identification Strength is 100/100.
 
-If I don't have real data, I click "Generate a synthetic world" first: it creates a panel with a known, chosen treatment effect, so I can check that the estimator recovers close to that number before trusting it on anything real.
+**2. The same world, broken.** Back on **Virtual Lab** I set **Diverging pre-trends** to *severe*: the treated units now drift away from the controls even without treatment. I generate again. The true effect is still −0.50, but the DiD now says +1.11, 95% CI [0.94, 1.27]: the wrong sign, and an interval that excludes the truth. **Break My Design** catches it: "Parallel trends: violated", 80/100. This is the point of the lab. An estimator always returns a number; the checks say whether to believe it.
 
+**3. Real data.** **Load real data: Card & Krueger (1994)** loads the New Jersey and Pennsylvania minimum-wage panel. The DiD gives +2.75 full-time-equivalent jobs per store (SE 1.34). That is the published estimate: Table 3, row 4, 2.75 (1.34). Break My Design is honest about what two periods allow. Four of the five checks are N/A, and the score says it rests on one check.
+
+**4. The rest, quickly.**
+- **Causal Methods** runs six other designs on worlds with a known effect: RCT, matching, IV, RDD, synthetic control and double machine learning.
+- **Theoretical Model** solves a game, Cournot for example, predicts the treatment effect, and compares that prediction with the causal estimate.
+- **Report** exports the whole analysis as PDF, Word, LaTeX or Markdown.
+
+Every page is available in English and in French.
+
+The numbers above were read from the app on 2026-10-26, with default settings and seed 42.
+
+> **Earlier plan (the brief, kept as history).** I open the app in the browser and upload a CSV: one row per unit per time period, a treatment date, and an outcome column. It shows a plot of average outcomes for treated and untreated units over time, with the treatment date marked. Below it, a diagnosis panel says "Parallel trends: questionable — pre-trend slope difference is 0.34, p = 0.02" and "Recommended: difference-in-differences, but check anticipation effects first." I click "Run DiD" and it shows a coefficient, a standard error, and a two-way fixed-effects regression table. I click "Break this design" and it re-runs the same estimator on a version of the data where I know the true effect is zero, so I can see whether the method still finds a false effect.
+>
+> If I don't have real data, I click "Generate a synthetic world" first: it creates a panel with a known, chosen treatment effect, so I can check that the estimator recovers close to that number before trusting it on anything real.
+>
 > **Note (hw6 review 1, 2026-10-16).** This demo is the original plan, and two parts of it differ from what is delivered (section 3):
 > - The diagnosis reports a joint test of the pre-treatment leads, with its p-value and a plausible / questionable / violated verdict. It does not report a "pre-trend slope difference".
 > - "Break My Design" runs the five diagnostic checks of section 3. It does not re-run the estimator on a placebo version of the data where the true effect is zero.
