@@ -218,7 +218,7 @@ def build_report(state, lang: str, now: datetime | None = None) -> Report:
     methods = [(m, d) for m, d in (state.get("method_data") or {}).items() if d.get("result") is not None]
     if methods:
         add(Heading(L("methods.title")))
-        for method, data in methods:
+        for _, data in methods:
             result = data["result"]
             add(Heading(L(f"method.{result.key}"), 2))
             rows = [[L("methods.estimate_of"), R(result.estimand)], [L("common.estimate"), _num(result.estimate)],
