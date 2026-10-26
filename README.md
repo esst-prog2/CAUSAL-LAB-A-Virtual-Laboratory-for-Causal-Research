@@ -91,10 +91,20 @@ A person with a messy panel CSV and a treatment date can use this version alone:
     | Matching (ATT, bias-corrected, Abadie-Imbens SE) | R `Matching` (Sekhon) | to rounding when the bias regression cannot differ; see below |
     | Synthetic control weights | `pysyncon` (custom V) | weights to 1e-5 |
     | DML (partially linear) | `DoubleML` (same folds and forests) | estimate and SE to rounding |
+    | IV first-stage F (HC0) | R `estimatr` (`diagnostics = TRUE`) | to rounding |
+    | Imbens-Kalyanaraman bandwidth | R `rdrobust` 0.80, `bwselect = "IK"` | 0.4% (tolerance 1%) |
+    | Callaway & Sant'Anna, never- and not-yet-treated | R `did` (`base_period = "universal"`, `aggte`) | ATT and event study to rounding; bootstrap SE within 4% of the analytical one |
 
-    The reference values are stored in `tests/external_reference/expected.json`, so the tests need neither R nor these packages; `make_reference.py` there regenerates them. Seven deliberately wrong versions of the estimators (HC1 instead of HC2, a uniform kernel, no bias correction, etc.) all make the test fail. Not covered: the Imbens-Kalyanaraman bandwidth itself (`rdrobust` selects bandwidths with a different rule) and the IV first-stage F.
+    The reference values are stored in `tests/external_reference/expected.json`, so the tests need neither R nor these packages; `make_reference.py` there regenerates them. Eleven deliberately wrong versions of the estimators all make the test fail, for example:
+    - HC1 instead of HC2;
+    - a uniform kernel;
+    - no bias correction;
+    - the working-paper IK constant;
+    - unweighted Callaway & Sant'Anna aggregation.
+
+    On the IK bandwidth, R `rdd` 0.57 gives a different value (0.752 instead of 0.625). It follows the 2009 working paper (a regularization of 720 instead of 2160, pooled variance); a line-by-line port of it reproduces its value exactly, so the gap is that choice, not an error. Causal Lab follows the published 2012 version.
   - **Matching: one documented difference.** Causal Lab fits the bias-correction regression on all controls; R `Matching`, Stata `nnmatch` and Abadie & Imbens (2011) fit it on the matched controls, weighted by how often each is used. Both are consistent. The matches are identical, so on the noisy test dataset the estimates differ by 0.04 SE only (2.020 vs. 2.014).
-  - **Staggered timing is handled.** When adoption is staggered, the app warns that two-way fixed effects can be biased and offers the Callaway & Sant'Anna estimator, which is validated by Monte Carlo (see section 3).
+  - **Staggered timing is handled.** When adoption is staggered, the app warns that two-way fixed effects can be biased and offers the Callaway & Sant'Anna estimator, which is validated by Monte Carlo (see section 3) and, since 2026-10-25, against the R package `did` by its authors.
   - **Matching standard errors are calibrated.** Matching moved from the propensity score to the covariates, with bias correction. This brought CI coverage from a conservative 100% to 97%, and made the estimates more precise.
 - **Real data availability.**
   - *Original plan:* I don't yet have a real panel dataset I'm allowed to show in class. The demo will run on the synthetic "virtual world" generator by default; if I obtain a usable real dataset later (course data, a public panel dataset), I'll add it, but the project does not depend on it.

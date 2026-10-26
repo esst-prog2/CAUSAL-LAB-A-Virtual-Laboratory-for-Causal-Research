@@ -3,17 +3,20 @@
 Not needed to run the tests: its output (the CSV files and expected.json in
 this folder) is committed. Re-run it only to change a dataset or a
 reference package version. It needs the packages in
-requirements-reference.txt and R with estimatr and Matching:
+requirements-reference.txt, and R with estimatr, Matching and did plus
+rdrobust 0.80 in a separate library (see reference.R):
 
-    python tests/external_reference/make_reference.py [path/to/Rscript]
+    python tests/external_reference/make_reference.py <Rscript> <library with rdrobust 0.80>
 
 References, one per estimator:
     RCT                 R estimatr: lm_robust (difference in means) and lm_lin, HC2
-    IV                  R estimatr: iv_robust, HC0
-    Regression disc.    rdrobust (Python port by its authors), fixed h, triangular kernel, HC1
+    IV                  R estimatr: iv_robust, HC0, with its first-stage F
+    Regression disc.    rdrobust (Python port by its authors), fixed h, triangular kernel, HC1;
+                        IK bandwidth from R rdrobust 0.80, bwselect = "IK"
     Matching            R Matching (Sekhon): Match, ATT, M = 1, Mahalanobis, bias adjustment
     Synthetic control   pysyncon: Synth with custom V (outcome in each pre-period)
     DML                 DoubleML (Python, by its authors): DoubleMLPLR, same folds and learners
+    Callaway-Sant'Anna  R did (by its authors): att_gt with base_period = "universal", aggte
 """
 import csv
 import json
@@ -27,6 +30,7 @@ import pandas as pd
 
 HERE = Path(__file__).resolve().parent
 RSCRIPT = sys.argv[1] if len(sys.argv) > 1 else "Rscript"
+OLD_RDROBUST_LIB = sys.argv[2] if len(sys.argv) > 2 else ""
 RDD_BANDWIDTH = 0.4
 SC_TREATMENT_PERIOD = 14
 DML_SEED, DML_FOLDS = 0, 5
@@ -94,9 +98,23 @@ def make_datasets() -> None:
     y = 1.5 * d + np.cos(x[:, 0]) + x[:, 2] + rng.normal(size=n)
     pd.DataFrame(dict(Y=y, D=d, X1=x[:, 0], X2=x[:, 1], X3=x[:, 2])).to_csv(HERE / "dml.csv", index=False)
 
+    # Callaway & Sant'Anna (drawn last, so the datasets above keep their values):
+    # 60 units, periods 1..10, cohorts 4, 6, 8 and never treated (first = 0) of
+    # unequal sizes (24, 15, 7, 14 units), so that weighting by cohort size matters;
+    # effects growing with time since adoption.
+    rows = []
+    for unit in range(60):
+        first = (4, 4, 4, 6, 6, 8, 0, 0)[unit % 8]
+        unit_effect = rng.normal()
+        for period in range(1, 11):
+            treated = int(first > 0 and period >= first)
+            effect = (1 + 0.3 * (period - first)) * treated
+            rows.append((unit, period, first, treated, unit_effect + 0.2 * period + effect + rng.normal()))
+    pd.DataFrame(rows, columns=["unit", "period", "first", "D", "Y"]).to_csv(HERE / "cs.csv", index=False)
+
 
 def r_references() -> tuple[dict, dict]:
-    run = subprocess.run([RSCRIPT, str(HERE / "reference.R"), str(HERE)],
+    run = subprocess.run([RSCRIPT, str(HERE / "reference.R"), str(HERE), OLD_RDROBUST_LIB],
                          capture_output=True, text=True, check=True)
     values, versions = {}, {}
     for line in run.stdout.splitlines():
