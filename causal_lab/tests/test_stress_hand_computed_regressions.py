@@ -19,32 +19,31 @@ Facts used, with their source:
     df_resid_inference = G - 1 (base/covtype.py), which f_test uses as the
     F denominator; HC1 = HC0 * N/(N-K); coefficient p-values use the normal
     distribution (use_t is False).
-(d) F(1, 3) is t(3) squared, and for 3 degrees of freedom
-    P(|T| > t) = 1 - (2/pi) * (atan(a) + a / (1 + a^2)) with a = t / sqrt(3).
-    Two-sided normal: p = erfc(|z| / sqrt(2)).
+    Since 2026-10-25 Spillovers rescales that covariance as the DiD does
+    (estimators.did.nested_fe_factor): the unit dummies, nested in the unit
+    clusters, are not counted in K (Stata xtreg/reghdfe). Parallel Trends
+    uses a bootstrap instead, in which the factor cancels (see its section).
+(d) Two-sided normal: p = erfc(|z| / sqrt(2)).
 
-In every design below each group has 2 units whose changes are m - 1 and
-m + 1, so every first-difference residual is +-1 and (b) gives HC0 = 2/4 + 2/4 = 1.
-With 4 units and 2 periods, N = 8 and K = 6 (intercept, regressor, 3 unit
-dummies, 1 period dummy), so the cluster factor in (c) is 4/3 * 7/2 = 14/3.
+In the Anticipation and Spillovers designs each group has 2 units whose
+changes are m - 1 and m + 1, so every first-difference residual is +-1 and
+(b) gives HC0 = 2/4 + 2/4 = 1. With 4 units and 2 periods, N = 8 and K = 3
+(intercept, regressor, 1 period dummy; the 3 unit dummies are not counted),
+so the cluster factor in (c) is 4/3 * 7/5 = 28/15.
 """
+import itertools
 import sys
-from math import atan, erfc, pi, sqrt
+from math import erfc, sqrt
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+import numpy as np
 import pandas as pd
 
 from robustness_engine.stress_test import (NOT_APPLICABLE, PASS, WARNING, _check_anticipation,
                                            _check_parallel_trends, _check_spillovers)
 
-CLUSTER_VAR = 14 / 3          # HC0 of 1, times the cluster factor in (c)
-
-
-def _p_f_1_3(f_stat: float) -> float:
-    """P(F(1, 3) > f_stat), from the closed form of t(3) in (d)."""
-    a = sqrt(f_stat) / sqrt(3)
-    return 1 - (2 / pi) * (atan(a) + a / (1 + a * a))
+CLUSTER_VAR = 28 / 15         # HC0 of 1, times the cluster factor in (c)
 
 
 def _two_period(changes: dict, treated: set, periods=(0, 1), extra_period=None):
@@ -64,55 +63,108 @@ def _two_period(changes: dict, treated: set, periods=(0, 1), extra_period=None):
 # Treatment in period 2, so the pre-treatment periods are 0 and 1. The single
 # interaction is treated x period 0, and with (a) its coefficient is
 # -(mean change treated - mean change control) between periods 0 and 1.
+#
+# Since 2026-10-25 the p-value comes from the wild cluster restricted bootstrap
+# with Rademacher signs, not from F(q, G - 1). By (a) and (b), in first
+# differences: under H0 the restricted residual of unit i is r_i = change_i -
+# mean change, each sign pattern v gives the changes v_i * r_i, and
+# W(v) = b(v)^2 / HC0(v). The CR1 factor of (c) multiplies every W(v) alike
+# and cancels. With G units and G <= 9, all 2^G patterns are used, so
+# p = #{v : W(v) >= W(1)} / 2^G, and p >= 2 / 2^G because v and -v give the
+# same W. _fd_bootstrap_p below is that computation, written independently of
+# the app's within-transformation code.
 
 def _pt(changes, treated):
     return _check_parallel_trends(_two_period(changes, treated, extra_period=2),
                                   "Y", "unit", "period", "treated_unit", 2)
 
 
+def _fd_bootstrap_p(changes: dict, treated: set) -> float:
+    units = sorted(changes)
+    delta = np.array([changes[u] for u in units], float)
+    d = np.array([u in treated for u in units], float)
+
+    def wald(y):
+        b = y[d == 1].mean() - y[d == 0].mean()
+        e = np.where(d == 1, y - y[d == 1].mean(), y - y[d == 0].mean())
+        hc0 = np.sum(e[d == 1] ** 2) / d.sum() ** 2 + np.sum(e[d == 0] ** 2) / (1 - d).sum() ** 2
+        return b * b / hc0
+
+    r = delta - delta.mean()
+    observed = wald(delta)
+    stats_ = [wald(r * np.array(v)) for v in itertools.product([-1.0, 1.0], repeat=len(units))]
+    return float(np.mean(np.array(stats_) >= observed * (1 - 1e-9)))
+
+
 def test_parallel_trends_equal_pre_trends_by_hand():
-    # Treated changes 1, 3 (mean 2); controls 0, 4 (mean 2): coefficient 0, Wald F = 0, p = 1.
-    check = _pt({1: 1, 2: 3, 3: 0, 4: 4}, {1, 2})
-    assert abs(check.p_value - 1.0) < 1e-9, check.p_value
+    # Treated changes 1, 3 (mean 2); controls 0, 2, 4 (mean 2): coefficient 0, so W(1) = 0
+    # and every pattern has W(v) >= 0: p = 32/32 = 1.
+    check = _pt({1: 1, 2: 3, 3: 0, 4: 2, 5: 4}, {1, 2})
+    assert abs(check.p_value - 1.0) < 1e-12, check.p_value
     assert check.verdict == PASS and check.assessment == "plausible"
 
 
-def test_parallel_trends_questionable_by_hand():
-    # Treated 9, 11 (mean 10); controls -1, 1 (mean 0): coefficient -10, variance 14/3,
-    # F = 100 / (14/3) = 150/7 = 21.43 on (1, G - 1 = 3) degrees of freedom; by (d) p = 0.018986.
-    # 0.01 <= p < 0.10: WARNING, "questionable".
-    check = _pt({1: 9, 2: 11, 3: -1, 4: 1}, {1, 2})
-    expected = _p_f_1_3(150 / 7)
-    assert abs(check.p_value - expected) < 1e-9, (check.p_value, expected)
+def test_parallel_trends_warns_between_five_and_ten_percent_at_the_floor():
+    # Pins the 10% warning threshold. With 5 units p >= 2/32 = 0.0625; a pre-trend of 20
+    # against residuals of +-1 makes the observed pattern and its opposite the only two with
+    # the largest W, so p is exactly that floor: between 5% and 10%, WARNING "questionable".
+    changes = {1: 19, 2: 21, 3: -1, 4: 0, 5: 1}
+    check = _pt(changes, {1, 2})
+    assert abs(check.p_value - 2 / 32) < 1e-12 and _fd_bootstrap_p(changes, {1, 2}) == 2 / 32, check.p_value
     assert check.verdict == WARNING and check.assessment == "questionable"
 
 
-def test_parallel_trends_warns_between_five_and_ten_percent_by_hand():
-    # Pins the 10% warning threshold: a p between 0.05 and 0.10 must still warn.
-    # Treated 5, 7 (mean 6); controls -1, 1: F = 36 / (14/3) = 54/7 = 7.71; by (d) p = 0.069137.
-    check = _pt({1: 5, 2: 7, 3: -1, 4: 1}, {1, 2})
-    expected = _p_f_1_3(54 / 7)
-    assert abs(check.p_value - expected) < 1e-9 and 0.05 < expected < 0.10, (check.p_value, expected)
+def test_parallel_trends_questionable_against_first_differences():
+    # 6 units: p >= 2/64 = 0.03125, so 0.01 <= p < 0.05 is reachable: "questionable".
+    changes = {1: 19, 2: 21, 3: 20, 4: -1, 5: 0, 6: 1}
+    check = _pt(changes, {1, 2, 3})
+    expected = _fd_bootstrap_p(changes, {1, 2, 3})
+    assert abs(check.p_value - expected) < 1e-12 and 0.01 <= expected < 0.05, (check.p_value, expected)
     assert check.verdict == WARNING and check.assessment == "questionable"
 
 
-def test_parallel_trends_violated_by_hand():
-    # Treated 21, 23 (mean 22); controls -1, 1: F = 484 / (14/3) = 726/7 = 103.71,
-    # by (d) p = 0.002018 < 0.01: "violated".
-    check = _pt({1: 21, 2: 23, 3: -1, 4: 1}, {1, 2})
-    expected = _p_f_1_3(726 / 7)
-    assert abs(check.p_value - expected) < 1e-9, (check.p_value, expected)
+def test_parallel_trends_violated_against_first_differences():
+    # 8 units: p can fall to 2/256 = 0.0078 < 0.01: "violated".
+    changes = {1: 19, 2: 21, 3: 20, 4: 22, 5: -1, 6: 0, 7: 1, 8: 2}
+    check = _pt(changes, {1, 2, 3, 4})
+    expected = _fd_bootstrap_p(changes, {1, 2, 3, 4})
+    assert abs(check.p_value - expected) < 1e-12 and expected < 0.01, (check.p_value, expected)
     assert check.verdict == WARNING and check.assessment == "violated"
+
+
+def test_parallel_trends_matches_first_differences_on_an_ordinary_design():
+    # 9 units, 512 patterns, a p far from both the floor and 1, where every part of the
+    # bootstrap (restricted residuals, re-projection of each draw, the exceedance count)
+    # affects the value.
+    changes = {1: 1.3, 2: -0.4, 3: 2.1, 4: 0.6, 5: -1.2, 6: 0.2, 7: 1.0, 8: -0.7, 9: 0.4}
+    check = _pt(changes, {1, 2, 3, 4})
+    expected = _fd_bootstrap_p(changes, {1, 2, 3, 4})
+    assert abs(check.p_value - expected) < 1e-12 and 0.1 < expected < 0.9, (check.p_value, expected)
+
+
+def test_parallel_trends_random_draws_beyond_nine_units():
+    # 12 units: 2^12 = 4096 patterns > 1000, so 999 random sign draws with a fixed seed are
+    # used, p = (1 + #exceed) / 1000. Same p on every run, close to the exact enumeration.
+    rng = np.random.default_rng(3)
+    changes = {u: float(rng.normal() + (1.5 if u <= 6 else 0.0)) for u in range(1, 13)}
+    first, second = _pt(changes, set(range(1, 7))), _pt(changes, set(range(1, 7)))
+    exact = _fd_bootstrap_p(changes, set(range(1, 7)))
+    assert first.p_value == second.p_value
+    assert abs(first.p_value * 1000 - round(first.p_value * 1000)) < 1e-9
+    assert abs(first.p_value - exact) < 4 * sqrt(exact * (1 - exact) / 999) + 1e-3, (first.p_value, exact)
 
 
 def test_parallel_trends_not_computable_edge_cases():
     # One pre-treatment period only (treatment in period 1): no pre-trend to test.
-    one_pre = _check_parallel_trends(_two_period({1: 1, 2: 3, 3: 0, 4: 4}, {1, 2}),
+    one_pre = _check_parallel_trends(_two_period({1: 1, 2: 3, 3: 0, 4: 4, 5: 2}, {1, 2}),
                                      "Y", "unit", "period", "treated_unit", 1)
     # No control unit at all: nothing to compare the treated trend with.
     no_controls = _check_parallel_trends(_two_period({1: 1, 2: 3}, {1, 2}, extra_period=2),
                                          "Y", "unit", "period", "treated_unit", 2)
+    # 4 units: p >= 2/16 = 0.125, so the test could never warn at 10%; N/A, not PASS.
+    four_units = _pt({1: 19, 2: 21, 3: -1, 4: 1}, {1, 2})
     assert one_pre.verdict == NOT_APPLICABLE and no_controls.verdict == NOT_APPLICABLE
+    assert four_units.verdict == NOT_APPLICABLE and four_units.message.key == "stress.pt.too_few_units"
 
 
 # ---------------------------------------------------------------- Anticipation
@@ -162,12 +214,22 @@ def _spill(changes, ids_encode_neighbourhood=True):
 
 
 def test_spillovers_shift_by_hand():
-    # Adjacent 3, 5 (mean 4); far -1, 1 (mean 0): effect 4, variance 14/3,
-    # z = 4 / sqrt(14/3) = 1.851640, p = erfc(z / sqrt(2)) = 0.064078 < 0.10: WARNING.
-    check = _spill({4: 3, 6: 5, 10: -1, 12: 1})
-    z = 4 / sqrt(CLUSTER_VAR)
-    assert abs(check.statistic - 4.0) < 1e-9, check.statistic
+    # Adjacent 2, 4 (mean 3); far -1, 1 (mean 0): effect 3, variance 28/15,
+    # z = 3 / sqrt(28/15) = 2.195775, p = erfc(z / sqrt(2)) = 0.028108 < 0.10: WARNING.
+    check = _spill({4: 2, 6: 4, 10: -1, 12: 1})
+    z = 3 / sqrt(CLUSTER_VAR)
+    assert abs(check.statistic - 3.0) < 1e-9, check.statistic
     assert abs(check.p_value - erfc(z / sqrt(2))) < 1e-9, check.p_value
+    assert check.verdict == WARNING
+
+
+def test_spillovers_small_shift_by_hand():
+    # Pins the 10% threshold. Adjacent 1.5, 3.5 (mean 2.5); far -1, 1: effect 2.5,
+    # z = 2.5 / sqrt(28/15) = 1.829813, p = 0.067278: still WARNING.
+    check = _spill({4: 1.5, 6: 3.5, 10: -1, 12: 1})
+    z = 2.5 / sqrt(CLUSTER_VAR)
+    assert abs(check.statistic - 2.5) < 1e-9, check.statistic
+    assert abs(check.p_value - erfc(z / sqrt(2))) < 1e-9 and 0.05 < check.p_value < 0.10, check.p_value
     assert check.verdict == WARNING
 
 

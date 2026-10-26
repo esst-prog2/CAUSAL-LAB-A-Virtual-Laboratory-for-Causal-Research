@@ -75,13 +75,25 @@ A person with a messy panel CSV and a treatment date can use this version alone:
 - Given a research design declared with random assignment, the method recommendation ranks Randomized Controlled Trial above every other candidate method.
 - Given panel data where control units adjacent to a treated unit shift after treatment (Virtual World with spillovers), the "Break My Design" Spillovers check reports WARNING with the number of adjacent controls, the estimated shift and its p-value, and the overall Identification Strength score is below 100. Adjacency alone, without a shift, does not trigger it (8% false alarms on threat-free worlds, see section 5).
 - Given the same column names, the generated Python, R, and Stata scripts all fit the same two-way fixed-effects model with standard errors clustered on the same column.
-- Switching the sidebar language toggle from EN to FR redraws every page's text in French, including messages produced by the engines (stress-test details, rationales, warnings, errors, model texts), falling back to English for any translation key that's missing. Checked by `tests/test_i18n_coverage.py`: 712 keys, identical in EN and FR. A scripted French render audit of every page also found no untranslated text outside code blocks. Generated scripts, the per-method technical log (labelled "English"), references, and the user's own column names stay as they are.
+- Switching the sidebar language toggle from EN to FR redraws every page's text in French, including messages produced by the engines (stress-test details, rationales, warnings, errors, model texts), falling back to English for any translation key that's missing. Checked by `tests/test_i18n_coverage.py`: 720 keys on 2026-10-25, identical in EN and FR. A scripted French render audit of every page also found no untranslated text outside code blocks. Generated scripts, the per-method technical log (labelled "English"), references, and the user's own column names stay as they are.
 
 ## 5. What could stop this
 
 - **Statistical correctness.**
   - **DiD, validated.** The DiD estimator is validated against `linearmodels.PanelOLS` on the same synthetic data, including staggered and serially correlated worlds. The coefficients agree to 1e-8 and the clustered SEs to within 2%.
-  - **Other estimators, Monte Carlo only.** The six additional estimators are checked by Monte Carlo coverage on their virtual worlds (93–100%), not yet against an external package.
+  - **Other estimators, validated since 2026-10-25.** The six additional estimators are checked by Monte Carlo coverage on their virtual worlds (93–100%) and, by `tests/test_external_reference.py`, against an established implementation on committed datasets:
+
+    | Estimator | Reference | Agreement |
+    |---|---|---|
+    | RCT (difference in means, Lin 2013), HC2 | R `estimatr` (`lm_robust`, `lm_lin`) | estimate and SE to rounding |
+    | IV (2SLS), HC0 | R `estimatr` (`iv_robust`) | estimate and SE to rounding |
+    | Sharp RDD, fixed bandwidth, triangular kernel, HC1 | `rdrobust` (conventional) | estimate to rounding, SE to 3e-5 |
+    | Matching (ATT, bias-corrected, Abadie-Imbens SE) | R `Matching` (Sekhon) | to rounding when the bias regression cannot differ; see below |
+    | Synthetic control weights | `pysyncon` (custom V) | weights to 1e-5 |
+    | DML (partially linear) | `DoubleML` (same folds and forests) | estimate and SE to rounding |
+
+    The reference values are stored in `tests/external_reference/expected.json`, so the tests need neither R nor these packages; `make_reference.py` there regenerates them. Seven deliberately wrong versions of the estimators (HC1 instead of HC2, a uniform kernel, no bias correction, etc.) all make the test fail. Not covered: the Imbens-Kalyanaraman bandwidth itself (`rdrobust` selects bandwidths with a different rule) and the IV first-stage F.
+  - **Matching: one documented difference.** Causal Lab fits the bias-correction regression on all controls; R `Matching`, Stata `nnmatch` and Abadie & Imbens (2011) fit it on the matched controls, weighted by how often each is used. Both are consistent. The matches are identical, so on the noisy test dataset the estimates differ by 0.04 SE only (2.020 vs. 2.014).
   - **Staggered timing is handled.** When adoption is staggered, the app warns that two-way fixed effects can be biased and offers the Callaway & Sant'Anna estimator, which is validated by Monte Carlo (see section 3).
   - **Matching standard errors are calibrated.** Matching moved from the propensity score to the covariates, with bias correction. This brought CI coverage from a conservative 100% to 97%, and made the estimates more precise.
 - **Real data availability.**
@@ -100,10 +112,46 @@ A person with a messy panel CSV and a treatment date can use this version alone:
   - the computable check, Heterogeneous Effects, gives a variance ratio of 0.61 (New Jersey vs. Pennsylvania), so it passes.
 
   `tests/test_stress_not_applicable.py` pins each reason. The app states the 1-of-5 basis, but a single number remains easy to over-read.
-- **Minimum dependency versions, tested on 2026-10-20 (Python 3.11):** installing exactly the minima of `requirements.txt` revealed two verified defects. `requirements.txt` was left unchanged pending a decision:
+- **Minimum dependency versions, tested on 2026-10-20 (Python 3.11):** installing exactly the minima of `requirements.txt` revealed two verified defects:
   - pip then resolves pyarrow 26, which needs NumPy ≥ 2.0, so `import pyarrow` fails with `numpy==1.26` and Streamlit's tables would break. With pyarrow 21 instead, 29 of the 30 test files pass at the minima;
   - the failing one, `test_app_flows.py`, shows that switching the language sends the user back to the dashboard with Streamlit 1.50 to 1.63. The page is kept only from 1.64 onwards: the language-dependent labels of the navigation widget change its identity in older versions.
-- **Statistical convention of two checks:** Parallel Trends and Spillovers use statsmodels' default cluster correction, which counts the unit dummies. That is the convention hw6 review 3 replaced in the DiD estimator. It makes both checks somewhat conservative, i.e. they warn less often. It is pinned, not endorsed, by `tests/test_stress_hand_computed_regressions.py`; changing it would change the calibrated verdicts and needs a decision.
+
+  **Fixed on 2026-10-25 by raising the minima** (user decision): `streamlit>=1.64` and `numpy>=2.0`. NumPy 2 in turn needs the first NumPy-2 releases of pandas (2.2.2), scipy (1.13), statsmodels (0.14.2) and scikit-learn (1.4.2). In a fresh Python 3.11 environment with exactly these minima (pip resolved pyarrow 25.0.1), all 143 tests pass.
+- **Statistical convention of two checks:** Parallel Trends and Spillovers used statsmodels' default cluster correction, which counts the unit dummies. That is the convention hw6 review 3 replaced in the DiD estimator, and it made both checks somewhat conservative. **Aligned with the DiD on 2026-10-25** (user decision): they now use `estimators.did.nested_fe_factor`, and `tests/test_stress_hand_computed_regressions.py` pins the new hand values (cluster factor 28/15 instead of 14/3). Re-running the calibration spike on the same 1,200 worlds (`spike/stress_test_calibration_results_2026-10-25.md`):
+
+  | Check | False alarm (clean), before → after | Detection (severe), before → after |
+  |---|---|---|
+  | Parallel Trends | 14% → **20%** | 100% → 100% |
+  | Spillovers | 8% → 9% | 100% → 100% |
+  | Anticipation, Serial Correlation, Heterogeneous Effects | unchanged (not affected) | unchanged |
+
+  The clean-world score fell from 92.2 to 90.8. At a nominal 10% level, Parallel Trends raised a false alarm on 20% of clean worlds. The old convention had been hiding a known weakness: the clustered Wald test of a default world's 9 leads, with 100 clusters of which 30 are treated, over-rejects.
+- **Parallel Trends: wild cluster bootstrap since 2026-10-25** (user decision). Diagnosis on the same clean worlds:
+
+  | Variant of the joint lead test | False alarms at 10% |
+  |---|---|
+  | Classical F (the Virtual World noise is i.i.d.) | 10.5% |
+  | Clustered, F(q, G − 1), the previous test | 18.4% (1,000 worlds) |
+  | Hotelling F(q, G − q) | 14% |
+  | CR2 + Hotelling | 14% |
+  | Hotelling on the 30 treated clusters | 3% |
+  | **Wild cluster restricted bootstrap (Rademacher)** | **10.4%** (1,000 worlds) |
+
+  The check now uses the bootstrap (Cameron, Gelbach & Miller 2008; MacKinnon & Webb 2017): it enumerates all 2^G sign patterns up to 9 units, and otherwise uses 999 draws with a fixed seed. Constant small-sample factors cancel, so the dummy-count question no longer matters for this check.
+
+  Because a Rademacher p-value is at least 2/2^G, the check is N/A with fewer than 5 units: it could never warn at 10%, and a PASS would be misleading. Power, from 500 worlds per `differential_trend` level:
+
+  | Level | low | medium | high | severe |
+  |---|---|---|---|---|
+  | Previous test | 22% | 54% | 92% | 100% |
+  | Bootstrap | 14% | 37% | 83% | 99.8% |
+
+  The drop is power that came from over-rejection. Calibration spike (`spike/stress_test_calibration_results_2026-10-25_bootstrap.md`): Parallel Trends 10% false alarms and 100% detection, clean-world score 92.8. Validation:
+  - the Wald statistic equals statsmodels' clustered Wald;
+  - the p-value equals an independent first-difference enumeration (`tests/test_stress_hand_computed_regressions.py`);
+  - 5 of 5 mutants are caught.
+
+  Runtime: 0.06 s on a default world, 1.8 s on 2,000 units.
 - **Scope creep, and it already happened.** The original version of this idea had ten modules and two languages; this README initially cut it to one estimator and one diagnosis specifically to avoid that. The tripwire fired anyway: event study, cross-method recommendation, the full stress-test battery, code generation, and the French interface were all built before the four core acceptance criteria above were validated against a known package. Section 3 now documents what was actually delivered instead of leaving this README stale about it — but the underlying risk is unchanged: the four original acceptance criteria are still the real bar, and nothing on the delivered list above substitutes for validating the estimator itself.
 - **The "Break My Design" score — recalibrated on 2026-10-06.** The hw4 spike (`spike/stress_test_calibration_results.md`) found three of the five checks useless:
   - Spillovers fired on 100% of threat-free worlds;
@@ -115,7 +163,7 @@ A person with a messy panel CSV and a treatment date can use this version alone:
   - Serial Correlation: within-unit residual autocorrelation, corrected for the fixed-effects bias;
   - Heterogeneous Effects: a variance-ratio test of treated vs. control pre/post changes;
   - Anticipation: a first-difference test;
-  - Parallel Trends: a full-rank lead test.
+  - Parallel Trends: a full-rank lead test (with a wild cluster bootstrap p-value since 2026-10-25).
 
   Re-running the spike with a dedicated threat lever for every check (`spike/stress_test_calibration_results_after_fix.md`, 200 replications each):
 
@@ -127,7 +175,7 @@ A person with a messy panel CSV and a treatment date can use this version alone:
   | Serial Correlation | 0% | 100% |
   | Heterogeneous Effects | 10% | 100% |
 
-  The clean-world score is now 92.2/100. A severe threat lowers it to 56–76. The remaining false alarms are the expected cost of testing at the 10% level; the score is still a diagnostic heuristic, not a proof.
+  The clean-world score is now 92.2/100 (90.8 after the cluster convention was aligned, then 92.8 with the Parallel Trends bootstrap, both on 2026-10-25; see above). A severe threat lowers it to 56–76. The remaining false alarms are the expected cost of testing at the 10% level; the score is still a diagnostic heuristic, not a proof.
 
 ## 6. Running it
 

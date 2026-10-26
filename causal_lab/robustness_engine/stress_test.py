@@ -19,8 +19,9 @@ from dataclasses import dataclass, field
 import numpy as np
 import pandas as pd
 import statsmodels.formula.api as smf
-from scipy import stats
+from scipy import sparse, stats
 
+from estimators.did import nested_fe_factor
 from robustness_engine.neighbourhood import adjacent_control_ids
 from utils.i18n import Msg
 
@@ -68,28 +69,92 @@ class StressTestReport:
     n_computable: int = 0
 
 
+# Parallel Trends inference: wild cluster restricted bootstrap of the clustered
+# Wald statistic (Cameron, Gelbach & Miller 2008; MacKinnon & Webb 2017), with
+# Rademacher weights. The asymptotic F test of the q = 9 leads of a default
+# Virtual World (100 units, 30 treated) warned on 18% of 1,000 clean worlds at
+# the 10% level; this bootstrap on 11% (2026-10-25).
+PT_BOOTSTRAP_DRAWS = 999
+PT_BOOTSTRAP_SEED = 0
+# Rademacher p-values are multiples of 1/2^G and at least 2/2^G (a draw and its
+# opposite give the same statistic): with 4 units or fewer the test cannot
+# reach the 10% level, so it is reported as N/A rather than as a PASS.
+PT_MIN_UNITS = 5
+
+
+def _two_way_within(m: np.ndarray, unit_ind, period_ind, tol: float = 1e-11,
+                    max_iter: int = 10_000) -> np.ndarray:
+    """Residuals of every column of `m` on unit and period dummies, by
+    alternating projections (exact at convergence, unbalanced panels included;
+    one pass for a balanced panel). The *_ind arguments are sparse indicator
+    matrices (rows x groups)."""
+    m = np.array(m, dtype=float)
+    unit_n = np.asarray(unit_ind.sum(axis=0)).ravel()[:, None]
+    period_n = np.asarray(period_ind.sum(axis=0)).ravel()[:, None]
+    scale = 1.0 + float(np.abs(m).max(initial=0.0))
+    for _ in range(max_iter):
+        m -= unit_ind @ ((unit_ind.T @ m) / unit_n)
+        m -= period_ind @ ((period_ind.T @ m) / period_n)
+        if np.abs((unit_ind.T @ m) / unit_n).max(initial=0.0) < tol * scale:
+            return m
+    raise ValueError("fixed-effects projection did not converge")
+
+
+def _wild_bootstrap_wald_p(y: np.ndarray, leads: np.ndarray, unit_codes: np.ndarray,
+                           period_codes: np.ndarray) -> float:
+    """p-value of H0: all lead coefficients are zero, in Y = unit FE + period FE
+    + leads + e with unit-clustered variance, by the wild cluster restricted
+    bootstrap. Any constant small-sample factor of the variance cancels."""
+    n, n_units = len(y), int(unit_codes.max()) + 1
+    rows = np.arange(n)
+    unit_ind = sparse.csr_matrix((np.ones(n), (rows, unit_codes)), shape=(n, n_units))
+    period_ind = sparse.csr_matrix((np.ones(n), (rows, period_codes)), shape=(n, int(period_codes.max()) + 1))
+    x = _two_way_within(leads, unit_ind, period_ind)
+    xtx = x.T @ x
+
+    def wald(y_within: np.ndarray) -> np.ndarray:
+        """Clustered Wald statistic for each column of y_within (n x m)."""
+        t = x.T @ y_within                                         # q x m
+        e = y_within - x @ np.linalg.solve(xtx, t)
+        scores = np.stack([unit_ind.T @ (x[:, [j]] * e) for j in range(x.shape[1])])   # q x G x m
+        meat = np.einsum("jgm,kgm->mjk", scores, scores)
+        # W = b' V^-1 b with V = xtx^-1 meat xtx^-1 and b = xtx^-1 t, so W = t' meat^-1 t.
+        return np.einsum("jm,mj->m", t, np.linalg.solve(meat, t.T[:, :, None])[:, :, 0])
+
+    # Under H0 the fitted part is the fixed effects only; its residual is y_within.
+    y_within = _two_way_within(y[:, None], unit_ind, period_ind)
+    observed = float(wald(y_within)[0])
+    exhaustive = 2 ** n_units <= PT_BOOTSTRAP_DRAWS + 1
+    if exhaustive:      # every sign pattern: the exact bootstrap distribution
+        signs = 1.0 - 2.0 * ((np.arange(2 ** n_units)[:, None] >> np.arange(n_units)) & 1)
+    else:
+        rng = np.random.default_rng(PT_BOOTSTRAP_SEED)
+        signs = rng.choice([-1.0, 1.0], size=(PT_BOOTSTRAP_DRAWS, n_units))
+    chunk = max(1, int(4e6 // (n * x.shape[1])))
+    exceed = 0
+    for start in range(0, len(signs), chunk):
+        draws = y_within * signs[start:start + chunk].T[unit_codes]
+        exceed += int(np.sum(wald(_two_way_within(draws, unit_ind, period_ind)) >= observed * (1 - 1e-9)))
+    return exceed / len(signs) if exhaustive else (1 + exceed) / (len(signs) + 1)
+
+
 def _check_parallel_trends(df: pd.DataFrame, outcome_col, unit_col, time_col,
                             treated_unit_col, treatment_period) -> CheckResult:
-    pre = df[df[time_col] < treatment_period].copy()
+    pre = df[(df[time_col] < treatment_period) & df[outcome_col].notna()]
     if pre[time_col].nunique() < 2 or pre[treated_unit_col].nunique() < 2:
         return CheckResult("Parallel Trends", NOT_APPLICABLE, Msg("stress.pt.not_enough"))
+    if pre[unit_col].nunique() < PT_MIN_UNITS:
+        return CheckResult("Parallel Trends", NOT_APPLICABLE,
+                           Msg("stress.pt.too_few_units", n=pre[unit_col].nunique(), minimum=PT_MIN_UNITS))
     # Treated-group x pre-period interactions, omitting the last
     # pre-treatment period as the reference (including every period
     # would be collinear with the unit fixed effects).
     pre_periods = sorted(pre[time_col].unique())
-    interaction_terms = []
-    for i, p in enumerate(pre_periods[:-1]):
-        name = f"pt_lead_{i}"
-        pre[name] = ((pre[treated_unit_col] == 1) & (pre[time_col] == p)).astype(int)
-        interaction_terms.append(name)
-    pre[unit_col] = pre[unit_col].astype("category")
-    pre[time_col] = pre[time_col].astype("category")
-    formula = f"{outcome_col} ~ {' + '.join(interaction_terms)} + C({unit_col}) + C({time_col})"
+    treated = (pre[treated_unit_col] == 1).to_numpy()
+    leads = np.column_stack([treated & (pre[time_col] == p).to_numpy() for p in pre_periods[:-1]]).astype(float)
     try:
-        fitted = smf.ols(formula, data=pre).fit(
-            cov_type="cluster", cov_kwds={"groups": pre[unit_col]})
-        wald = fitted.f_test([f"{t} = 0" for t in interaction_terms])
-        p_value = float(np.asarray(wald.pvalue))
+        p_value = _wild_bootstrap_wald_p(pre[outcome_col].to_numpy(float), leads,
+                                         pd.factorize(pre[unit_col])[0], pd.factorize(pre[time_col])[0])
         assessment = parallel_trends_assessment(p_value)
         if p_value < 0.10:
             return CheckResult("Parallel Trends", "WARNING", Msg(f"stress.pt.{assessment}", p=p_value),
@@ -184,8 +249,10 @@ def _check_spillovers(df: pd.DataFrame, outcome_col, unit_col, time_col,
         fitted = smf.ols(f"{outcome_col} ~ adj_post + C({unit_col}) + C({time_col})",
                          data=controls).fit(cov_type="cluster",
                                             cov_kwds={"groups": controls[unit_col]})
-        p_value = float(fitted.pvalues["adj_post"])
         effect = float(fitted.params["adj_post"])
+        # Same small-sample correction as the DiD: unit dummies not counted in K.
+        se = float(fitted.bse["adj_post"]) * nested_fe_factor(controls, fitted, unit_col, unit_col)
+        p_value = float(2 * stats.norm.sf(abs(effect / se)))
     except NUMERICAL_ERRORS as exc:
         return CheckResult("Spillovers", NOT_APPLICABLE, Msg("stress.error", error=str(exc)))
     if p_value < 0.10:

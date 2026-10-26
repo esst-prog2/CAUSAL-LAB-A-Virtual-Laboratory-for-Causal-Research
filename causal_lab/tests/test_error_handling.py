@@ -54,12 +54,17 @@ def test_upload_rejects_columns_the_estimators_cannot_use():
 
 def test_a_regression_that_cannot_be_computed_is_na_and_a_bug_is_not_hidden():
     # Before: any exception became a WARNING, i.e. counted as a threat.
+    # Parallel Trends runs its own bootstrap instead of smf.ols, so both are patched.
     df = _world()
-    with patch.object(stress.smf, "ols", side_effect=np.linalg.LinAlgError("Singular matrix")):
+    singular = np.linalg.LinAlgError("Singular matrix")
+    with patch.object(stress.smf, "ols", side_effect=singular), \
+            patch.object(stress, "_wild_bootstrap_wald_p", side_effect=singular):
         report = stress.run_stress_test(df, treatment_period=4, ids_encode_neighbourhood=True)
     for name in ("Parallel Trends", "Anticipation", "Spillovers", "Serial Correlation"):
         check = next(c for c in report.checks if c.name == name)
         assert check.verdict == stress.NOT_APPLICABLE and "Singular matrix" in str(check.message), name
+    with patch.object(stress, "_wild_bootstrap_wald_p", side_effect=TypeError("a programming error")):
+        _raises(TypeError, stress.run_stress_test, df, treatment_period=4, ids_encode_neighbourhood=True)
     with patch.object(stress.smf, "ols", side_effect=TypeError("a programming error")):
         _raises(TypeError, stress.run_stress_test, df, treatment_period=4, ids_encode_neighbourhood=True)
 

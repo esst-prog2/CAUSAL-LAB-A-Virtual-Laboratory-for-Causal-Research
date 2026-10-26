@@ -80,7 +80,7 @@ def estimate_did(df: pd.DataFrame, outcome_col: str = "Y", treatment_col: str = 
     fitted = model.fit(cov_type="cluster", cov_kwds={"groups": data[cluster_var]})
 
     beta = fitted.params[treatment_col]
-    se = fitted.bse[treatment_col] * _nested_fe_factor(data, fitted, unit_col, cluster_var)
+    se = fitted.bse[treatment_col] * nested_fe_factor(data, fitted, unit_col, cluster_var)
     # Clustered statsmodels fits use normal inference (use_t is False).
     t_stat = beta / se
     p_value = 2 * stats.norm.sf(abs(t_stat))
@@ -108,9 +108,11 @@ def estimate_did(df: pd.DataFrame, outcome_col: str = "Y", treatment_col: str = 
     )
 
 
-def _nested_fe_factor(data: pd.DataFrame, fitted, unit_col: str, cluster_var: str) -> float:
+def nested_fe_factor(data: pd.DataFrame, fitted, unit_col: str, cluster_var: str) -> float:
     """Rescale statsmodels' CR1 SE so the unit dummies are not counted in K
-    when every unit lies in a single cluster: sqrt((N - K) / (N - K + U - 1))."""
+    when every unit lies in a single cluster: sqrt((N - K) / (N - K + U - 1)).
+    Also used by the stress-test regressions, so every unit-clustered fit in
+    the app follows the same convention."""
     if data.groupby(unit_col, observed=True)[cluster_var].nunique().max() != 1:
         return 1.0
     n, k = fitted.nobs, len(fitted.params)
