@@ -28,7 +28,10 @@ def test_same_keys_and_placeholders():
 def test_every_static_key_in_code_exists():
     missing = set()
     for path in ROOT.rglob("*.py"):
-        if "tests" in path.parts:
+        parts = path.relative_to(ROOT).parts
+        # Skip the tests and any virtual environment created inside causal_lab/
+        # (README section 6 puts .venv there): only the app's own code counts.
+        if parts[0] == "tests" or any(p.startswith(".") or p in ("venv", "site-packages") for p in parts):
             continue
         for key in STATIC_CALL.findall(path.read_text(encoding="utf-8")):
             if "." in key and key not in EN:
