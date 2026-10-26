@@ -59,7 +59,7 @@ on screen     upload or generate → see the pre/post trend plot and the
 
 **Not this term:**
 - ~~Fuzzy RD, robust bias-corrected RD inference, covariate-weighted synthetic control, and Monte Carlo / stress-test / code-generation support for the six additional methods (those pages remain DiD-only)~~. Built on 2026-10-25, see below.
-- ~~Mixed-strategy equilibria, sequential (Stackelberg, bargaining) equilibria~~ (built on 2026-10-26, see below), multidimensional strategies, and structural estimation (MLE/GMM) of the theoretical models; calibration is by explicit moments.
+- ~~Mixed-strategy equilibria, sequential (Stackelberg, bargaining) equilibria, multidimensional strategies~~ (built on 2026-10-26, see below), and structural estimation (MLE/GMM) of the theoretical models; calibration is by explicit moments.
 - ~~Report export (PDF/Word/LaTeX).~~ Built on 2026-10-25, see below.
 - ~~Connectors to external data sources (DHS, ACLED, WorldPop, etc.).~~ Built on 2026-10-25, see below.
 - ~~Project persistence / saved sessions.~~ Built on 2026-10-25, see below.
@@ -73,7 +73,7 @@ on screen     upload or generate → see the pre/post trend plot and the
   - the Causal Methods results already computed;
   - the Python, R and Stata code.
 
-  Every number is recomputed by the engines, and the report has tables only, no charts.
+  Every number is recomputed by the engines, and the report has tables only, no charts. New dependencies: `python-docx` and `reportlab` (pure Python). The LaTeX output compiles with pdflatex, checked with MiKTeX.
 - **Monte Carlo, Break My Design and code for the six Causal Methods**: three tabs under each result on the Causal Methods page.
   - *Monte Carlo* on the method's virtual world. On the default worlds (200 replications, 30 for DML) every method has 93–96% CI coverage and a bias below 0.03.
   - *Break My Design*, one set of checks per method:
@@ -125,7 +125,10 @@ on screen     upload or generate → see the pre/post trend plot and the
   - The **logit quantal response equilibrium** path, by Newton continuation from random play, equal to Gambit to 1e-9 on generic games. In symmetric games (battle of the sexes, hawk-dove) the branch splits: Causal Lab follows the symmetric continuation, Gambit one side.
 - **Sequential games** (Theory page, "Sequential (Stackelberg)" and "Bargaining").
   - **Stackelberg:** pick a leader in any multi-agent continuous model. The followers' Nash response is re-solved for each leader strategy, and the leader optimizes over it (subgame-perfect equilibrium). The result is shown next to the simultaneous game. It equals the closed forms of Cournot, Bertrand (sympy backward induction) and Tullock (Dixit 1987).
-  - **Bargaining:** the generalized Nash bargaining solution with utility expressions, and Rubinstein's alternating offers. The finite-horizon path converges to (1 − δ2)/(1 − δ1δ2), and the Binmore, Rubinstein & Wolinsky link to the Nash solution is shown. New dependencies: `python-docx` and `reportlab` (pure Python). The LaTeX output compiles with pdflatex, checked with MiKTeX.
+  - **Bargaining:** the generalized Nash bargaining solution with utility expressions, and Rubinstein's alternating offers. The finite-horizon path converges to (1 − δ2)/(1 − δ1δ2), and the Binmore, Rubinstein & Wolinsky link to the Nash solution is shown.
+- **Multidimensional strategies** (Theory page, "Several strategy variables"). Each agent chooses up to 4 variables in a box. The catalogue has probabilistic voting on two issues, multimarket Cournot with a joint cost, and a contest over two prizes; the free editor takes any model written as expressions.
+  - **Solver:** each best response is a grid over the agent's box refined by L-BFGS-B with the exact gradient; best responses are iterated from several starts, and the first-order (KKT) conditions are then solved by Newton. A profile is reported only if no agent gains by deviating anywhere in its box, so a non-concave agent's saddle point is rejected and a game with no pure equilibrium reports none.
+  - **Checks:** the three catalogue closed forms (including a corner where firms leave a market) to 1e-7, an asymmetric game against sympy's exact solution to 1e-9, a KKT corner, and the scalar Tullock contest.
 
 A person with a messy panel CSV and a treatment date can use this version alone: upload, see whether parallel trends look reasonable, get a DiD estimate. Nothing else needs to exist for that to be useful — everything above it is additional, not a prerequisite for it.
 

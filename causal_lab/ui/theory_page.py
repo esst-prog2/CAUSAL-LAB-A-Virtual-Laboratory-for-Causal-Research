@@ -506,7 +506,7 @@ def _predictions_step(state: dict, L) -> None:
 # --------------------------------------------------------------------------
 # Page
 # --------------------------------------------------------------------------
-MODEL_KINDS = ("continuous", "matrix", "stackelberg", "bargaining")
+MODEL_KINDS = ("continuous", "multidim", "matrix", "stackelberg", "bargaining")
 
 
 def render(L) -> None:
@@ -521,6 +521,10 @@ def render(L) -> None:
     if kind == "matrix":
         from ui.matrix_game_page import render as render_matrix
         render_matrix(L)
+        return
+    if kind == "multidim":
+        from ui.multidim_page import render as render_multidim
+        render_multidim(L)
         return
     if kind in ("stackelberg", "bargaining"):
         from ui import sequential_page
