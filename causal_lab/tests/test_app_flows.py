@@ -131,6 +131,49 @@ def test_card_krueger_button_loads_real_data_without_truth():
     assert "True ATT" not in [m.label for m in at.metric]
 
 
+
+def _html(at: AppTest) -> list[str]:
+    return [e.proto.body for e in at.get("html")]
+
+
+def test_sidebar_sections_follow_the_workflow_and_the_language():
+    # app-navigation spec: five sections, in workflow order, headed in the
+    # interface language; switching language keeps the page.
+    from ui.style import NAV_SECTIONS
+    from utils.i18n import t
+    assert [first for _, first in NAV_SECTIONS] == ["dashboard", "virtual_lab", "estimation", "break_my_design", "code"]
+    at = _run_app()
+    _goto(at, "estimation")
+    for lang, headings in (("en", ["Start", "Data", "Analysis", "Stress test", "Output"]), ("fr", None)):
+        if lang == "fr":
+            at.sidebar.radio[0].set_value("fr").run()
+            headings = [t(f"nav.group.{section}", "fr") for section, _ in NAV_SECTIONS]
+            assert headings != ["Start", "Data", "Analysis", "Stress test", "Output"]
+        css = next(body for body in _html(at) if "st-key-nav" in body)
+        positions = [css.index(f'content: "{h}"') for h in headings]
+        assert positions == sorted(positions)
+        assert at.session_state.page == "estimation"
+
+
+def test_dashboard_progress_cards_follow_the_workflow():
+    # app-navigation spec: after a question and a diagnosis, with no data,
+    # three cards are done (recommendations give their number) and one is not.
+    at = _run_app()
+    cards = next(body for body in _html(at) if "cl-steps" in body)
+    assert cards.count("cl-step todo") == 4 and "cl-step done" not in cards
+    _goto(at, "research_question")
+    at.text_area[0].set_value("Did the minimum wage reduce employment?").run()
+    at.button[0].click().run()
+    assert not at.exception
+    n = len(at.session_state.recommendations)
+    assert n > 0
+    _goto(at, "dashboard")
+    cards = next(body for body in _html(at) if "cl-steps" in body)
+    steps = cards.split('<div class="cl-step ')[1:]
+    assert [step.startswith("done") for step in steps] == [True, True, True, False]
+    assert f'<span class="cl-badge">{n}</span>' in steps[2]
+
+
 if __name__ == "__main__":
     test_dashboard_shortcut_opens_its_page()
     test_language_switch_keeps_the_page()
@@ -139,4 +182,6 @@ if __name__ == "__main__":
     test_upload_with_a_text_treatment_is_rejected()
     test_analysis_keeps_the_generating_configuration()
     test_card_krueger_button_loads_real_data_without_truth()
+    test_sidebar_sections_follow_the_workflow_and_the_language()
+    test_dashboard_progress_cards_follow_the_workflow()
     print("test_app_flows: OK")
