@@ -59,7 +59,7 @@ on screen     upload or generate → see the pre/post trend plot and the
 
 **Not this term:**
 - ~~Fuzzy RD, robust bias-corrected RD inference, covariate-weighted synthetic control, and Monte Carlo / stress-test / code-generation support for the six additional methods (those pages remain DiD-only)~~. Built on 2026-10-25, see below.
-- ~~Mixed-strategy equilibria, sequential (Stackelberg, bargaining) equilibria, multidimensional strategies~~ (built on 2026-10-26, see below), and structural estimation (MLE/GMM) of the theoretical models; calibration is by explicit moments.
+- ~~Mixed-strategy equilibria, sequential (Stackelberg, bargaining) equilibria, multidimensional strategies, and structural estimation (MLE/GMM) of the theoretical models~~ (built on 2026-10-26, see below).
 - ~~Report export (PDF/Word/LaTeX).~~ Built on 2026-10-25, see below.
 - ~~Connectors to external data sources (DHS, ACLED, WorldPop, etc.).~~ Built on 2026-10-25, see below.
 - ~~Project persistence / saved sessions.~~ Built on 2026-10-25, see below.
@@ -129,6 +129,13 @@ on screen     upload or generate → see the pre/post trend plot and the
 - **Multidimensional strategies** (Theory page, "Several strategy variables"). Each agent chooses up to 4 variables in a box. The catalogue has probabilistic voting on two issues, multimarket Cournot with a joint cost, and a contest over two prizes; the free editor takes any model written as expressions.
   - **Solver:** each best response is a grid over the agent's box refined by L-BFGS-B with the exact gradient; best responses are iterated from several starts, and the first-order (KKT) conditions are then solved by Newton. A profile is reported only if no agent gains by deviating anywhere in its box, so a non-concave agent's saddle point is rejected and a game with no pure equilibrium reports none.
   - **Checks:** the three catalogue closed forms (including a corner where firms leave a market) to 1e-7, an asymmetric game against sympy's exact solution to 1e-9, a KKT corner, and the scalar Tullock contest.
+- **Structural estimation** (Theory page: tab "4 · Structural estimation", and "Estimate λ" under a matrix game).
+  - **Logit QRE by maximum likelihood:** λ from observed choice counts, typed or counted in a dataset. Standard error, a 95% interval by inverting the likelihood-ratio test, fitted against observed frequencies, and a test against random play. It equals Gambit's `logit_estimate` to 1e-4 on 38 of 40 random games. On the other 2, every choice falls on a pure equilibrium, so the likelihood rises to 0 as λ grows: Causal Lab then reports only a lower bound, and Gambit stops somewhere on that plateau.
+  - **GMM on first-order conditions:** each row of a dataset is one observed equilibrium (e.g. a market). Each agent's first-order condition times the instruments has mean zero at the true parameters. Each parameter is fixed, observed in a column, or estimated. The method is two-step efficient GMM with robust standard errors and Hansen's J test. When the conditions are linear in the parameters, it equals linearmodels' IV-GMM to 1e-8.
+  - **Calibration** (`spike/estimation_calibration.py`, 1000 replications, coverage of the 95% intervals):
+    - QRE, inspection game, 200 choices per player: LR 95.6% and Wald 95.3% at λ = 1; LR 94.8% and Wald 93.9% at λ = 3.
+    - QRE, stag hunt at λ = 2: 37% of samples put every choice on one action, so λ has only a lower bound. The LR interval still covers 98.4%, but the Wald interval only 61.7%. The page therefore leads with the LR interval.
+    - Nonlinear GMM (constant-elasticity Cournot, 300 markets): coverage 93.7–94.3%, slightly below 95% as expected for two-step GMM in small samples (Windmeijer 2005). The J test has size 4.9%.
 
 A person with a messy panel CSV and a treatment date can use this version alone: upload, see whether parallel trends look reasonable, get a DiD estimate. Nothing else needs to exist for that to be useful — everything above it is additional, not a prerequisite for it.
 

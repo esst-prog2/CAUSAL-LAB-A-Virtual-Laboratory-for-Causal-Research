@@ -7,14 +7,10 @@ probability vector over a player's actions. A pair (x, y) is a Nash
 equilibrium when every action x plays with positive probability earns the
 row player's best expected payoff against y (and likewise for y).
 
-`nash_equilibria` finds all of them by support enumeration: for every pair
-of supports (I, J) it solves the indifference conditions, keeps solutions
-that are probability vectors, and checks that no action outside the support
-pays more. Supports of unequal sizes are included, so degenerate games
-(ties, dominated-but-equal actions) are handled; a degenerate game can then
-have a continuum of equilibria, of which the extreme points found are
-reported. Exact for the small games this page handles (up to 6 x 6:
-at most 4096 support pairs).
+`nash_equilibria` finds all of them by vertex enumeration of the
+best-response polytopes (Gambit's enummixed); in a degenerate game an
+equilibrium component is reported by its extreme points. Exact for the
+small games this page handles (up to 6 x 6).
 
 `logit_qre` computes the logit quantal response equilibrium (McKelvey &
 Palfrey 1995): each player plays action k with probability proportional to
@@ -134,17 +130,20 @@ def _softmax(z: np.ndarray) -> np.ndarray:
     return e / e.sum()
 
 
-def logit_qre(game: BimatrixGame, lam: float, max_step: float = 0.05) -> tuple[np.ndarray, np.ndarray]:
-    """Logit QRE on the principal branch at precision `lam` >= 0.
+def logit_branch(game: BimatrixGame, lam: float, max_step: float = 0.05,
+                 start: tuple[float, np.ndarray] | None = None):
+    """Points of the logit QRE principal branch, from lambda = 0 (or from
+    `start` = (lambda, z) on the branch) up to `lam`: yields (lambda, z) at
+    every continuation step, the last one at `lam`.
 
     Unknowns are log-odds against each player's first action, z = (zx, zy),
     with x = softmax(0, zx) and y = softmax(0, zy); the QRE solves
     zx_i = lam * ((A y)_i - (A y)_0) and zy_j = lam * ((x'B)_j - (x'B)_0).
-    The branch is followed from lam = 0 (uniform play) by Newton's method at
-    each step, with the step halved whenever Newton fails, as Gambit's
-    logit_solve_lambda does by predictor-corrector path following. A damped
-    fixed-point iteration was tried first and jumped to other branches (or
-    cycled) at lambda >= 3 in Battle of the Sexes and the inspection game."""
+    The branch is followed by Newton's method at each step, with the step
+    halved whenever Newton fails, as Gambit's logit_solve_lambda does by
+    predictor-corrector path following. A damped fixed-point iteration was
+    tried first and jumped to other branches (or cycled) at lambda >= 3 in
+    Battle of the Sexes and the inspection game."""
     from scipy.optimize import root
 
     if lam < 0:
@@ -153,28 +152,38 @@ def logit_qre(game: BimatrixGame, lam: float, max_step: float = 0.05) -> tuple[n
     m, n = a.shape
     scale = max(1.0, float(np.abs(a).max()), float(np.abs(b).max()))
 
-    def unpack(z):
-        return _softmax(np.r_[0.0, z[:m - 1]]), _softmax(np.r_[0.0, z[m - 1:]])
-
     def residual(z, level):
-        x, y = unpack(z)
+        x, y = qre_profile(game, z)
         ux, uy = a @ y, x @ b
         return np.r_[z[:m - 1] - level * (ux[1:] - ux[0]), z[m - 1:] - level * (uy[1:] - uy[0])]
 
-    z = np.zeros(m + n - 2)
-    level, step = 0.0, max_step / scale
+    level, z = (0.0, np.zeros(m + n - 2)) if start is None else (float(start[0]), np.asarray(start[1], float))
+    step = max_step / scale
     while level < lam - 1e-15:
         target = min(lam, level + step)
         sol = root(residual, z, args=(target,), method="hybr", tol=1e-13)
-        if sol.success and np.abs(residual(sol.x, target)).max() < 1e-10 \
-                and np.abs(sol.x - z).max() < 1.0 + 10 * step * scale:
+        if sol.success and np.abs(residual(sol.x, target)).max() < 1e-10                 and np.abs(sol.x - z).max() < 1.0 + 10 * step * scale:
             z, level = sol.x, target
             step = min(step * 1.5, 1.0 / scale)
+            yield level, z
         else:
             step /= 2
             if step < 1e-10:
                 raise LocalizedError("err.qre_path", value=lam, reached=level)
-    return unpack(z)
+
+
+def qre_profile(game: BimatrixGame, z: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """Mixed strategies (x, y) from the log-odds vector of logit_branch."""
+    m = game.row_payoffs.shape[0]
+    return _softmax(np.r_[0.0, z[:m - 1]]), _softmax(np.r_[0.0, z[m - 1:]])
+
+
+def logit_qre(game: BimatrixGame, lam: float, max_step: float = 0.05) -> tuple[np.ndarray, np.ndarray]:
+    """Logit QRE on the principal branch at precision `lam` >= 0 (see logit_branch)."""
+    z = np.zeros(sum(game.row_payoffs.shape) - 2)
+    for _, z in logit_branch(game, lam, max_step):
+        pass
+    return qre_profile(game, z)
 
 
 # --------------------------------------------------------------------------

@@ -318,7 +318,7 @@ def _plots(method: str, result: MethodResult, state: dict, L) -> None:
         c1.plotly_chart(fig, width="stretch")
         fig = go.Figure()
         for donor, gaps in d["placebo_gaps"].items():
-            fig.add_trace(go.Scatter(x=paths["period"], y=gaps, mode="lines", showlegend=False,
+            fig.add_trace(go.Scatter(x=paths["period"], y=gaps, mode="lines", name=str(donor), showlegend=False,
                                      line=dict(color="lightgray", width=1)))
         fig.add_trace(go.Scatter(x=paths["period"], y=paths["gap"], name=L("methods.treated_gap"),
                                  line=dict(color="crimson", width=3)))

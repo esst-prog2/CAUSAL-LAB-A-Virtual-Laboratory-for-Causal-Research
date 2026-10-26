@@ -17,6 +17,9 @@ References, one per estimator:
     Synthetic control   pysyncon: Synth with custom V (outcome in each pre-period)
     DML                 DoubleML (Python, by its authors): DoubleMLPLR, same folds and learners
     Callaway-Sant'Anna  R did (by its authors): att_gt with base_period = "universal", aggte
+    Matrix games        Gambit: enummixed, logit_solve_lambda, logit_estimate (QRE by maximum likelihood)
+    GMM                 linearmodels: IVGMM, robust weight, two steps (first-order conditions linear
+                        in the parameters, so the same moments as Causal Lab's structural GMM)
 """
 import csv
 import json
@@ -126,6 +129,17 @@ def make_datasets() -> None:
     from simulation_engine.method_worlds import SyntheticControlWorldConfig, synthetic_control_world
     sc_cov, _ = synthetic_control_world(SyntheticControlWorldConfig(seed=5, n_covariates=3))
     sc_cov.to_csv(HERE / "sc_cov.csv", index=False)
+
+    # Cournot duopoly markets (drawn last): demand 100 + 10 w - Q, firm costs
+    # 10 + 5 r_i + u_i with u_i unobserved and heteroskedastic, equilibrium
+    # quantities from the closed form q_i = (a - 2 c_i + c_j) / 3.
+    n = 400
+    w = rng.normal(size=n)
+    r1, r2 = rng.normal(size=(2, n))
+    u1, u2 = rng.normal(scale=3, size=(2, n)) * (1 + 0.5 * np.abs(w))
+    a, c1, c2 = 100 + 10 * w, 10 + 5 * r1 + u1, 10 + 5 * r2 + u2
+    pd.DataFrame(dict(w=w, r1=r1, r2=r2, q1=(a - 2 * c1 + c2) / 3, q2=(a - 2 * c2 + c1) / 3)).to_csv(
+        HERE / "cournot_markets.csv", index=False)
 
 
 def r_references() -> tuple[dict, dict]:
@@ -243,14 +257,56 @@ def gambit_reference() -> dict:
     return {"matrix_games": games}
 
 
+def qre_estimate_reference() -> dict:
+    """Gambit's maximum likelihood logit QRE on 40 generic games, with choice
+    counts drawn from a QRE at lambda 0.5, 2 or 5 (300 choices per player)."""
+    import pygambit as gbt
+
+    rng = np.random.default_rng(11)
+    out = []
+    for _ in range(40):
+        m, n = (int(v) for v in rng.integers(2, 5, size=2))
+        a, b = rng.normal(size=(m, n)).round(6), rng.normal(size=(m, n)).round(6)
+        g = gbt.Game.from_arrays(a, b)
+        p1, p2 = list(g.players)
+        profile = gbt.qre.logit_solve_lambda(g, lam=[float(rng.choice([0.5, 2.0, 5.0]))])[0].profile
+        x = np.array([float(profile[p1][s]) for s in p1.strategies])
+        y = np.array([float(profile[p2][s]) for s in p2.strategies])
+        rc, cc = rng.multinomial(300, x / x.sum()), rng.multinomial(300, y / y.sum())
+        data = g.mixed_strategy_profile(rational=False)
+        for player, counts in ((p1, rc), (p2, cc)):
+            for k, s in enumerate(player.strategies):
+                data[s] = float(counts[k])
+        fit = gbt.qre.logit_estimate(data)
+        out.append({"a": a.tolist(), "b": b.tolist(), "row_counts": rc.tolist(), "col_counts": cc.tolist(),
+                    "lam": float(fit.lam), "log_like": float(fit.log_like)})
+    return {"qre_estimates": out}
+
+
+def gmm_reference() -> dict:
+    """Firm 1's first-order condition 100 + 10 w - 10 - (2 q1 + q2) - 5 r1 = u1, i.e.
+    5 r1 = A0 + A1 w - B (2 q1 + q2) - u1: linear IV with 2 q1 + q2 endogenous,
+    instruments const, w, r1, r2 (one overidentifying restriction)."""
+    from linearmodels.iv import IVGMM
+
+    df = load("cournot_markets")
+    df = df.assign(y=5 * df["r1"], const=1.0, x=2 * df["q1"] + df["q2"])
+    res = IVGMM(df["y"], df[["const", "w"]], df[["x"]], df[["r1", "r2"]], weight_type="robust").fit(cov_type="robust")
+    sign = np.array([1.0, 1.0, -1.0])                 # coefficient on 2 q1 + q2 is -B
+    return {"gmm.estimates": (res.params.to_numpy() * sign).tolist(), "gmm.se": res.std_errors.to_numpy().tolist(),
+            "gmm.j": float(res.j_stat.stat)}
+
+
 def main() -> None:
     make_datasets()
     r_values, r_versions = r_references()
-    expected = {**r_values, **rdd_reference(), **sc_reference(), **dml_reference(), **gambit_reference()}
+    expected = {**r_values, **rdd_reference(), **sc_reference(), **dml_reference(), **gambit_reference(),
+                **qre_estimate_reference(), **gmm_reference()}
     expected["settings"] = {"rdd_bandwidth": RDD_BANDWIDTH, "sc_treatment_period": SC_TREATMENT_PERIOD,
                             "dml_seed": DML_SEED, "dml_folds": DML_FOLDS}
     expected["versions"] = {**{k if k == "R" else f"R {k}": v for k, v in r_versions.items()},
-                            **{p: version(p) for p in ("rdrobust", "pysyncon", "DoubleML", "pygambit", "scikit-learn",
+                            **{p: version(p) for p in ("rdrobust", "pysyncon", "DoubleML", "pygambit", "linearmodels",
+                                                       "scikit-learn",
                                                        "numpy", "pandas")}}
     (HERE / "expected.json").write_text(json.dumps(expected, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(expected, indent=2))
