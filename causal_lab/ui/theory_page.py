@@ -506,7 +506,7 @@ def _predictions_step(state: dict, L) -> None:
 # --------------------------------------------------------------------------
 # Page
 # --------------------------------------------------------------------------
-MODEL_KINDS = ("continuous", "matrix")
+MODEL_KINDS = ("continuous", "matrix", "stackelberg", "bargaining")
 
 
 def render(L) -> None:
@@ -521,6 +521,10 @@ def render(L) -> None:
     if kind == "matrix":
         from ui.matrix_game_page import render as render_matrix
         render_matrix(L)
+        return
+    if kind in ("stackelberg", "bargaining"):
+        from ui import sequential_page
+        (sequential_page.render_stackelberg if kind == "stackelberg" else sequential_page.render_bargaining)(L)
         return
     state = _state()
     tab1, tab2, tab3 = st.tabs([L("theory.tab_model"), L("theory.tab_equilibrium"), L("theory.tab_predictions")])
