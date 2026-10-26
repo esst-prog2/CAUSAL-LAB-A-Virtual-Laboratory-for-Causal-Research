@@ -21,6 +21,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 sys.path.insert(0, str(Path(__file__).resolve().parent / "external_reference"))
 
+import numpy as np
+
 from make_reference import load
 
 from estimators.dml import estimate_dml
@@ -78,12 +80,28 @@ def test_ik_bandwidth_is_close_to_rdrobust_0_80():
 
 
 def test_rdd_matches_rdrobust():
-    # rdrobust(y, x, c = 0, h = 0.4, kernel = "triangular", p = 1, vce = "hc1"), conventional row.
+    # rdrobust(y, x, c = 0, h = 0.4, kernel = "triangular", p = 1, vce = "hc1"). Since
+    # 2026-10-25 Causal Lab computes the HC1 variance side by side as rdrobust does, so
+    # the conventional SE agrees to rounding (it was 2.6e-5 apart before).
     result = estimate_rdd(load("rdd"), bandwidth=SETTINGS["rdd_bandwidth"])
     _close(result.estimate, "rdd.estimate")
-    _close(result.se, "rdd.se", rel=1e-4)
+    _close(result.se, "rdd.se")
     assert (result.details["n_left"], result.details["n_right"]) == \
         (EXPECTED["rdd.n_left"], EXPECTED["rdd.n_right"])
+    # Robust bias-corrected row (CCT 2014), b = h.
+    robust = estimate_rdd(load("rdd"), bandwidth=SETTINGS["rdd_bandwidth"], inference="robust")
+    _close(robust.details["robust"]["estimate_bc"], "rdd.robust.estimate_bc")
+    _close(robust.se, "rdd.robust.se")
+
+
+def test_fuzzy_rdd_matches_rdrobust():
+    # rdrobust(..., fuzzy = D): local Wald estimate, conventional and robust rows.
+    result = estimate_rdd(load("rdd_fuzzy"), bandwidth=SETTINGS["rdd_bandwidth"], treatment_col="D",
+                          inference="robust")
+    _close(result.estimate, "rdd_fuzzy.estimate")
+    _close(result.details["conventional"]["se"], "rdd_fuzzy.se")
+    _close(result.details["robust"]["estimate_bc"], "rdd_fuzzy.robust.estimate_bc")
+    _close(result.se, "rdd_fuzzy.robust.se")
 
 
 # Matching: R Matching::Match(estimand = "ATT", M = 1, Weight = 2 (Mahalanobis),
@@ -115,6 +133,22 @@ def test_synthetic_control_matches_pysyncon():
     for donor, weight in weights.items():
         assert abs(weight - EXPECTED[f"sc.weight.{donor}"]) < 1e-4, (donor, weight)
     _close(result.estimate, "sc.estimate", rel=1e-4)
+
+
+def test_covariate_synthetic_control_fits_at_least_about_as_well_as_pysyncon():
+    # Choosing the predictor importance V is not convex: neither optimizer is sure to find
+    # the global optimum. On 6 worlds Causal Lab's pre-treatment MSPE was lower than
+    # pysyncon's in 4 and at most 9% higher in 2 (2026-10-25), hence the 15% tolerance.
+    data = load("sc_cov")
+    result = estimate_synthetic_control(data, treated_unit="treated", treatment_period=20,
+                                        covariate_cols=["X1", "X2", "X3"])
+    wide = data.pivot(index="period", columns="unit", values="Y")
+    weights = result.details["weights"].set_index("donor")["weight"]
+    gaps = wide["treated"].to_numpy()[:20] - wide[weights.index].to_numpy()[:20] @ weights.to_numpy()
+    assert float(np.mean(gaps ** 2)) <= 1.15 * EXPECTED["sc_cov.pre_mspe"], (np.mean(gaps ** 2),
+                                                                            EXPECTED["sc_cov.pre_mspe"])
+    v = result.details["predictors"]["v_weight"]
+    assert abs(v.sum() - 1) < 1e-9 and (v >= 0).all() and abs(weights.sum() - 1) < 1e-9
 
 
 def test_dml_matches_doubleml():

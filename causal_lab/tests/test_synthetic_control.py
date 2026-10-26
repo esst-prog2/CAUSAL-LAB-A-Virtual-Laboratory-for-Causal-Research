@@ -39,8 +39,35 @@ def test_unbalanced_panel_rejected():
         raise AssertionError("expected ValueError for an unbalanced panel")
 
 
+def test_covariates_leave_the_outcome_unchanged_and_are_time_invariant():
+    plain, _ = synthetic_control_world(SyntheticControlWorldConfig(seed=9))
+    with_x, truth = synthetic_control_world(SyntheticControlWorldConfig(seed=9, n_covariates=2))
+    assert with_x[plain.columns].equals(plain) and truth["roles"]["covariates"] == ["X1", "X2"]
+    assert (with_x.groupby("unit")[["X1", "X2"]].nunique() == 1).all().all()
+
+
+def test_covariate_synthetic_control_matches_the_predictors():
+    cfg = SyntheticControlWorldConfig(seed=9, n_covariates=3)
+    df, truth = synthetic_control_world(cfg)
+    result = estimate_synthetic_control(df, treated_unit="treated", treatment_period=cfg.treatment_period,
+                                        covariate_cols=truth["roles"]["covariates"])
+    table = result.details["predictors"]
+    assert list(table["predictor"]) == ["X1", "X2", "X3", "Y"]
+    assert abs(table["v_weight"].sum() - 1) < 1e-9 and (table["v_weight"] >= 0).all()
+    # The synthetic unit is closer to the treated unit than the plain donor average, predictor by predictor.
+    gap_synthetic = (table["synthetic"] - table["treated"]).abs()
+    gap_average = (table["donor_mean"] - table["treated"]).abs()
+    assert (gap_synthetic <= gap_average + 1e-9).sum() >= 3, table
+    assert abs(result.estimate - truth["true_effect"]) < 0.75
+    again = estimate_synthetic_control(df, treated_unit="treated", treatment_period=cfg.treatment_period,
+                                       covariate_cols=truth["roles"]["covariates"])
+    assert again.estimate == result.estimate                    # deterministic search
+    plain = estimate_synthetic_control(df, treated_unit="treated", treatment_period=cfg.treatment_period)
+    assert plain.details["predictors"] is None
+
+
 if __name__ == "__main__":
-    test_synthetic_control_recovers_effect()
-    test_placebo_p_value_is_rank_based()
-    test_unbalanced_panel_rejected()
+    for name, test in list(globals().items()):
+        if name.startswith("test_"):
+            test()
     print("test_synthetic_control: OK")

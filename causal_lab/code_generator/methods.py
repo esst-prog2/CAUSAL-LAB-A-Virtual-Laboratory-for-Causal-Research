@@ -22,15 +22,13 @@ PACKAGES = {      # method: (Python, R, Stata) reference
 # What running each script on its method world gave, against Causal Lab
 # (2026-10-25; tests/test_method_code.py re-checks the Python ones it can run):
 #   exact      estimate and SE equal to 10 digits
-#   rdd        estimate equal; SE within 0.01% (rdrobust computes the HC1
-#              variance side by side, Causal Lab in one weighted regression)
 #   sc         estimate within 0.01% (both optimizers stop at 1e-12 tolerances)
 #   close      Synth in R: estimate within 0.1% (other optimizer)
 #   differs    DoubleML in R: about one SE away (ranger forests and other folds)
 #   unchecked  Stata: no Stata available to run it
 STATUS = {        # method: (Python, R); Stata is always "unchecked"
     "rct": ("exact", "exact"), "matching": ("exact", "exact"), "iv": ("exact", "exact"),
-    "rdd": ("rdd", "rdd"), "synthetic_control": ("sc", "close"), "dml": ("exact", "differs"),
+    "rdd": ("exact", "exact"), "synthetic_control": ("sc", "close"), "dml": ("exact", "differs"),
 }
 
 
@@ -47,9 +45,11 @@ def _r_cat(lang: str, estimate: str, se: str) -> str:
             f'cat("{t("gen.m.se", lang)}:", sprintf("%.10f", {se}), "\\n")\n')
 
 
-def _header(method: str, language: str, lang: str, comment: str) -> str:
+def _header(method: str, language: str, lang: str, comment: str, m: dict | None = None) -> str:
     package = PACKAGES[method][("python", "r", "stata").index(language)]
     key = "unchecked" if language == "stata" else STATUS[method][("python", "r").index(language)]
+    if language != "stata" and method == "synthetic_control" and (m or {}).get("covariates"):
+        key = "sc_v"           # the importance V is searched; another optimizer can stop elsewhere
     status = t(f"gen.m.status.{key}", lang)
     lines = [f"CAUSAL LAB - {tf('gen.m.header', lang, method=t(f'method.{method}', lang))}",
              tf("gen.m.reference", lang, package=package), status]
@@ -57,8 +57,33 @@ def _header(method: str, language: str, lang: str, comment: str) -> str:
 
 
 # --------------------------------------------------------------------------
+def _sc_python_fit(m) -> str:
+    covs = list(m.get("covariates") or [])
+    if covs:
+        return f'''# Predictors: pre-treatment means of the covariates and of the outcome; V is searched
+# to minimise the pre-treatment outcome error (Abadie, Diamond & Hainmueller 2010).
+prep = Dataprep(foo=df, predictors={_list(covs)}, predictors_op="mean", dependent="{m["outcome"]}",
+                unit_variable="{m["unit"]}", time_variable="{m["period"]}", treatment_identifier=treated,
+                controls_identifier=donors, time_predictors_prior=pre,
+                special_predictors=[("{m["outcome"]}", pre, "mean")], time_optimize_ssr=pre)
+synth = Synth()
+synth.fit(dataprep=prep, optim_method="Nelder-Mead", optim_initial="equal")
+'''
+    return f'''prep = Dataprep(foo=df, predictors=[], predictors_op="mean", dependent="{m["outcome"]}",
+                unit_variable="{m["unit"]}", time_variable="{m["period"]}", treatment_identifier=treated,
+                controls_identifier=donors, time_predictors_prior=pre,
+                special_predictors=[("{m["outcome"]}", [p], "mean") for p in pre], time_optimize_ssr=pre)
+# pysyncon divides each predictor by its standard deviation; V = sd^2 undoes it, so the
+# weights minimise the plain sum of squared pre-treatment gaps, as in Causal Lab.
+x0, x1 = prep.make_covariate_mats()
+v = pd.concat([x0, x1], axis=1).std(axis=1).to_numpy() ** 2
+synth = Synth()
+synth.fit(dataprep=prep, custom_V=v)
+'''
+
+
 def _python(method, m, o, path, lang) -> str:
-    head = _header(method, "python", lang, "#")
+    head = _header(method, "python", lang, "#", m)
     est, se = t("gen.m.estimate", lang), t("gen.m.se", lang)
     if method == "rct":
         covs = list(m.get("covariates") or [])
@@ -127,15 +152,19 @@ print("{est}:", fit.params["{m["treatment"]}"])
 print("{se}:", fit.std_errors["{m["treatment"]}"])
 '''
     elif method == "rdd":
+        treatment = m.get("treatment")
+        columns = [m["outcome"], m["running"]] + ([treatment] if treatment else [])
+        fuzzy = f', fuzzy=df["{treatment}"].to_numpy(float)' if treatment else ""
+        row = 2 if o.get("inference") == "robust" else 0           # rdrobust rows: Conventional, Bias-Corrected, Robust
         body = f'''import pandas as pd
 from rdrobust import rdrobust
 
-df = pd.read_csv("{path}")[["{m["outcome"]}", "{m["running"]}"]].dropna()
+df = pd.read_csv("{path}")[{_list(columns)}].dropna()
 fit = rdrobust(df["{m["outcome"]}"].to_numpy(float), df["{m["running"]}"].to_numpy(float), c={o["cutoff"]!r},
-               h={o["bandwidth_used"]!r}, kernel="triangular", p=1, vce="hc1")
+               h={o["bandwidth_used"]!r}, kernel="triangular", p=1, vce="hc1"{fuzzy})
 print(fit)
 print("{est} ({t("gen.m.conventional", lang)}):", float(fit.coef.iloc[0, 0]))
-print("{se}:", float(fit.se.iloc[0, 0]))
+print("{se} ({t(f"gen.m.rdd_row.{row}", lang)}):", float(fit.se.iloc[{row}, 0]))
 '''
     elif method == "synthetic_control":
         body = f'''import pandas as pd
@@ -146,17 +175,7 @@ treated, start = {o["treated_unit"]!r}, {o["treatment_period"]!r}
 periods = sorted(df["{m["period"]}"].unique())
 pre, post = [p for p in periods if p < start], [p for p in periods if p >= start]
 donors = sorted(u for u in df["{m["unit"]}"].unique() if u != treated)
-prep = Dataprep(foo=df, predictors=[], predictors_op="mean", dependent="{m["outcome"]}",
-                unit_variable="{m["unit"]}", time_variable="{m["period"]}", treatment_identifier=treated,
-                controls_identifier=donors, time_predictors_prior=pre,
-                special_predictors=[("{m["outcome"]}", [p], "mean") for p in pre], time_optimize_ssr=pre)
-# pysyncon divides each predictor by its standard deviation; V = sd^2 undoes it, so the
-# weights minimise the plain sum of squared pre-treatment gaps, as in Causal Lab.
-x0, x1 = prep.make_covariate_mats()
-v = pd.concat([x0, x1], axis=1).std(axis=1).to_numpy() ** 2
-synth = Synth()
-synth.fit(dataprep=prep, custom_V=v)
-print(synth.weights())
+{_sc_python_fit(m)}print(synth.weights())
 print("{est}:", synth.att(time_period=post)["att"])
 '''
     elif method == "dml":
@@ -184,8 +203,30 @@ print("{se}:", float(plr.se[0]))
 
 
 # --------------------------------------------------------------------------
+def _sc_r_fit(m) -> str:
+    covs = list(m.get("covariates") or [])
+    if covs:
+        return f'''# Predictors: pre-treatment means of the covariates and of the outcome; synth() searches V.
+prep <- dataprep(foo = df, predictors = {_r_vec(covs)}, predictors.op = "mean", dependent = "{m["outcome"]}",
+                 unit.variable = "unit_num", unit.names.variable = "unit_name", time.variable = "{m["period"]}",
+                 special.predictors = list(list("{m["outcome"]}", pre, "mean")),
+                 treatment.identifier = treated, controls.identifier = setdiff(unique(df$unit_num), treated),
+                 time.predictors.prior = pre, time.optimize.ssr = pre, time.plot = periods)
+fit <- synth(prep)
+'''
+    return f'''prep <- dataprep(foo = df, predictors = NULL, dependent = "{m["outcome"]}", unit.variable = "unit_num",
+                 unit.names.variable = "unit_name", time.variable = "{m["period"]}",
+                 special.predictors = lapply(pre, function(p) list("{m["outcome"]}", p, "mean")),
+                 treatment.identifier = treated, controls.identifier = setdiff(unique(df$unit_num), treated),
+                 time.predictors.prior = pre, time.optimize.ssr = pre, time.plot = periods)
+# Synth scales each predictor by its standard deviation; custom.v = sd^2 undoes it.
+v <- apply(cbind(prep$X0, prep$X1), 1, sd)^2
+fit <- synth(prep, custom.v = v)
+'''
+
+
 def _r(method, m, o, path, lang) -> str:
-    head = _header(method, "r", lang, "#")
+    head = _header(method, "r", lang, "#", m)
     if method == "rct":
         covs = list(m.get("covariates") or [])
         fit = (f'lm_lin({m["outcome"]} ~ {m["treatment"]}, covariates = ~ {" + ".join(covs)}, data = df, se_type = "HC2")'
@@ -216,13 +257,17 @@ fit <- iv_robust({m["outcome"]} ~ {rhs} | {first}, data = df, se_type = "HC0", d
 summary(fit)
 {_r_cat(lang, f'coef(fit)[["{m["treatment"]}"]]', f'fit$std.error[["{m["treatment"]}"]]')}'''
     elif method == "rdd":
+        treatment = m.get("treatment")
+        columns = [m["outcome"], m["running"]] + ([treatment] if treatment else [])
+        fuzzy = f", fuzzy = df${treatment}" if treatment else ""
+        row = 3 if o.get("inference") == "robust" else 1
         body = f'''library(rdrobust)
 
-df <- na.omit(read.csv("{path}")[, {_r_vec([m["outcome"], m["running"]])}])
+df <- na.omit(read.csv("{path}")[, {_r_vec(columns)}])
 fit <- rdrobust(df${m["outcome"]}, df${m["running"]}, c = {o["cutoff"]!r}, h = {o["bandwidth_used"]!r},
-                kernel = "triangular", p = 1, vce = "hc1")
+                kernel = "triangular", p = 1, vce = "hc1"{fuzzy})
 summary(fit)   # {t("gen.m.conventional_row", lang)}
-{_r_cat(lang, 'fit$coef[1]', 'fit$se[1]')}'''
+{_r_cat(lang, 'fit$coef[1]', f'fit$se[{row}]')}'''
     elif method == "synthetic_control":
         treated = o["treated_unit"]
         body = f'''library(Synth)
@@ -234,15 +279,7 @@ treated <- unique(df$unit_num[df$unit_name == "{treated}"])
 start <- {o["treatment_period"]!r}
 periods <- sort(unique(df${m["period"]}))
 pre <- periods[periods < start]
-prep <- dataprep(foo = df, predictors = NULL, dependent = "{m["outcome"]}", unit.variable = "unit_num",
-                 unit.names.variable = "unit_name", time.variable = "{m["period"]}",
-                 special.predictors = lapply(pre, function(p) list("{m["outcome"]}", p, "mean")),
-                 treatment.identifier = treated, controls.identifier = setdiff(unique(df$unit_num), treated),
-                 time.predictors.prior = pre, time.optimize.ssr = pre, time.plot = periods)
-# Synth scales each predictor by its standard deviation; custom.v = sd^2 undoes it.
-v <- apply(cbind(prep$X0, prep$X1), 1, sd)^2
-fit <- synth(prep, custom.v = v)
-gaps <- prep$Y1plot - prep$Y0plot %*% fit$solution.w
+{_sc_r_fit(m)}gaps <- prep$Y1plot - prep$Y0plot %*% fit$solution.w
 print(round(fit$solution.w, 4))
 cat("{t("gen.m.estimate", lang)}:", mean(gaps[periods >= start]), "\\n")
 '''
@@ -298,10 +335,12 @@ estat firststage
     elif method == "rdd":
         body = f'''{load}
 * ssc install rdrobust
-rdrobust {m["outcome"]} {m["running"]}, c({o["cutoff"]!r}) h({o["bandwidth_used"]!r}) kernel(triangular) p(1) vce(hc1)
+rdrobust {m["outcome"]} {m["running"]}, c({o["cutoff"]!r}) h({o["bandwidth_used"]!r}) kernel(triangular) p(1) vce(hc1){f" fuzzy({m['treatment']})" if m.get("treatment") else ""}
 '''
     elif method == "synthetic_control":
-        lags = " ".join(f'{m["outcome"]}({p})' for p in o["pre_periods"])
+        covs = list(m.get("covariates") or [])
+        lags = (" ".join(covs + [m["outcome"]]) if covs
+                else " ".join(f'{m["outcome"]}({p})' for p in o["pre_periods"]))
         body = f'''{load}
 * ssc install synth ; {t("gen.m.stata_numeric_units", lang)}
 encode {m["unit"]}, generate(unit_num)

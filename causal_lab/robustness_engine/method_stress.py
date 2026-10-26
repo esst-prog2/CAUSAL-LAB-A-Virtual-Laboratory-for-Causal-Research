@@ -206,7 +206,8 @@ def _synthetic_control(df, m, options, result: MethodResult) -> list[MethodCheck
     rest = df[df[m["unit"]] != top["donor"]]
     try:
         loo = estimate_synthetic_control(rest, m["unit"], m["period"], m["outcome"],
-                                         options["treated_unit"], options["treatment_period"])
+                                         options["treated_unit"], options["treatment_period"],
+                                         covariate_cols=m.get("covariates"))
         change = abs(loo.estimate - result.estimate) / scale
         leave_one_out = _check("sc_leave_one_out", change > 2.0, statistic=change, donor=str(top["donor"]),
                                weight=float(top["weight"]), estimate=loo.estimate, change=change)
@@ -224,7 +225,7 @@ def _synthetic_control(df, m, options, result: MethodResult) -> list[MethodCheck
         fake = periods[len(periods) // 2]
         pre_only = df[df[m["period"]] < options["treatment_period"]]
         placebo = estimate_synthetic_control(pre_only, m["unit"], m["period"], m["outcome"],
-                                             options["treated_unit"], fake)
+                                             options["treated_unit"], fake, covariate_cols=m.get("covariates"))
         in_time = _check("sc_in_time_placebo", placebo.p_value < SC_PLACEBO_LEVEL, p_value=placebo.p_value, period=fake,
                          effect=placebo.estimate, p=placebo.p_value)
     else:

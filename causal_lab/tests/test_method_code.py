@@ -97,6 +97,34 @@ def test_synthetic_control_stata_code_lists_every_pre_period_and_the_encoded_uni
     assert all(f"Y({p})" in stata for p in options["pre_periods"])
 
 
+def test_covariate_synthetic_control_code_searches_v_and_says_so():
+    world = WORLDS["synthetic_control"]
+    df, truth = world.generate(world.config_cls(seed=5, n_covariates=2))
+    mapping, options = dict(truth["roles"]), virtual_options("synthetic_control", truth)
+    result = run_method("synthetic_control", df, mapping, options)
+    code = generate_method_code("synthetic_control", mapping,
+                                code_options("synthetic_control", df, mapping, options, result))
+    assert "importance V is found by a local search" in code["python"] and "custom_V" not in code["python"]
+    assert 'predictors = c("X1", "X2")' in code["r"] and "custom.v" not in code["r"]
+    assert "synth Y X1 X2 Y, trunit(" in code["stata"]
+
+
+def test_fuzzy_robust_rdd_code_passes_the_treatment_and_reports_the_robust_row():
+    world = WORLDS["rdd"]
+    df, truth = world.generate(world.config_cls(seed=5, compliance=0.6))
+    mapping = dict(truth["roles"])
+    options = {**virtual_options("rdd", truth), "inference": "robust"}
+    result = run_method("rdd", df, mapping, options)
+    code = generate_method_code("rdd", mapping, code_options("rdd", df, mapping, options, result))
+    assert 'fuzzy=df["D"]' in code["python"] and "fit.se.iloc[2, 0]" in code["python"]
+    assert "fuzzy = df$D" in code["r"] and "fit$se[3]" in code["r"] and "fuzzy(D)" in code["stata"]
+    if importlib.util.find_spec("rdrobust") is not None:
+        with tempfile.TemporaryDirectory() as folder:
+            numbers = _run_python(code["python"], df, Path(folder))
+        assert abs(numbers[-2] - result.estimate) < 1e-9 * abs(result.estimate)
+        assert abs(numbers[-1] - result.se) < 1e-9 * result.se          # robust SE, as Causal Lab reports
+
+
 if __name__ == "__main__":
     for name, test in list(globals().items()):
         if name.startswith("test_"):

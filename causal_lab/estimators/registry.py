@@ -43,7 +43,7 @@ def virtual_options(method: str, truth: dict) -> dict:
     """Estimator options a generated world implies (cutoff, treated unit...)."""
     roles = truth["roles"]
     if method == "rdd":
-        return {"cutoff": roles["cutoff"], "bandwidth": None}
+        return {"cutoff": roles["cutoff"], "bandwidth": None, "inference": "conventional"}
     if method == "synthetic_control":
         return {"treated_unit": roles["treated_unit"], "treatment_period": roles["treatment_period"]}
     return {}
@@ -60,10 +60,12 @@ def run_method(method: str, df: pd.DataFrame, m: dict, options: dict, light: boo
     if method == "iv":
         return estimate_iv(df, m["outcome"], m["treatment"], m.get("instruments"), m.get("controls"))
     if method == "rdd":
-        return estimate_rdd(df, m["outcome"], m["running"], options["cutoff"], options.get("bandwidth"))
+        return estimate_rdd(df, m["outcome"], m["running"], options["cutoff"], options.get("bandwidth"),
+                            treatment_col=m.get("treatment"), inference=options.get("inference", "conventional"))
     if method == "synthetic_control":
         return estimate_synthetic_control(df, m["unit"], m["period"], m["outcome"],
-                                          options["treated_unit"], options["treatment_period"])
+                                          options["treated_unit"], options["treatment_period"],
+                                          covariate_cols=m.get("covariates"))
     if method == "dml":
         return estimate_dml(df, m["outcome"], m["treatment"], m.get("covariates"))
     raise KeyError(method)

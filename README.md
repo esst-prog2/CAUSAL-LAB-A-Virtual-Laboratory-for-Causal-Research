@@ -58,7 +58,7 @@ on screen     upload or generate → see the pre/post trend plot and the
   - **Prediction.** A treatment is modelled as a parameter shift, and the predicted effect is compared with a causal estimate (verdict: consistent / magnitude differs / sign contradicts).
 
 **Not this term:**
-- Fuzzy RD, robust bias-corrected RD inference, covariate-weighted synthetic control, and ~~Monte Carlo / stress-test / code-generation support for the six additional methods (those pages remain DiD-only)~~ (that support was built on 2026-10-25, see below).
+- ~~Fuzzy RD, robust bias-corrected RD inference, covariate-weighted synthetic control, and Monte Carlo / stress-test / code-generation support for the six additional methods (those pages remain DiD-only)~~. Built on 2026-10-25, see below.
 - Mixed-strategy and sequential (Stackelberg, bargaining) equilibria, multidimensional strategies, and structural estimation (MLE/GMM) of the theoretical models; calibration is by explicit moments.
 - ~~Report export (PDF/Word/LaTeX).~~ Built on 2026-10-25, see below.
 - Connectors to external data sources (DHS, ACLED, WorldPop, etc.).
@@ -94,7 +94,19 @@ on screen     upload or generate → see the pre/post trend plot and the
     - synthetic control within 0.01% (pysyncon) or 0.1% (R Synth);
     - R DoubleML about 1.4 SE away (other forests and folds);
     - Stata not checked.
-  - *Fixed on the way:* the DiD Python script printed statsmodels' default clustered SE, 1.91 on Card & Krueger instead of the app's 1.34. It now applies the same nested-fixed-effects correction. New dependencies: `python-docx` and `reportlab` (pure Python). The LaTeX output compiles with pdflatex, checked with MiKTeX.
+  - *Fixed on the way:* the DiD Python script printed statsmodels' default clustered SE, 1.91 on Card & Krueger instead of the app's 1.34. It now applies the same nested-fixed-effects correction.
+- **Fuzzy RD and robust bias-corrected RD inference.** The RDD estimator now computes everything side by side, as rdrobust does (Calonico, Cattaneo & Titiunik 2014):
+  - the conventional estimate and its HC1 SE, now equal to rdrobust to rounding (the old pooled HC1 differed by 2.6e-5);
+  - the bias-corrected estimate and its robust SE, with b = h;
+  - with a "treatment received" column, the fuzzy local Wald estimate, its delta-method SE, and the first-stage jump with its F statistic.
+
+  Every one of these equals rdrobust to 1e-14, sharp and fuzzy (`tests/test_external_reference.py`). The Causal Methods page offers conventional or robust inference, and the RDD world gets a compliance setting. With the IK bandwidth both CIs cover 93–95% on the RDD worlds, the robust one being 45% longer. With a bandwidth set too wide by hand, the robust CI protects:
+
+  | Bandwidth (curvature 5) | Conventional coverage | Robust coverage |
+  |---|---|---|
+  | h = 0.6 | 69% | 95% |
+  | h = 0.9 | 0% | 85% |
+- **Synthetic control with covariates** (Abadie, Diamond & Hainmueller 2010). The weights match the pre-treatment means of the covariates and of the outcome, and the predictor importance V is chosen to minimise the pre-treatment outcome error. The page shows the predictor balance. Choosing V is not convex and is a local search (Nelder-Mead from k + 1 starts): on 6 worlds the pre-treatment fit was better than pysyncon's in 4 and at most 9% worse in 2. In the default worlds the covariates do not reliably improve on the outcome-only synthetic control, since the outcome path already carries the information (Kaul et al. 2022). Generated scripts say they can differ for that reason. New dependencies: `python-docx` and `reportlab` (pure Python). The LaTeX output compiles with pdflatex, checked with MiKTeX.
 
 A person with a messy panel CSV and a treatment date can use this version alone: upload, see whether parallel trends look reasonable, get a DiD estimate. Nothing else needs to exist for that to be useful — everything above it is additional, not a prerequisite for it.
 
@@ -168,6 +180,11 @@ A person with a messy panel CSV and a treatment date can use this version alone:
   - the failing one, `test_app_flows.py`, shows that switching the language sends the user back to the dashboard with Streamlit 1.50 to 1.63. The page is kept only from 1.64 onwards: the language-dependent labels of the navigation widget change its identity in older versions.
 
   **Fixed on 2026-10-25 by raising the minima** (user decision): `streamlit>=1.64` and `numpy>=2.0`. NumPy 2 in turn needs the first NumPy-2 releases of pandas (2.2.2), scipy (1.13), statsmodels (0.14.2) and scikit-learn (1.4.2). In a fresh Python 3.11 environment with exactly these minima (pip resolved pyarrow 25.0.1), all 143 tests pass.
+
+  **scipy raised again, to 1.15, later on 2026-10-25** (for the covariate synthetic control):
+  - the NNLS of scipy 1.13 and 1.14 stalled on 11% of the inner weight problems ("Maximum number of iterations reached"), which the minimum-versions CI job caught;
+  - scipy 1.15 rewrote NNLS;
+  - a small ridge term makes those problems' solution unique, so scipy 1.15 and 1.17 now return identical weights.
 - **Statistical convention of two checks:** Parallel Trends and Spillovers used statsmodels' default cluster correction, which counts the unit dummies. That is the convention hw6 review 3 replaced in the DiD estimator, and it made both checks somewhat conservative. **Aligned with the DiD on 2026-10-25** (user decision): they now use `estimators.did.nested_fe_factor`, and `tests/test_stress_hand_computed_regressions.py` pins the new hand values (cluster factor 28/15 instead of 14/3). Re-running the calibration spike on the same 1,200 worlds (`spike/stress_test_calibration_results_2026-10-25.md`):
 
   | Check | False alarm (clean), before → after | Detection (severe), before → after |
