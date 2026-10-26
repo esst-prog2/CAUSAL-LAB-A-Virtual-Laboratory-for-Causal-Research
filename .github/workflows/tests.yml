@@ -1,0 +1,53 @@
+# Runs the test suite on every push and pull request, twice: with the newest
+# versions pip resolves from requirements.txt, and with exactly its minima
+# (the ">=" bounds turned into "=="), so a raised or broken minimum shows up
+# here instead of on someone's machine. Also checks the OpenSpec specs.
+name: tests
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  pytest:
+    name: pytest (${{ matrix.versions }} versions)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        versions: [latest, minimum]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: causal_lab/requirements.txt
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ "${{ matrix.versions }}" = "minimum" ]; then
+            sed 's/>=/==/' causal_lab/requirements.txt > requirements-minimum.txt
+            pip install -r requirements-minimum.txt pytest
+          else
+            pip install -r causal_lab/requirements.txt pytest
+          fi
+          pip check
+          pip list
+      - name: Run the tests
+        run: python -m pytest -q
+
+  openspec:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Validate the specs
+        run: npx --yes @fission-ai/openspec@1.13.0 validate --specs
