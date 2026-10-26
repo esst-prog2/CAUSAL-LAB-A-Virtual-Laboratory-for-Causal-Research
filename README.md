@@ -61,7 +61,7 @@ on screen     upload or generate → see the pre/post trend plot and the
 - ~~Fuzzy RD, robust bias-corrected RD inference, covariate-weighted synthetic control, and Monte Carlo / stress-test / code-generation support for the six additional methods (those pages remain DiD-only)~~. Built on 2026-10-25, see below.
 - Mixed-strategy and sequential (Stackelberg, bargaining) equilibria, multidimensional strategies, and structural estimation (MLE/GMM) of the theoretical models; calibration is by explicit moments.
 - ~~Report export (PDF/Word/LaTeX).~~ Built on 2026-10-25, see below.
-- Connectors to external data sources (DHS, ACLED, WorldPop, etc.).
+- ~~Connectors to external data sources (DHS, ACLED, WorldPop, etc.).~~ Built on 2026-10-25, see below.
 - ~~Project persistence / saved sessions.~~ Built on 2026-10-25, see below.
 
 **Built anyway on 2026-10-25 (user decision).** The user chose to build the excluded features after all, knowing that this departs from the scope above and from the advice to stay on one method (issue #1). Each one is a separate pull request with its own OpenSpec change:
@@ -106,7 +106,17 @@ on screen     upload or generate → see the pre/post trend plot and the
   |---|---|---|
   | h = 0.6 | 69% | 95% |
   | h = 0.9 | 0% | 85% |
-- **Synthetic control with covariates** (Abadie, Diamond & Hainmueller 2010). The weights match the pre-treatment means of the covariates and of the outcome, and the predictor importance V is chosen to minimise the pre-treatment outcome error. The page shows the predictor balance. Choosing V is not convex and is a local search (Nelder-Mead from k + 1 starts): on 6 worlds the pre-treatment fit was better than pysyncon's in 4 and at most 9% worse in 2. In the default worlds the covariates do not reliably improve on the outcome-only synthetic control, since the outcome path already carries the information (Kaul et al. 2022). Generated scripts say they can differ for that reason. New dependencies: `python-docx` and `reportlab` (pure Python). The LaTeX output compiles with pdflatex, checked with MiKTeX.
+- **Synthetic control with covariates** (Abadie, Diamond & Hainmueller 2010). The weights match the pre-treatment means of the covariates and of the outcome, and the predictor importance V is chosen to minimise the pre-treatment outcome error. The page shows the predictor balance. Choosing V is not convex and is a local search (Nelder-Mead from k + 1 starts): on 6 worlds the pre-treatment fit was better than pysyncon's in 4 and at most 9% worse in 2. In the default worlds the covariates do not reliably improve on the outcome-only synthetic control, since the outcome path already carries the information (Kaul et al. 2022). Generated scripts say they can differ for that reason.
+- **External data connectors** (External Data page). Three sources:
+  - DHS Program indicators, by country or region and survey year (public API);
+  - WorldPop population by administrative unit and year (geoBoundaries polygons and WorldPop zonal statistics, both public);
+  - ACLED conflict events and fatalities per unit and year or month (needs the researcher's ACLED account).
+
+  A fetched dataset can be downloaded or sent to a Causal Methods page.
+
+  **These are the only network requests Causal Lab makes, and they are off until turned on in Settings.** They carry query parameters only (country codes, indicator ids, boundaries, years, and the ACLED credentials, to ACLED alone and never stored); no dataset loaded in the app is sent.
+
+  DHS and WorldPop were checked live on 2026-10-25. ACLED is written to its documented API but could not be run without an account, and the page says so. The tests replay recorded responses offline (`tests/connector_fixtures`); `CAUSAL_LAB_LIVE=1` adds a live check. New dependencies: `python-docx` and `reportlab` (pure Python). The LaTeX output compiles with pdflatex, checked with MiKTeX.
 
 A person with a messy panel CSV and a treatment date can use this version alone: upload, see whether parallel trends look reasonable, get a DiD estimate. Nothing else needs to exist for that to be useful — everything above it is additional, not a prerequisite for it.
 

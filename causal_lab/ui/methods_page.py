@@ -355,6 +355,10 @@ def render(L) -> None:
     st.info(f"**{L('methods.assumption')}:** {L(f'methods.assumption.{method}')}")
 
     if method == "rdd":
+        # Streamlit drops a widget's key when its page is left: restore the choice
+        # from the method's own options, or it would silently revert to conventional.
+        if "mw_rdd_inference" not in st.session_state:
+            st.session_state["mw_rdd_inference"] = (state["options"] or {}).get("inference", "conventional")
         inference = st.radio(L("methods.rdd_inference"), list(INFERENCES), horizontal=True, key="mw_rdd_inference",
                              format_func=lambda v: L(f"methods.rdd_inference.{v}"))
         if state["options"] and state["options"].get("inference", "conventional") != inference:
