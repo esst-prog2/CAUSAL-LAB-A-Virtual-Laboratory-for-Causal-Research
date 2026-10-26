@@ -215,14 +215,42 @@ def dml_reference() -> dict:
     return {"dml.estimate": float(plr.coef[0]), "dml.se": float(plr.se[0])}
 
 
+def gambit_reference() -> dict:
+    """Matrix games drawn here, with Gambit's extreme Nash equilibria (enummixed) and
+    logit QREs (logit_solve_lambda). Generic games and games with tied payoffs."""
+    import pygambit as gbt
+
+    rng = np.random.default_rng(20261026)
+    games = []
+    for index in range(60):
+        m, n = (int(v) for v in rng.integers(2, 5, size=2))
+        if index % 2 == 0:
+            a, b = rng.normal(size=(m, n)).round(6), rng.normal(size=(m, n)).round(6)
+        else:
+            a, b = rng.integers(0, 3, size=(m, n)).astype(float), rng.integers(0, 3, size=(m, n)).astype(float)
+        g = gbt.Game.from_arrays(a, b)
+        p1, p2 = list(g.players)
+
+        def vec(profile, player):
+            return [float(profile[player][s]) for s in player.strategies]
+        equilibria = [vec(e, p1) + vec(e, p2) for e in gbt.nash.enummixed_solve(g, rational=False).equilibria]
+        qre = {}
+        if index % 2 == 0:                       # generic games only: no symmetry-induced bifurcation
+            for lam in (1.0, 5.0):
+                profile = gbt.qre.logit_solve_lambda(g, lam=[lam])[0].profile
+                qre[str(lam)] = vec(profile, p1) + vec(profile, p2)
+        games.append({"a": a.tolist(), "b": b.tolist(), "equilibria": equilibria, "qre": qre})
+    return {"matrix_games": games}
+
+
 def main() -> None:
     make_datasets()
     r_values, r_versions = r_references()
-    expected = {**r_values, **rdd_reference(), **sc_reference(), **dml_reference()}
+    expected = {**r_values, **rdd_reference(), **sc_reference(), **dml_reference(), **gambit_reference()}
     expected["settings"] = {"rdd_bandwidth": RDD_BANDWIDTH, "sc_treatment_period": SC_TREATMENT_PERIOD,
                             "dml_seed": DML_SEED, "dml_folds": DML_FOLDS}
     expected["versions"] = {**{k if k == "R" else f"R {k}": v for k, v in r_versions.items()},
-                            **{p: version(p) for p in ("rdrobust", "pysyncon", "DoubleML", "scikit-learn",
+                            **{p: version(p) for p in ("rdrobust", "pysyncon", "DoubleML", "pygambit", "scikit-learn",
                                                        "numpy", "pandas")}}
     (HERE / "expected.json").write_text(json.dumps(expected, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(expected, indent=2))
