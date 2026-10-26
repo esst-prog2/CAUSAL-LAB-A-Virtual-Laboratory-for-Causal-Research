@@ -59,7 +59,7 @@ on screen     upload or generate → see the pre/post trend plot and the
 
 **Not this term:**
 - ~~Fuzzy RD, robust bias-corrected RD inference, covariate-weighted synthetic control, and Monte Carlo / stress-test / code-generation support for the six additional methods (those pages remain DiD-only)~~. Built on 2026-10-25, see below.
-- Mixed-strategy and sequential (Stackelberg, bargaining) equilibria, multidimensional strategies, and structural estimation (MLE/GMM) of the theoretical models; calibration is by explicit moments.
+- ~~Mixed-strategy equilibria~~ (built on 2026-10-26, see below), sequential (Stackelberg, bargaining) equilibria, multidimensional strategies, and structural estimation (MLE/GMM) of the theoretical models; calibration is by explicit moments.
 - ~~Report export (PDF/Word/LaTeX).~~ Built on 2026-10-25, see below.
 - ~~Connectors to external data sources (DHS, ACLED, WorldPop, etc.).~~ Built on 2026-10-25, see below.
 - ~~Project persistence / saved sessions.~~ Built on 2026-10-25, see below.
@@ -116,7 +116,13 @@ on screen     upload or generate → see the pre/post trend plot and the
 
   **These are the only network requests Causal Lab makes, and they are off until turned on in Settings.** They carry query parameters only (country codes, indicator ids, boundaries, years, and the ACLED credentials, to ACLED alone and never stored); no dataset loaded in the app is sent.
 
-  DHS and WorldPop were checked live on 2026-10-25. ACLED is written to its documented API but could not be run without an account, and the page says so. The tests replay recorded responses offline (`tests/connector_fixtures`); `CAUSAL_LAB_LIVE=1` adds a live check. New dependencies: `python-docx` and `reportlab` (pure Python). The LaTeX output compiles with pdflatex, checked with MiKTeX.
+  DHS and WorldPop were checked live on 2026-10-25. ACLED is written to its documented API but could not be run without an account, and the page says so. The tests replay recorded responses offline (`tests/connector_fixtures`); `CAUSAL_LAB_LIVE=1` adds a live check.
+
+**Theory extensions (from 2026-10-26, user decision: a broad project, not limited to one method).**
+- **Matrix games and mixed strategies** (Theory page, "Matrix game").
+  - A catalogue of 7 games: prisoner's dilemma, matching pennies, battle of the sexes, hawk-dove, stag hunt, tax inspection, rock-paper-scissors. A payoff editor takes up to 6 × 6.
+  - **Every Nash equilibrium, pure and mixed**, by vertex enumeration of the best-response polytopes (as Gambit's enummixed). It equals Gambit on 800 test games. nashpy disagreed with Gambit on 41 of 500 generic games, sometimes with an impossible even count, so Gambit is the reference.
+  - The **logit quantal response equilibrium** path, by Newton continuation from random play, equal to Gambit to 1e-9 on generic games. In symmetric games (battle of the sexes, hawk-dove) the branch splits: Causal Lab follows the symmetric continuation, Gambit one side. New dependencies: `python-docx` and `reportlab` (pure Python). The LaTeX output compiles with pdflatex, checked with MiKTeX.
 
 A person with a messy panel CSV and a treatment date can use this version alone: upload, see whether parallel trends look reasonable, get a DiD estimate. Nothing else needs to exist for that to be useful — everything above it is additional, not a prerequisite for it.
 

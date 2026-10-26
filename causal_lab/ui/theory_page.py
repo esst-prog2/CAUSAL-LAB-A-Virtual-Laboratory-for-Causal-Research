@@ -506,9 +506,22 @@ def _predictions_step(state: dict, L) -> None:
 # --------------------------------------------------------------------------
 # Page
 # --------------------------------------------------------------------------
+MODEL_KINDS = ("continuous", "matrix")
+
+
 def render(L) -> None:
     st.title(f"🧮 {L('theory.title')}")
     st.caption(L("theory.intro"))
+    # The radio's own key is dropped when the page is left; theory_kind keeps the choice.
+    if "th_kind" not in st.session_state:
+        st.session_state["th_kind"] = st.session_state.get("theory_kind", "continuous")
+    kind = st.radio(L("theory.kind"), MODEL_KINDS, horizontal=True, key="th_kind",
+                    format_func=lambda k: L(f"theory.kind.{k}"),
+                    on_change=lambda: st.session_state.update(theory_kind=st.session_state["th_kind"]))
+    if kind == "matrix":
+        from ui.matrix_game_page import render as render_matrix
+        render_matrix(L)
+        return
     state = _state()
     tab1, tab2, tab3 = st.tabs([L("theory.tab_model"), L("theory.tab_equilibrium"), L("theory.tab_predictions")])
     with tab1:
