@@ -10,6 +10,8 @@ Three steps:
                            table, path chart and outcome curve.
   3. Predictions           treatment as a parameter shift, comparative
                            statics, and comparison with a causal estimate.
+  4. Structural estimation GMM on the model's first-order conditions
+                           (ui/estimation_page.py).
 
 State lives in `st.session_state.theory`; every widget key carries the
 model's signature, so switching models never reuses stale inputs. All
@@ -42,7 +44,7 @@ def _state() -> dict:
 
 
 def _reset_downstream(state: dict) -> None:
-    for k in ("values", "baseline", "equilibria", "table", "prediction", "curve", "solve_message"):
+    for k in ("values", "baseline", "equilibria", "table", "prediction", "curve", "solve_message", "gmm"):
         state.pop(k, None)
 
 
@@ -531,10 +533,14 @@ def render(L) -> None:
         (sequential_page.render_stackelberg if kind == "stackelberg" else sequential_page.render_bargaining)(L)
         return
     state = _state()
-    tab1, tab2, tab3 = st.tabs([L("theory.tab_model"), L("theory.tab_equilibrium"), L("theory.tab_predictions")])
+    tab1, tab2, tab3, tab4 = st.tabs([L("theory.tab_model"), L("theory.tab_equilibrium"), L("theory.tab_predictions"),
+                                      L("theory.tab_estimation")])
     with tab1:
         _model_step(state, L)
     with tab2:
         _equilibrium_step(state, L)
     with tab3:
         _predictions_step(state, L)
+    with tab4:
+        from ui.estimation_page import render_gmm
+        render_gmm(state, L)

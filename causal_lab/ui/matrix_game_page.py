@@ -1,7 +1,8 @@
 """
 Matrix games on the Theoretical Model page: catalogue or free payoff
 matrices, every Nash equilibrium (pure and mixed), and the logit quantal
-response equilibrium path.
+response equilibrium path, and the estimate of its precision lambda from
+observed choices (ui/estimation_page.py).
 """
 from __future__ import annotations
 
@@ -100,3 +101,6 @@ def render(L) -> None:
     fig.update_layout(xaxis_title="λ", yaxis_title=L("matrix.probability"), height=380, margin=dict(t=30, b=30))
     st.plotly_chart(fig, width="stretch")
     st.caption(L("matrix.qre_branch_note"))
+
+    from ui.estimation_page import render_qre_estimation
+    render_qre_estimation(game, L)

@@ -5,3 +5,4 @@ rdrobust==2.1.1
 pysyncon==1.7.0
 DoubleML==0.11.4
 pygambit==16.7.0
+linearmodels==7.1
