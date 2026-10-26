@@ -60,12 +60,20 @@ on screen     upload or generate → see the pre/post trend plot and the
 **Not this term:**
 - Fuzzy RD, robust bias-corrected RD inference, covariate-weighted synthetic control, and Monte Carlo / stress-test / code-generation support for the six additional methods (those pages remain DiD-only).
 - Mixed-strategy and sequential (Stackelberg, bargaining) equilibria, multidimensional strategies, and structural estimation (MLE/GMM) of the theoretical models; calibration is by explicit moments.
-- Report export (PDF/Word/LaTeX).
+- ~~Report export (PDF/Word/LaTeX).~~ Built on 2026-10-25, see below.
 - Connectors to external data sources (DHS, ACLED, WorldPop, etc.).
 - ~~Project persistence / saved sessions.~~ Built on 2026-10-25, see below.
 
 **Built anyway on 2026-10-25 (user decision).** The user chose to build the excluded features after all, knowing that this departs from the scope above and from the advice to stay on one method (issue #1). Each one is a separate pull request with its own OpenSpec change:
 - **Saving and opening projects** (Settings page). A `.causallab` file is a zip of a JSON manifest and Parquet datasets. It holds the research design, the Virtual Lab settings and ground truth, the real data, and every Causal Methods dataset and mapping. Results are recomputed on opening, and the Theoretical Model page is not saved. The file never leaves the computer, and nothing in it is pickled.
+- **Report export** (Report page): PDF, Word, LaTeX or Markdown, in the interface language. It contains:
+  - the question and design, the diagnosis and recommendation, and the data;
+  - DiD, the event study and, if staggered, Callaway & Sant'Anna, with the true effect for a Virtual World;
+  - Break My Design and robustness;
+  - the Causal Methods results already computed;
+  - the Python, R and Stata code.
+
+  Every number is recomputed by the engines, and the report has tables only, no charts. New dependencies: `python-docx` and `reportlab` (pure Python). The LaTeX output compiles with pdflatex, checked with MiKTeX.
 
 A person with a messy panel CSV and a treatment date can use this version alone: upload, see whether parallel trends look reasonable, get a DiD estimate. Nothing else needs to exist for that to be useful — everything above it is additional, not a prerequisite for it.
 
