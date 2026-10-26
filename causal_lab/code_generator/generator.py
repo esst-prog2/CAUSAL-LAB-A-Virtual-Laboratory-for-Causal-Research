@@ -49,9 +49,15 @@ formula = "{p.outcome_col} ~ {p.treatment_col} + C({p.unit_col}) + C({p.time_col
 model = smf.ols(formula, data=df)
 fitted = model.fit(cov_type="cluster", cov_kwds={{"groups": df["{p.cluster()}"]}})
 
+# {t("gen.nested_fe", lang)}
+se = fitted.bse["{p.treatment_col}"]
+if df.groupby("{p.unit_col}", observed=True)["{p.cluster()}"].nunique().max() == 1:
+    n, k, u = fitted.nobs, len(fitted.params), df["{p.unit_col}"].nunique()
+    se *= ((n - k) / (n - k + u - 1)) ** 0.5
+
 print(fitted.summary())
 print("\\n{t("gen.att_label", lang)}:", fitted.params["{p.treatment_col}"])
-print("{t("gen.se_label", lang)}:", fitted.bse["{p.treatment_col}"])
+print("{t("gen.se_label", lang)}:", se)
 '''
 
 

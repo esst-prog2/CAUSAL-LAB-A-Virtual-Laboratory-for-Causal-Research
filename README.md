@@ -58,7 +58,7 @@ on screen     upload or generate → see the pre/post trend plot and the
   - **Prediction.** A treatment is modelled as a parameter shift, and the predicted effect is compared with a causal estimate (verdict: consistent / magnitude differs / sign contradicts).
 
 **Not this term:**
-- Fuzzy RD, robust bias-corrected RD inference, covariate-weighted synthetic control, and Monte Carlo / stress-test / code-generation support for the six additional methods (those pages remain DiD-only).
+- Fuzzy RD, robust bias-corrected RD inference, covariate-weighted synthetic control, and ~~Monte Carlo / stress-test / code-generation support for the six additional methods (those pages remain DiD-only)~~ (that support was built on 2026-10-25, see below).
 - Mixed-strategy and sequential (Stackelberg, bargaining) equilibria, multidimensional strategies, and structural estimation (MLE/GMM) of the theoretical models; calibration is by explicit moments.
 - ~~Report export (PDF/Word/LaTeX).~~ Built on 2026-10-25, see below.
 - Connectors to external data sources (DHS, ACLED, WorldPop, etc.).
@@ -73,7 +73,28 @@ on screen     upload or generate → see the pre/post trend plot and the
   - the Causal Methods results already computed;
   - the Python, R and Stata code.
 
-  Every number is recomputed by the engines, and the report has tables only, no charts. New dependencies: `python-docx` and `reportlab` (pure Python). The LaTeX output compiles with pdflatex, checked with MiKTeX.
+  Every number is recomputed by the engines, and the report has tables only, no charts.
+- **Monte Carlo, Break My Design and code for the six Causal Methods**: three tabs under each result on the Causal Methods page.
+  - *Monte Carlo* on the method's virtual world. On the default worlds (200 replications, 30 for DML) every method has 93–96% CI coverage and a bias below 0.03.
+  - *Break My Design*, one set of checks per method:
+    - RCT: joint balance test, arm size;
+    - Matching: support, balance after matching, extreme scores, agreement with IPW;
+    - IV: F ≥ 10, robust overidentification;
+    - RDD: manipulation, Hausman-type bandwidth comparison, placebo cutoffs;
+    - Synthetic control: pre-fit, leave-one-out donor, in-time placebo;
+    - DML: treatment predictability, stability across sample splits.
+
+    Each check was calibrated before release (`spike/method_calibration_results.md`): false alarms are 0–13.5% on 200 default worlds. Four first-draft rules of thumb fired on 26–94% of clean worlds and were replaced by tests. Three limits remain:
+    - the synthetic-control permutation test of the default world is itself anti-conservative (p = 1/21 occurs 9.5% of the time instead of 4.8%), so the in-time placebo uses p < 0.05;
+    - the RCT balance test over-rejects with 40 observations (23%);
+    - RDD curvature is detected on only 26.5% of worlds.
+  - *Code* in Python, R and Stata with the reference packages, using the page's mapping. Every Python and R script was run, and its header states the measured agreement:
+    - exact for RCT, Matching and IV in both languages, and for DML in Python;
+    - RDD standard error within 0.01%;
+    - synthetic control within 0.01% (pysyncon) or 0.1% (R Synth);
+    - R DoubleML about 1.4 SE away (other forests and folds);
+    - Stata not checked.
+  - *Fixed on the way:* the DiD Python script printed statsmodels' default clustered SE, 1.91 on Card & Krueger instead of the app's 1.34. It now applies the same nested-fixed-effects correction. New dependencies: `python-docx` and `reportlab` (pure Python). The LaTeX output compiles with pdflatex, checked with MiKTeX.
 
 A person with a messy panel CSV and a treatment date can use this version alone: upload, see whether parallel trends look reasonable, get a DiD estimate. Nothing else needs to exist for that to be useful — everything above it is additional, not a prerequisite for it.
 

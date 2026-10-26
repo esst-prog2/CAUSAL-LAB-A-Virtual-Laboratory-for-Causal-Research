@@ -15,7 +15,7 @@ engines' own message keys).
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, fields
+from dataclasses import asdict, dataclass, fields
 from typing import Callable
 
 import numpy as np
@@ -24,12 +24,10 @@ import plotly.graph_objects as go
 import streamlit as st
 
 from estimators.common import Z_95, MethodResult
-from estimators.dml import estimate_dml
-from estimators.iv import estimate_iv
-from estimators.matching import estimate_matching
-from estimators.rct import estimate_rct
-from estimators.rdd import estimate_rdd
-from estimators.synthetic_control import estimate_synthetic_control
+from code_generator.methods import code_options, generate_method_code
+from estimators.registry import run_method, virtual_options
+from robustness_engine.method_stress import run_method_stress_test
+from simulation_engine.method_monte_carlo import run_method_monte_carlo
 from simulation_engine import method_worlds as mw
 from utils.column_mapping import METHOD_ROLES, prepare_mapped_frame, validate_mapping
 from ui.page_text import F, R, error_text
@@ -85,32 +83,6 @@ def _state(method: str) -> dict:
                                      "file_id": None})
 
 
-def _virtual_options(method: str, truth: dict) -> dict:
-    roles = truth["roles"]
-    if method == "rdd":
-        return {"cutoff": roles["cutoff"], "bandwidth": None}
-    if method == "synthetic_control":
-        return {"treated_unit": roles["treated_unit"], "treatment_period": roles["treatment_period"]}
-    return {}
-
-
-def _run_estimator(method: str, df: pd.DataFrame, m: dict, options: dict) -> MethodResult:
-    if method == "rct":
-        return estimate_rct(df, m["outcome"], m["treatment"], m.get("covariates"))
-    if method == "matching":
-        return estimate_matching(df, m["outcome"], m["treatment"], m.get("covariates"))
-    if method == "iv":
-        return estimate_iv(df, m["outcome"], m["treatment"], m.get("instruments"), m.get("controls"))
-    if method == "rdd":
-        return estimate_rdd(df, m["outcome"], m["running"], options["cutoff"], options.get("bandwidth"))
-    if method == "synthetic_control":
-        return estimate_synthetic_control(df, m["unit"], m["period"], m["outcome"],
-                                          options["treated_unit"], options["treatment_period"])
-    if method == "dml":
-        return estimate_dml(df, m["outcome"], m["treatment"], m.get("covariates"))
-    raise KeyError(method)
-
-
 # --------------------------------------------------------------------------
 # Data input
 # --------------------------------------------------------------------------
@@ -129,13 +101,15 @@ def _virtual_world_inputs(method: str, spec: MethodSpec, state: dict, L) -> None
 
     if st.button(f"⚗️ {L('methods.generate')}", type="primary", key=f"mw_{method}_generate"):
         valid_fields = {f.name for f in fields(spec.config_cls)}
+        config = spec.config_cls(**{k: v for k, v in values.items() if k in valid_fields})
         try:
-            df, truth = spec.world(spec.config_cls(**{k: v for k, v in values.items() if k in valid_fields}))
+            df, truth = spec.world(config)
         except LocalizedError as exc:
             st.error(error_text(exc))
             return
-        state.update(df=df, truth=truth, mapping=dict(truth["roles"]), options=_virtual_options(method, truth),
-                     source="virtual", result=None, error=None, dropped=0)
+        state.update(df=df, truth=truth, mapping=dict(truth["roles"]), options=virtual_options(method, truth),
+                     source="virtual", result=None, error=None, dropped=0, config=asdict(config),
+                     stress=None, mc=None)
         st.success(F("methods.generated", rows=len(df), estimand=truth["estimand"], value=truth["true_effect"]))
 
 
@@ -379,8 +353,8 @@ def render(L) -> None:
     if st.button(f"▶️ {L('methods.estimate')}", type="primary", key=f"mw_{method}_run"):
         with st.spinner(L("methods.estimating")):
             try:
-                state.update(result=_run_estimator(method, state["df"], state["mapping"], state["options"]),
-                             error=None)
+                state.update(result=run_method(method, state["df"], state["mapping"], state["options"]),
+                             error=None, stress=None)
             except LocalizedError as exc:
                 state.update(result=None, error=exc.msg)
             except ValueError as exc:
@@ -396,3 +370,104 @@ def render(L) -> None:
     _plots(method, result, state, L)
     with st.expander(L("methods.technical_summary")):
         st.code("\n".join(R(line) for line in result.summary_lines), language="text")
+
+    st.divider()
+    tab_stress, tab_mc, tab_code = st.tabs([f"💥 {L('methods.stress_title')}", f"🎲 {L('methods.mc_title')}",
+                                            f"💻 {L('methods.code_title')}"])
+    with tab_stress:
+        _stress_section(method, state, result, L)
+    with tab_mc:
+        _monte_carlo_section(method, state, L)
+    with tab_code:
+        _code_section(method, state, result, L)
+
+
+# --------------------------------------------------------------------------
+# Break My Design, Monte Carlo and code for the six methods
+# --------------------------------------------------------------------------
+# Seconds per replication on the default worlds (IPW bootstrap skipped).
+MC_SECONDS = {"rct": 0.01, "matching": 0.02, "iv": 0.07, "rdd": 0.01, "synthetic_control": 0.16, "dml": 4.6}
+MC_DEFAULT_REPS = {"rct": 200, "matching": 200, "iv": 200, "rdd": 200, "synthetic_control": 100, "dml": 10}
+STRESS_STYLE = {"PASS": ("✓", st.success), "WARNING": ("⚠", st.warning), "N/A": ("–", st.info)}
+LANGUAGES = (("python", "Python", "py"), ("r", "R", "R"), ("stata", "Stata", "do"))
+
+
+def _stress_section(method: str, state: dict, result: MethodResult, L) -> None:
+    if st.button(f"💥 {L('methods.stress_run')}", key=f"mw_{method}_stress"):
+        with st.spinner(L("methods.estimating")):
+            try:
+                state["stress"] = run_method_stress_test(method, state["df"], state["mapping"], state["options"],
+                                                         result)
+            except LocalizedError as exc:
+                st.error(error_text(exc))
+    report = state.get("stress")
+    if report is None:
+        return
+    for check in report.checks:
+        icon, show = STRESS_STYLE[check.verdict]
+        show(f"**{L(f'mcheck.{check.slug}')}** {icon} {L(f'verdict.{check.verdict}')} — {R(check.message)}")
+    if report.identification_strength is None:
+        st.info(L("break.no_score"))
+    else:
+        st.progress(report.identification_strength / 100)
+        st.markdown(f"### {report.identification_strength:.0f} / 100")
+        st.caption(F("break.score_basis", k=report.n_computable, n=len(report.checks)))
+    st.caption(L("break.disclaimer"))
+
+
+def _size_factor(method: str, config) -> float:
+    """Runtime grows roughly with the sample size relative to the default world."""
+    field = "n_donors" if method == "synthetic_control" else "n"
+    default = getattr(METHODS[method].config_cls(), field)
+    return max(getattr(config, field) / default, 0.1)
+
+
+def _monte_carlo_section(method: str, state: dict, L) -> None:
+    if state["source"] != "virtual" or not state.get("config"):
+        st.info(L("methods.mc_only_virtual"))
+        return
+    config = METHODS[method].config_cls(**state["config"])
+    st.caption(F("methods.mc_intro", seed=config.seed))
+    reps = int(st.number_input(L("methods.mc_reps"), min_value=2, max_value=2000, value=MC_DEFAULT_REPS[method],
+                               step=1, key=f"mw_{method}_mc_reps"))
+    st.caption(F("methods.mc_time", seconds=reps * MC_SECONDS[method] * _size_factor(method, config)))
+    if st.button(f"🎲 {L('methods.mc_run')}", key=f"mw_{method}_mc_run"):
+        bar = st.progress(0.0)
+        try:
+            state["mc"] = run_method_monte_carlo(method, config, n_reps=reps, base_seed=config.seed,
+                                                 progress=lambda done, total: bar.progress(done / total))
+        except LocalizedError as exc:
+            st.error(error_text(exc))
+    mc = state.get("mc")
+    if mc is None:
+        return
+    st.success(F("methods.mc_done", reps=mc.n_reps, failed=mc.n_failed))
+    c1, c2, c3, c4 = st.columns(4)
+    c1.metric(L("common.bias"), f"{mc.bias:+.4f}")
+    c2.metric(L("common.rmse"), f"{mc.rmse:.4f}")
+    c3.metric(L("common.coverage"), "—" if mc.coverage is None else f"{mc.coverage:.1%}")
+    c4.metric(L("methods.mc_rejection"), f"{mc.rejection_rate:.1%}")
+    c1, c2, c3 = st.columns(3)
+    c1.metric(L("methods.true_effect"), f"{mc.true_effect:.4f}")
+    c2.metric(L("common.ci_length"), "—" if mc.avg_ci_length is None else f"{mc.avg_ci_length:.4f}")
+    c3.metric(L("methods.mc_se_ratio"), "—" if mc.se_ratio is None else f"{mc.se_ratio:.3f}")
+    fig = go.Figure(go.Histogram(x=mc.estimates, nbinsx=40, name=L("common.estimate")))
+    fig.add_vline(x=mc.true_effect, line_dash="dash", line_color="green", annotation_text=L("methods.true_effect"))
+    fig.update_layout(title=L("methods.mc_hist"), xaxis_title=L("methods.effect"), height=320,
+                      margin=dict(t=50, b=30))
+    st.plotly_chart(fig, width="stretch")
+
+
+def _code_section(method: str, state: dict, result: MethodResult, L) -> None:
+    st.caption(L("methods.code_caption"))
+    path = st.text_input(L("code.data_path"), value=f"{method}.csv", key=f"mw_{method}_code_path")
+    code = generate_method_code(method, state["mapping"],
+                                code_options(method, state["df"], state["mapping"], state["options"], result),
+                                data_path=path, lang=st.session_state.lang)
+    st.download_button(F("code.download", language="CSV"), state["df"].to_csv(index=False), path,
+                       key=f"mw_{method}_code_csv")
+    for tab, (language, label, ext) in zip(st.tabs([label for _, label, _ in LANGUAGES]), LANGUAGES):
+        with tab:
+            st.code(code[language], language=language)
+            st.download_button(F("code.download", language=label), code[language], f"causal_lab_{method}.{ext}",
+                               key=f"mw_{method}_code_{language}")
