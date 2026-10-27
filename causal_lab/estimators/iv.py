@@ -34,6 +34,11 @@ def estimate_iv(df: pd.DataFrame, outcome_col: str = "Y", treatment_col: str = "
     data = df[[outcome_col, treatment_col] + instrument_cols + control_cols].dropna().astype(float)
     if data[treatment_col].nunique() < 2:
         raise LocalizedError("err.no_variation", column=treatment_col)
+    # Constant, treatment and controls are estimated; with no residual degree
+    # of freedom the robust covariance divides by zero.
+    minimum = len(control_cols) + max(len(instrument_cols), 1) + 2
+    if len(data) <= minimum:
+        raise LocalizedError("err.iv_too_few", n=len(data), minimum=minimum + 1)
 
     exog = sm.add_constant(data[control_cols], has_constant="add")
     fitted = IV2SLS(data[outcome_col], exog, data[[treatment_col]], data[instrument_cols]).fit(cov_type="robust")

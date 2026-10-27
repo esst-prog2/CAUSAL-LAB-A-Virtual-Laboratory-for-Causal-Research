@@ -31,3 +31,12 @@ def invalid_required_columns(df: pd.DataFrame) -> list[str]:
 def missing_required_columns(df: pd.DataFrame) -> list[str]:
     """Return the required columns absent from `df`, in canonical order."""
     return [c for c in REQUIRED_COLUMNS if c not in df.columns]
+
+
+def drop_incomplete_rows(df: pd.DataFrame) -> tuple[pd.DataFrame, int]:
+    """Leave out rows with a missing unit, period or outcome, as the other
+    estimators do (listwise deletion), and say how many. Missing values in
+    the 0/1 indicators are refused instead (invalid_required_columns): a
+    missing treatment status is not something to guess."""
+    keep = df[["unit", "period", "Y"]].notna().all(axis=1)
+    return df[keep].reset_index(drop=True), int((~keep).sum())

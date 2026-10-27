@@ -89,7 +89,9 @@ def validate_mapping(df: pd.DataFrame, method: str, mapping: dict) -> list[Msg]:
             if col in used:
                 problems.append(Msg("mapping.already_used", role=role.label, column=col, other=used[col]))
             used.setdefault(col, role.label)
-            if role.numeric and not pd.api.types.is_numeric_dtype(df[col]):
+            if df[col].isna().all():
+                problems.append(Msg("mapping.all_missing", role=role.label, column=col))
+            elif role.numeric and not pd.api.types.is_numeric_dtype(df[col]):
                 problems.append(Msg("mapping.not_numeric", role=role.label, column=col))
     return problems
 
