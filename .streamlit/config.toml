@@ -1,0 +1,47 @@
+# Streamlit settings for the public online demo on Streamlit Community Cloud,
+# which reads only this file at the repository root (it ignores
+# causal_lab/.streamlit/config.toml).
+#
+# Running the app on your own computer uses causal_lab/.streamlit/config.toml
+# instead (start it from causal_lab/, as README section 6 says): that file also
+# makes the server listen on this machine only and turns off usage statistics.
+# Online, the host serves the app and sets those itself.
+#
+# The appearance below is a copy of causal_lab/.streamlit/config.toml;
+# tests/test_streamlit_config.py checks that the two stay the same.
+
+[client]
+# No "Deploy" button or developer menu for visitors.
+toolbarMode = "minimal"
+
+# Appearance. Only fonts bundled with Streamlit are used: nothing is
+# loaded from the network (tests/test_streamlit_config.py checks it).
+[theme]
+baseRadius = "0.6rem"
+showSidebarBorder = true
+metricValueFontSize = "1.9rem"
+metricValueFontWeight = 600
+headingFontWeights = [700, 650, 600]
+chartCategoricalColors = ["#3451B2", "#E07B39", "#2E9E83", "#C2416B", "#7A5AC8", "#8A94A6"]
+
+[theme.light]
+primaryColor = "#3451B2"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F3F5FA"
+textColor = "#1B2333"
+borderColor = "#DDE2EC"
+linkColor = "#3451B2"
+
+[theme.light.sidebar]
+backgroundColor = "#F6F7FB"
+
+[theme.dark]
+primaryColor = "#4F68DF"
+backgroundColor = "#0F1420"
+secondaryBackgroundColor = "#1A2132"
+textColor = "#E6E9F0"
+borderColor = "#2A3348"
+linkColor = "#8DA2FB"
+
+[theme.dark.sidebar]
+backgroundColor = "#141A28"

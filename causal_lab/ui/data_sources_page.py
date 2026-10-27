@@ -16,6 +16,7 @@ from data_connectors.dhs import COMMON_INDICATORS, fetch_dhs_indicators
 from data_connectors.worldpop import LEVELS, YEARS, fetch_worldpop_population
 from estimators.registry import METHOD_KEYS
 from ui.page_text import F, error_text
+from utils import deployment
 from utils.i18n import LocalizedError
 
 SECONDS_PER_WORLDPOP_REQUEST = 6        # measured: 10 requests, 4 at a time, 58 s
@@ -67,6 +68,8 @@ def render(L) -> None:
         st.info(L("sources.disabled"))
         return
     st.warning(L("sources.network_note"))
+    if deployment.running_online():
+        st.warning(L("online.connectors_note"))
     tab_dhs, tab_wp, tab_acled = st.tabs(["DHS", "WorldPop", "ACLED"])
 
     with tab_dhs:

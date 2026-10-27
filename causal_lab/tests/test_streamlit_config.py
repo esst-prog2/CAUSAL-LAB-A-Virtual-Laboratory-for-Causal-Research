@@ -16,6 +16,7 @@ from utils.i18n import t
 
 APP_DIR = Path(__file__).resolve().parent.parent
 CONFIG = APP_DIR / ".streamlit" / "config.toml"
+ONLINE_CONFIG = APP_DIR.parent / ".streamlit" / "config.toml"     # read by Streamlit Community Cloud
 
 
 def test_server_listens_on_this_machine_only_and_sends_no_usage_statistics():
@@ -53,8 +54,21 @@ def test_the_promises_these_settings_protect_are_still_made():
     assert "no data is sent anywhere" in t("settings.build_note", "en")
 
 
+
+def test_the_online_demo_looks_the_same_and_loads_nothing_from_the_network():
+    # Community Cloud reads only the repository-root config. It must give the
+    # online demo the same appearance, and add nothing else: no server or
+    # browser settings (the host sets those) and no URL.
+    app = tomllib.loads(CONFIG.read_text(encoding="utf-8"))
+    online = tomllib.loads(ONLINE_CONFIG.read_text(encoding="utf-8"))
+    assert set(online) == {"client", "theme"}
+    assert online["client"] == app["client"] and online["theme"] == app["theme"]
+    assert not [v for v in _values(online) if isinstance(v, str) and "://" in v]
+
+
 if __name__ == "__main__":
     test_server_listens_on_this_machine_only_and_sends_no_usage_statistics()
     test_the_theme_loads_nothing_from_the_network()
+    test_the_online_demo_looks_the_same_and_loads_nothing_from_the_network()
     test_the_promises_these_settings_protect_are_still_made()
     print("test_streamlit_config: OK")

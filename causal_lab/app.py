@@ -46,7 +46,7 @@ from ui.page_text import F, R, error_text
 from ui.theory_page import render as render_theory_page
 from utils.i18n import LocalizedError, t, tf
 from utils.project_file import EXTENSION, apply_project, load_project, project_file_name, save_project
-from utils import session_data
+from utils import deployment, session_data
 from utils.real_data import load_card_krueger
 from utils.validation import (INDICATOR_COLUMNS, REQUIRED_COLUMNS, drop_incomplete_rows, invalid_required_columns,
                               missing_required_columns)
@@ -200,7 +200,10 @@ with st.sidebar:
     page = st.session_state.page
 
     st.divider()
-    st.caption(f"🔒 {L('settings.local_mode_note')}")
+    if deployment.running_online():
+        st.caption(f"🌐 {L('online.sidebar_note')}")
+    else:
+        st.caption(f"🔒 {L('settings.local_mode_note')}")
 
 # --------------------------------------------------------------------------
 # DASHBOARD
@@ -701,8 +704,11 @@ elif page == "settings":
     st.title(f"⚙️ {L('nav.settings')}")
     st.subheader(L("settings.language"))
     st.write(F("settings.current_language", language=st.session_state.lang.upper()))
-    st.info(L("settings.local_mode_note"))
-    st.caption(L("settings.build_note"))
+    if deployment.running_online():
+        st.warning(L("online.settings_note"))
+    else:
+        st.info(L("settings.local_mode_note"))
+        st.caption(L("settings.build_note"))
 
     st.divider()
     st.subheader(f"🌍 {L('settings.connectors')}")
