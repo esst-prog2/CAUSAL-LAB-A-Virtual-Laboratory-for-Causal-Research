@@ -20,10 +20,31 @@ CONFIG = APP_DIR / ".streamlit" / "config.toml"
 
 def test_server_listens_on_this_machine_only_and_sends_no_usage_statistics():
     config = tomllib.loads(CONFIG.read_text(encoding="utf-8"))
-    assert config["server"]["address"] == "localhost"
-    assert config["browser"]["gatherUsageStats"] is False
-    # Only these two settings are overridden; the others stay at Streamlit's defaults.
-    assert config == {"server": {"address": "localhost"}, "browser": {"gatherUsageStats": False}}
+    # Server and browser: only these two settings are overridden.
+    assert config["server"] == {"address": "localhost"}
+    assert config["browser"] == {"gatherUsageStats": False}
+    # Everything else is appearance: no toolbar, and the theme.
+    assert set(config) == {"server", "browser", "client", "theme"}
+    assert config["client"] == {"toolbarMode": "minimal"}
+
+
+def _values(node):
+    if isinstance(node, dict):
+        for value in node.values():
+            yield from _values(value)
+    elif isinstance(node, list):
+        for value in node:
+            yield from _values(value)
+    else:
+        yield node
+
+
+def test_the_theme_loads_nothing_from_the_network():
+    # A font or image given by URL would make every visitor's browser fetch it,
+    # contradicting "no data is sent anywhere". Only bundled fonts are used.
+    config = tomllib.loads(CONFIG.read_text(encoding="utf-8"))
+    assert not [v for v in _values(config) if isinstance(v, str) and "://" in v]
+    assert "font" not in config["theme"] and "fontFaces" not in config["theme"]
 
 
 def test_the_promises_these_settings_protect_are_still_made():
@@ -34,5 +55,6 @@ def test_the_promises_these_settings_protect_are_still_made():
 
 if __name__ == "__main__":
     test_server_listens_on_this_machine_only_and_sends_no_usage_statistics()
+    test_the_theme_loads_nothing_from_the_network()
     test_the_promises_these_settings_protect_are_still_made()
     print("test_streamlit_config: OK")

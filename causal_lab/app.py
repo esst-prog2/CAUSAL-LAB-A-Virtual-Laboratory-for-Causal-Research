@@ -41,6 +41,7 @@ from simulation_engine.dgp import VirtualWorldConfig, generate
 from simulation_engine.monte_carlo import run_monte_carlo
 from ui.data_sources_page import render as render_data_sources_page
 from ui.methods_page import render as render_methods_page
+from ui import style
 from ui.page_text import F, R, error_text
 from ui.theory_page import render as render_theory_page
 from utils.i18n import LocalizedError, t, tf
@@ -93,10 +94,6 @@ LEVELS = ["none", "low", "medium", "high", "severe"]
 
 def L(key: str) -> str:
     return t(key, lang)
-
-
-def yes_no(flag: bool) -> str:
-    return L("common.yes") if flag else L("common.no")
 
 
 def go_to(page_id: str) -> None:
@@ -175,13 +172,15 @@ LEVEL_COLOR = {
 # --------------------------------------------------------------------------
 # Sidebar navigation
 # --------------------------------------------------------------------------
+style.inject({section: L(f"nav.group.{section}") for section, _ in style.NAV_SECTIONS}, PAGES)
+
 with st.sidebar:
     st.markdown(f"## 🔬 {L('app.title')}")
     st.caption(L("app.subtitle"))
 
     lang_choice = st.radio("🇫🇷 FR | 🇬🇧 EN", ["en", "fr"],
                             index=0 if lang == "en" else 1, horizontal=True,
-                            label_visibility="collapsed")
+                            label_visibility="collapsed", format_func=str.upper)
     if lang_choice != st.session_state.lang:
         st.session_state.lang = lang_choice
         st.rerun()
@@ -189,8 +188,9 @@ with st.sidebar:
     # Page ids (not translated labels) are the radio values, so the
     # selected page survives a language switch and can be set by the
     # dashboard shortcuts.
-    st.radio("Navigation", PAGES, key="page", format_func=lambda p: L(f"nav.{p}"),
-             label_visibility="collapsed")
+    with st.container(key="nav"):
+        st.radio("Navigation", PAGES, key="page", format_func=lambda p: f"{style.PAGE_ICONS[p]}  {L(f'nav.{p}')}",
+                 label_visibility="collapsed")
     page = st.session_state.page
 
     st.divider()
@@ -200,19 +200,21 @@ with st.sidebar:
 # DASHBOARD
 # --------------------------------------------------------------------------
 if page == "dashboard":
-    st.title(f"🔬 {L('app.title')}")
-    st.subheader(L("app.subtitle"))
-    st.markdown(f"**{L('app.tagline')}**")
-    st.markdown(f"> {L('home.mission')}")
+    style.hero(L("app.title"), L("app.subtitle"), L("app.tagline"), L("home.mission"))
 
-    c1, c2, c3, c4 = st.columns(4)
-    c1.metric(L("home.metric.question"), yes_no(bool(st.session_state.design.research_question)))
-    c2.metric(L("home.metric.diagnosis"), yes_no(st.session_state.diagnosis is not None))
-    c3.metric(L("home.metric.recommendations"),
-              len(st.session_state.recommendations) if st.session_state.recommendations else 0)
-    c4.metric(L("home.metric.dataset"), yes_no(active_df() is not None))
+    n_recommendations = len(st.session_state.recommendations or [])
+    progress = [
+        (L("home.metric.question"), bool(st.session_state.design.research_question), None),
+        (L("home.metric.diagnosis"), st.session_state.diagnosis is not None, None),
+        (L("home.metric.recommendations"), n_recommendations > 0, n_recommendations),
+        (L("home.metric.dataset"), active_df() is not None, None),
+    ]
+    style.progress_cards(L("home.progress_title"), [
+        (F("home.step", n=i), name, done,
+         str(count) if count else L("home.status.done") if done else L("home.status.todo"))
+        for i, (name, done, count) in enumerate(progress, start=1)])
 
-    st.divider()
+    st.write("")
     cols = st.columns(4)
     cols[0].button(f"📝 {L('home.start_project')}", width="stretch",
                    on_click=go_to, args=("research_question",))
