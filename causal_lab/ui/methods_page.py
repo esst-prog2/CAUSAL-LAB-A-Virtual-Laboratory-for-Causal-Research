@@ -32,7 +32,7 @@ from simulation_engine.method_monte_carlo import run_method_monte_carlo
 from simulation_engine import method_worlds as mw
 from utils.column_mapping import METHOD_ROLES, prepare_mapped_frame, validate_mapping
 from ui.page_text import F, R, error_text
-from utils.i18n import LocalizedError
+from utils.i18n import LocalizedError, Msg
 
 
 @dataclass(frozen=True)
@@ -384,8 +384,8 @@ def render(L) -> None:
                              error=None, stress=None)
             except LocalizedError as exc:
                 state.update(result=None, error=exc.msg)
-            except ValueError as exc:
-                state.update(result=None, error=str(exc))
+            except Exception as exc:              # a library refusing these data
+                state.update(result=None, error=Msg("methods.failed", detail=_detail(exc)))
 
     if state["error"]:
         st.error(R(state["error"]))
@@ -419,6 +419,12 @@ STRESS_STYLE = {"PASS": ("✓", st.success), "WARNING": ("⚠", st.warning), "N/
 LANGUAGES = (("python", "Python", "py"), ("r", "R", "R"), ("stata", "Stata", "do"))
 
 
+def _detail(exc: Exception) -> str:
+    """One line of technical detail for an unexpected library error."""
+    text = str(exc).strip().splitlines()[0] if str(exc).strip() else ""
+    return f"{type(exc).__name__}: {text}"[:200] if text else type(exc).__name__
+
+
 def _stress_section(method: str, state: dict, result: MethodResult, L) -> None:
     if st.button(f"💥 {L('methods.stress_run')}", key=f"mw_{method}_stress"):
         with st.spinner(L("methods.estimating")):
@@ -427,6 +433,8 @@ def _stress_section(method: str, state: dict, result: MethodResult, L) -> None:
                                                          result)
             except LocalizedError as exc:
                 st.error(error_text(exc))
+            except Exception as exc:              # a library refusing these data
+                st.error(F("methods.failed", detail=_detail(exc)))
     report = state.get("stress")
     if report is None:
         return

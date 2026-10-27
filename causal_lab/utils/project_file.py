@@ -30,6 +30,7 @@ import pandas as pd
 from causal_engine.diagnosis import ResearchDesignInput
 from simulation_engine.dgp import VirtualWorldConfig
 from utils.i18n import LocalizedError, Msg
+from utils.validation import drop_incomplete_rows, invalid_required_columns, missing_required_columns
 
 FORMAT = "causal-lab-project"
 VERSION = 1
@@ -180,6 +181,15 @@ def load_project(content: bytes) -> dict:
             except Exception as exc:       # pyarrow raises several types for a damaged file
                 raise LocalizedError("err.project_invalid", detail=f"{member}: {exc}") from None
 
+        def panel(name: str) -> pd.DataFrame:
+            """A panel dataset, checked like an uploaded CSV: a file edited by
+            hand or made elsewhere must not reach the estimators unchecked."""
+            df = dataset(name)
+            bad = missing_required_columns(df) or invalid_required_columns(df)
+            if bad:
+                raise LocalizedError("err.project_invalid", detail=f"data/{name}.parquet: {', '.join(bad)}")
+            return drop_incomplete_rows(df)[0]
+
         state = {
             "lang": manifest.get("lang") if manifest.get("lang") in ("en", "fr") else "en",
             "page": manifest.get("page", "dashboard"),
@@ -191,11 +201,11 @@ def load_project(content: bytes) -> dict:
             "method_data": {},
         }
         if manifest.get("virtual"):
-            state["virtual_df"] = dataset("virtual")
+            state["virtual_df"] = panel("virtual")
             state["virtual_truth"] = _decode(manifest["virtual"].get("truth"))
             state["virtual_cfg"] = _dataclass_from(VirtualWorldConfig, manifest["virtual"].get("config"))
         if manifest.get("uploaded"):
-            state["uploaded_df"] = dataset("uploaded")
+            state["uploaded_df"] = panel("uploaded")
             state["uploaded_file_id"] = manifest["uploaded"].get("file_id")
         for method, data in (manifest.get("methods") or {}).items():
             entry = {k: _decode(data.get(k)) for k in METHOD_FIELDS}

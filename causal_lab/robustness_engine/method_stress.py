@@ -89,7 +89,10 @@ def _rct(df, m, result: MethodResult) -> list[MethodCheck]:
     data = df[[m["outcome"], m["treatment"]] + covariates].dropna()
     # A joint test, not a per-covariate |SMD| > 0.1 rule: in a truly randomized
     # sample of 500 that rule fired on 55% of worlds by chance alone.
-    if covariates:
+    if covariates and len(data) <= len(covariates) + 2:
+        # The Wald test needs residual degrees of freedom beyond the slopes.
+        balance = _na("rct_balance", "too_few", n=len(data), k=len(covariates))
+    elif covariates:
         p = _wald_p(data[m["treatment"]].to_numpy(float), data[covariates].to_numpy(float))
         balance = _check("rct_balance", p < LEVEL, p_value=p, p=p)
     else:

@@ -38,6 +38,13 @@ _BASE_CSS = """
 }
 [data-testid="stMetricLabel"] { opacity: 0.8; }
 
+/* Button labels wrap instead of being cut with an ellipsis (long French labels) */
+[data-testid="stMain"] button [data-testid="stMarkdownContainer"],
+[data-testid="stMain"] button [data-testid="stMarkdownContainer"] p {
+  white-space: normal !important; text-overflow: clip !important; overflow: visible !important;
+}
+[data-testid="stMain"] button { height: auto; min-height: 2.5rem; }
+
 /* Sidebar navigation: a list of links, not radio buttons.
    In Streamlit 1.64 each option is a div with data-selected, holding the
    stRadioOption label. (No markup in these comments: st.html sanitizes it.) */
@@ -68,7 +75,9 @@ _BASE_CSS = """
 
 /* Dashboard progress cards */
 .cl-steps-title { font-weight: 700; margin: 1.6rem 0 0.6rem; }
-.cl-steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 0.8rem; }
+.cl-steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.8rem; }
+@media (max-width: 1180px) { .cl-steps { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 520px) { .cl-steps { grid-template-columns: 1fr; } }
 .cl-step {
   border: 1px solid rgba(127, 140, 170, 0.3); border-radius: 0.8rem; padding: 0.85rem 1rem;
 }

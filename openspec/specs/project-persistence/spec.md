@@ -29,3 +29,10 @@ The system SHALL let the researcher open a `.causallab` file from the Settings p
 #### Scenario: A file that is not a valid project
 - **WHEN** the opened file is not a zip archive, has no `manifest.json` or another format, has a damaged manifest or dataset, lacks a dataset the manifest names, comes from a newer format version, or unpacks to more than 1 GB
 - **THEN** the system leaves the current project unchanged and shows an error that names the reason
+
+### Requirement: Opened panels are checked like uploads
+The system SHALL check the panel datasets of an opened project file as it checks an uploaded CSV. A panel that lacks a required column, or whose indicators are not 0/1, SHALL make the file be refused with the reason. Rows with a missing unit, period or outcome SHALL be left out.
+
+#### Scenario: A hand-edited project without treated_unit
+- **WHEN** the researcher opens a project file whose uploaded panel has no treated_unit column
+- **THEN** the file is refused, the message names the column, and the current project is kept

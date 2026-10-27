@@ -48,7 +48,8 @@ from utils.i18n import LocalizedError, t, tf
 from utils.project_file import EXTENSION, apply_project, load_project, project_file_name, save_project
 from utils import session_data
 from utils.real_data import load_card_krueger
-from utils.validation import INDICATOR_COLUMNS, REQUIRED_COLUMNS, invalid_required_columns, missing_required_columns
+from utils.validation import (INDICATOR_COLUMNS, REQUIRED_COLUMNS, drop_incomplete_rows, invalid_required_columns,
+                              missing_required_columns)
 
 st.set_page_config(page_title="CAUSAL LAB", page_icon="🔬", layout="wide")
 
@@ -117,28 +118,33 @@ def option_select(container, label_key: str, options: list[str], current: str) -
     return container.selectbox(L(label_key), options, index=index, format_func=lambda o: L(f"opt.{o}"))
 
 
-@st.cache_data(show_spinner=False)
+# Results are cached by the data's content. Bounded, so that a server used by
+# many people does not keep every uploaded dataset's results in memory.
+CACHE_ENTRIES = 16
+
+
+@st.cache_data(show_spinner=False, max_entries=CACHE_ENTRIES)
 def cached_did(df: pd.DataFrame):
     return estimate_did(df)
 
 
-@st.cache_data(show_spinner=False)
+@st.cache_data(show_spinner=False, max_entries=CACHE_ENTRIES)
 def cached_event_study(df: pd.DataFrame, fixed_treatment_period: int | None):
     return estimate_event_study(df, fixed_treatment_period=fixed_treatment_period)
 
 
-@st.cache_data(show_spinner=False)
+@st.cache_data(show_spinner=False, max_entries=CACHE_ENTRIES)
 def cached_staggered_did(df: pd.DataFrame):
     return estimate_staggered_did(df)
 
 
-@st.cache_data(show_spinner=False)
+@st.cache_data(show_spinner=False, max_entries=CACHE_ENTRIES)
 def cached_stress_test(df: pd.DataFrame, treatment_period: int, ids_encode_neighbourhood: bool):
     return run_stress_test(df, treatment_period=treatment_period,
                            ids_encode_neighbourhood=ids_encode_neighbourhood)
 
 
-@st.cache_data(show_spinner=False)
+@st.cache_data(show_spinner=False, max_entries=CACHE_ENTRIES)
 def cached_robustness(df: pd.DataFrame, treatment_period: int, ids_encode_neighbourhood: bool):
     return run_robustness_battery(df, treatment_period=treatment_period,
                                   ids_encode_neighbourhood=ids_encode_neighbourhood)
@@ -409,14 +415,20 @@ elif page == "virtual_lab":
             st.error(F("common.read_error", error=exc))
         else:
             missing = missing_required_columns(up_df)
+            invalid = [] if missing else invalid_required_columns(up_df)
+            n_dropped = 0
+            if not (missing or invalid):
+                up_df, n_dropped = drop_incomplete_rows(up_df)
             if missing:
                 st.error(F("virtual.missing_columns", missing=", ".join(missing),
                            expected=", ".join(REQUIRED_COLUMNS)))
-            elif invalid := invalid_required_columns(up_df):
+            elif invalid:
                 st.error(F("virtual.invalid_columns", columns=", ".join(invalid)))
             elif up_df["D"].nunique() < 2:
                 st.error(L("virtual.no_variation"))
             else:
+                if n_dropped:
+                    st.warning(F("virtual.dropped_incomplete", n=n_dropped))
                 up_df = up_df.astype({c: int for c in INDICATOR_COLUMNS})
                 st.session_state.uploaded_df = up_df
                 st.session_state.virtual_df = None
@@ -593,9 +605,9 @@ elif page == "break_my_design":
                 "### " + F("break.pt_banner", assessment=L(f"assessment.{pt.assessment}")))
 
         st.subheader(L("break.results"))
-        style = {"PASS": ("✓", st.success), "WARNING": ("⚠", st.warning), "N/A": ("–", st.info)}
+        verdict_style = {"PASS": ("✓", st.success), "WARNING": ("⚠", st.warning), "N/A": ("–", st.info)}
         for check in report.checks:
-            icon, show = style[check.verdict]
+            icon, show = verdict_style[check.verdict]
             show(f"**{L(f'check.{check.slug}')}** {icon} {L(f'verdict.{check.verdict}')} — {R(check.message)}")
 
         st.divider()
