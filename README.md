@@ -301,6 +301,18 @@ streamlit run app.py             # opens http://localhost:8501
 
 `causal_lab/.streamlit/config.toml` makes the server listen on this machine only and turns off Streamlit's usage statistics, as the app promises ("Your data remain local"; "no data is sent anywhere"). To share the app on a network on purpose: `streamlit run app.py --server.address 0.0.0.0`.
 
+**Online demo (Streamlit Community Cloud).** The same code runs as a public demo:
+- **Address:** *(link added once deployed)*.
+- **Deploying:** at share.streamlit.io, sign in with GitHub and create an app with:
+  - repository `esst-prog2/CAUSAL-LAB-A-Virtual-Laboratory-for-Causal-Research`;
+  - branch `main`;
+  - main file `causal_lab/app.py`;
+  - Python 3.11 (under Advanced settings).
+
+  Community Cloud installs `causal_lab/requirements.txt`. It reads only the repository-root `.streamlit/config.toml`, which repeats the theme; `tests/test_streamlit_config.py` keeps the two theme copies the same.
+- **What changes online:** the app detects that it is not on `localhost`, from the address the browser used. It then replaces "Your data remain local" with a note that uploaded files are processed on the hosting server, and warns that connector requests, ACLED credentials included, pass through that server. For confidential data, run it on your own computer as above.
+- **Limits of the free tier:** the app sleeps after a period without visitors and wakes on the next visit, which takes a minute. Memory is limited, so a large Monte Carlo is better run locally.
+
 GitHub Actions (`.github/workflows/tests.yml`) runs the whole suite on every push and pull request twice, on Python 3.11: once with the newest versions pip resolves, once with exactly the minima of `requirements.txt`. It also runs `openspec validate --specs`.
 
 Each file in `causal_lab/tests/` runs as a plain script (`python tests/test_card_krueger.py`) and needs nothing beyond `requirements.txt`. With pytest installed, which is a test runner and not an app dependency, `python -m pytest` from the repository root runs them all. The AppTest files drive the whole app and take about two minutes.
