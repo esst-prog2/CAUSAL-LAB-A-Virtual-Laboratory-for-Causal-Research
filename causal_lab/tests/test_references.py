@@ -111,6 +111,7 @@ def test_the_citation_file_matches_the_app():
     given = re.search(r'given-names: "([^"]+)"', cff).group(1)
     assert f'family-names: "{family}"' in cff
     assert initials == " ".join(part[0] + "." for part in given.split())        # "Thierry Z." -> "T. Z."
+    assert reproducibility.APP_AUTHOR_NAME == f"{given} {family.upper()}"         # "Thierry Z. BARHAME"
     assert reproducibility.citation().startswith(f"{reproducibility.APP_AUTHOR} ({reproducibility.APP_YEAR}). ")
 
 

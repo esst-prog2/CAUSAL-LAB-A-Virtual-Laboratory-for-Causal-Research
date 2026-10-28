@@ -11,7 +11,8 @@ from importlib import metadata
 
 APP_NAME = "Causal Lab: A virtual laboratory for causal research"
 APP_VERSION = "0.1"
-APP_AUTHOR = "Barhame, T. Z."
+APP_AUTHOR = "Barhame, T. Z."                 # APA form, for citations
+APP_AUTHOR_NAME = "Thierry Z. BARHAME"        # as the author writes it, for display
 APP_YEAR = 2026
 REPOSITORY = "https://github.com/esst-prog2/CAUSAL-LAB-A-Virtual-Laboratory-for-Causal-Research"
 
