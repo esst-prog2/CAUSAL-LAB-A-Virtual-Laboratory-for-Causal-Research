@@ -1,7 +1,12 @@
-## ADDED Requirements
+# online-demo Specification
+
+## Purpose
+TBD - created by archiving change online-demo. Update Purpose after archive.
+
+## Requirements
 
 ### Requirement: Privacy notes follow where the app runs
-The system SHALL decide from the address the browser used whether it runs on the researcher's own machine (localhost, 127.0.0.1, [::1]) or as an online demo. Locally it SHALL keep its local-data promises. Online it SHALL say instead, in the interface language, that uploaded files are processed on the hosting server, and that connector requests (ACLED credentials included) pass through that server.
+The system SHALL decide from the address the browser used whether it runs on the researcher's own machine (localhost, 127.0.0.1, [::1]) or as an online demo. Locally it SHALL keep its local-data promises. Online it SHALL say instead, in the interface language, that uploaded files are processed on the hosting server, that connector requests (ACLED credentials included) pass through that server, and (on the Settings page) that the host sends Streamlit usage statistics.
 
 #### Scenario: Opened from the public address
 - **WHEN** a visitor opens the app at its public address
