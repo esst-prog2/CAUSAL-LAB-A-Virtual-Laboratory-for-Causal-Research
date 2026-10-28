@@ -75,9 +75,7 @@ def test_no_abbreviated_or_unformatted_citation_in_the_interface():
 
 
 def test_the_bibtex_file_is_generated_from_the_bibliography():
-    bib = (REPO / "docs" / "references.bib").read_text(encoding="utf-8").replace("
-", "
-")   # git may check out CRLF
+    bib = (REPO / "docs" / "references.bib").read_text(encoding="utf-8").replace("\r\n", "\n")   # git may check out CRLF
     assert bib == BIBTEX_HEADER + to_bibtex(), "regenerate: cd causal_lab && python utils/references.py > ../docs/references.bib"
     assert bib.count("\n@") + bib.startswith("@") == len(REFERENCES)
 
