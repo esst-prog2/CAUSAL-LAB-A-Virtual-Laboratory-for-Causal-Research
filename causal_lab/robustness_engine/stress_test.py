@@ -189,8 +189,10 @@ def _check_serial_correlation(df: pd.DataFrame, outcome_col, unit_col, time_col,
     dw = float(np.sum(diffs ** 2) / np.sum(resid ** 2))
 
     # Unit fixed effects mechanically induce a negative residual
-    # autocorrelation of about -1/(T-1) (Nickell bias); correct for it
-    # before judging the first-order autocorrelation.
+    # autocorrelation: with serially uncorrelated errors, the within-demeaned
+    # errors have correlation -1/(T-1) (Wooldridge 2010, ch. 10). Correct for
+    # it before judging the first-order autocorrelation. (This is not the
+    # Nickell (1981) bias, which concerns a lagged dependent variable.)
     n_periods = periods.nunique()
     rho = (1 - dw / 2) + 1 / max(1, n_periods - 1)
     if rho > 0.2:

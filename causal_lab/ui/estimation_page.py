@@ -16,7 +16,7 @@ import streamlit as st
 from theory_engine.estimation import LEVEL, fit_logit_qre, gmm_first_order_conditions
 from theory_engine.finite_games import BimatrixGame
 from theory_engine.game import Game
-from ui.page_text import F, R, error_text
+from ui.page_text import F, R, error_text, references_caption
 from utils.i18n import LocalizedError
 
 
@@ -109,6 +109,7 @@ def render_qre_estimation(game: BimatrixGame, L) -> None:
     fig.update_layout(xaxis_title="λ", yaxis_title=L("est.loglik"), height=320, margin=dict(t=30, b=30))
     st.plotly_chart(fig, width="stretch")
     st.caption(L("est.qre_method"))
+    references_caption("qre")
 
 
 # --------------------------------------------------------------------------
@@ -200,3 +201,4 @@ def render_gmm(state: dict, L) -> None:
     else:
         st.success(F("est.j_ok", j=fit.j_stat, df=fit.j_df, p=fit.j_p))
     st.caption(L("est.gmm_method"))
+    references_caption("gmm")

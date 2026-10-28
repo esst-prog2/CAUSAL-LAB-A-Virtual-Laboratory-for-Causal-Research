@@ -31,7 +31,7 @@ from robustness_engine.method_stress import run_method_stress_test
 from simulation_engine.method_monte_carlo import run_method_monte_carlo
 from simulation_engine import method_worlds as mw
 from utils.column_mapping import METHOD_ROLES, prepare_mapped_frame, validate_mapping
-from ui.page_text import F, R, error_text
+from ui.page_text import F, R, error_text, references_caption
 from utils.i18n import LocalizedError, Msg
 
 
@@ -353,6 +353,7 @@ def render(L) -> None:
     spec = METHODS[method]
     state = _state(method)
     st.info(f"**{L('methods.assumption')}:** {L(f'methods.assumption.{method}')}")
+    references_caption(method)
 
     if method == "rdd":
         # Streamlit drops a widget's key when its page is left: restore the choice

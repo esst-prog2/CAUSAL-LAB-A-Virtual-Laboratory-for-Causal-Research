@@ -12,6 +12,7 @@ from __future__ import annotations
 import streamlit as st
 
 from utils.i18n import DEFAULT_LANGUAGE, LocalizedError, render as render_message, tf
+from utils.references import METHOD_REFERENCES, cite
 
 
 def lang() -> str:
@@ -28,3 +29,9 @@ def R(message) -> str:
 
 def error_text(exc: Exception) -> str:
     return exc.render(lang()) if isinstance(exc, LocalizedError) else str(exc)
+
+
+def references_caption(*methods: str) -> None:
+    """A caption citing the works the given methods rest on (utils/references.py)."""
+    items = [item for m in methods for item in METHOD_REFERENCES[m]]
+    st.caption(F("theory.references", refs=cite(*dict.fromkeys(items))))

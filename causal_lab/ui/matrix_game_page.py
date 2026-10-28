@@ -12,8 +12,9 @@ import plotly.graph_objects as go
 import streamlit as st
 
 from theory_engine.finite_games import MAX_ACTIONS, BimatrixGame, logit_qre, matrix_catalogue, nash_equilibria
-from ui.page_text import F, R, error_text
+from ui.page_text import F, R, error_text, references_caption
 from utils.i18n import LocalizedError
+from utils.references import cite
 
 
 def _labels(text: str, fallback: str) -> list[str]:
@@ -61,7 +62,7 @@ def render(L) -> None:
         game = catalogue[key]
         st.caption(R(game.description))
         if game.references:
-            st.caption(F("theory.references", refs=game.references))
+            st.caption(F("theory.references", refs=cite(*game.references)))
     else:
         game = _custom_game(L)
         if game is None:
@@ -81,6 +82,7 @@ def render(L) -> None:
         F("matrix.col.payoff", player=R(game.col_player)): round(e.col_payoff, 4),
     } for e in equilibria]), width="stretch", hide_index=True)
     st.caption(L("matrix.method_note"))
+    references_caption("nash_enumeration", "qre")
 
     st.subheader(L("matrix.qre_title"))
     st.caption(L("matrix.qre_intro"))

@@ -44,7 +44,7 @@ def downs_median_voter(n: int | None = None) -> Game:
         outcomes={Msg("outcome.policy_distance"): sp.Abs(xa - xb)},
         closed_form={"xA": m, "xB": m}, smooth=False,
         description=Msg("model.downs.description"),
-        references="Downs (1957); Black (1948).",
+        references=("downs_1957", "black_1948"),
     )
 
 
@@ -69,7 +69,7 @@ def probabilistic_voting(n: int | None = None) -> Game:
         outcomes={Msg("outcome.equilibrium_policy"): xa, Msg("outcome.vote_share_a"): share_a},
         closed_form={"xA": weighted, "xB": weighted},
         description=Msg("model.probabilistic_voting.description"),
-        references="Lindbeck & Weibull (1987); Persson & Tabellini (2000), ch. 3.",
+        references=("lindbeck_weibull_1987", "persson_tabellini_2000:ch. 3"),
     )
 
 
@@ -92,7 +92,7 @@ def tullock_contest(n: int = 2) -> Game:
                   Msg("outcome.rent_dissipation"): total / sp.Max(*vs)},
         closed_form=closed,
         description=Msg("model.tullock.description"),
-        references="Tullock (1980); Hillman & Riley (1989).",
+        references=("tullock_1980", "hillman_riley_1989"),
     )
 
 
@@ -114,7 +114,7 @@ def niskanen_bureaucracy(n: int | None = None) -> Game:
                   Msg("outcome.budget"): budget},
         closed_form={"Q": q_bureau}, smooth=False,
         description=Msg("model.niskanen.description"),
-        references="Niskanen (1971); Mueller, Public Choice III (2003), ch. 16.",
+        references=("niskanen_1971", "mueller_2003:ch. 16"),
     )
 
 
@@ -136,7 +136,7 @@ def public_good(n: int = 3) -> Game:
         outcomes={Msg("outcome.total_public_good"): total},
         closed_form=None,
         description=Msg("model.public_good.description"),
-        references="Bergstrom, Blume & Varian (1986); Samuelson (1954).",
+        references=("bergstrom_blume_varian_1986", "samuelson_1954"),
     )
 
 
@@ -162,7 +162,7 @@ def cournot(n: int = 2) -> Game:
         outcomes={Msg("outcome.total_quantity"): total, Msg("outcome.market_price"): price},
         closed_form=closed,
         description=Msg("model.cournot.description"),
-        references="Cournot (1838); Tirole (1988), ch. 5.",
+        references=("cournot_1838", "tirole_1988:ch. 5"),
     )
 
 
@@ -186,7 +186,7 @@ def bertrand_differentiated(n: int | None = None) -> Game:
         closed_form={"p1": (2 * b * (a + b * c1) + d * (a + b * c2)) / den,
                      "p2": (2 * b * (a + b * c2) + d * (a + b * c1)) / den},
         description=Msg("model.bertrand.description"),
-        references="Singh & Vives (1984); Vives (1999).",
+        references=("singh_vives_1984", "vives_1999"),
     )
 
 

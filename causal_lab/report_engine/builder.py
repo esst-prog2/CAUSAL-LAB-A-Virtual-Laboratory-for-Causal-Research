@@ -19,8 +19,9 @@ from estimators.event_study import estimate_event_study
 from estimators.staggered_did import estimate_staggered_did
 from robustness_engine.robustness import run_robustness_battery
 from robustness_engine.stress_test import run_stress_test
-from utils import session_data
+from utils import reproducibility, session_data
 from utils.i18n import LocalizedError, render, t, tf
+from utils.references import METHOD_REFERENCES, cite, keys_of, reference_list
 
 DESIGN_FIELDS = (            # (wizard label key, ResearchDesignInput field, option values translated?)
     ("wizard.treatment_type", "treatment_type", True),
@@ -85,6 +86,11 @@ def build_report(state, lang: str, now: datetime | None = None) -> Report:
     report = Report(title=L("report.doc_title"), lang=lang,
                     subtitle=F("report.generated_on", date=now.strftime("%Y-%m-%d %H:%M")))
     add = report.blocks.append
+    cited: list[str] = []                  # citation items, for the reference list at the end
+
+    def references(*items: str) -> None:
+        cited.extend(items)
+        add(Paragraph(F("report.references_line", refs=cite(*items))))
 
     # 1. Research question and design
     design = state.get("design")
@@ -136,6 +142,7 @@ def build_report(state, lang: str, now: datetime | None = None) -> Report:
             add(Paragraph(L("report.data.virtual")))
         elif state.get("uploaded_file_id") == "card_krueger_1994":
             add(Paragraph(L("report.data.card_krueger")))
+            references("card_krueger_1994")
         else:
             add(Paragraph(L("report.data.uploaded")))
         add(Table([L("report.col.item"), L("report.col.value")], [
@@ -169,6 +176,7 @@ def build_report(state, lang: str, now: datetime | None = None) -> Report:
                          [L("common.bias"), f"{did.att - truth['true_att']:+.4f}"]]
             add(Heading(L("method.did"), 2))
             add(Table([L("report.col.item"), L("report.col.value")], rows))
+            references(*METHOD_REFERENCES["did"])
             if staggered:
                 add(Paragraph(L("estimation.staggered_warning"), emphasis=True))
 
@@ -178,6 +186,7 @@ def build_report(state, lang: str, now: datetime | None = None) -> Report:
                   [[str(int(r.rel_period)), _num(r.estimate), _num(r.se), f"[{_num(r.ci_low, 3)}, {_num(r.ci_high, 3)}]"]
                    for r in es.coefficients.itertuples()]))
         add(Paragraph(L("event_study.caption"), emphasis=True))
+        references(*METHOD_REFERENCES["event_study"])
 
         if staggered:
             add(Heading(L("staggered.tab"), 2))
@@ -192,6 +201,7 @@ def build_report(state, lang: str, now: datetime | None = None) -> Report:
                           + ([[L("common.true_att"), _num(truth["true_att"]), ""]] if truth is not None else [])))
                 add(Paragraph(F("staggered.details", cohorts=cs.n_cohorts, units=cs.n_units,
                                 comparison=L(f"staggered.comparison.{cs.comparison}"))))
+                references(*METHOD_REFERENCES["staggered"])
 
         # 5. Break My Design and robustness
         neighbourhood = session_data.ids_encode_neighbourhood(state)
@@ -205,6 +215,7 @@ def build_report(state, lang: str, now: datetime | None = None) -> Report:
             add(Paragraph(f"{L('break.strength')}{colon}{stress.identification_strength:.0f} / 100 — "
                           + F("break.score_basis", k=stress.n_computable, n=len(stress.checks))))
         add(Paragraph(L("break.disclaimer"), emphasis=True))
+        references(*METHOD_REFERENCES["stress_test"])
 
         battery = run_robustness_battery(df, treatment_period=treatment_period,
                                          ids_encode_neighbourhood=neighbourhood)
@@ -234,6 +245,8 @@ def build_report(state, lang: str, now: datetime | None = None) -> Report:
                 add(Paragraph(R(line)))
             for warning in result.warnings:
                 add(Paragraph(R(warning), emphasis=True))
+            if result.key in METHOD_REFERENCES:
+                references(*METHOD_REFERENCES[result.key])
 
     # 7. Reproducible code
     add(Heading(L("report.section.code")))
@@ -241,6 +254,20 @@ def build_report(state, lang: str, now: datetime | None = None) -> Report:
     for language, code in generate_all(CodeGenParams(), lang).items():
         add(Heading({"python": "Python", "r": "R", "stata": "Stata"}[language], 2))
         add(Code(code, language))
+
+    # 8. Software and reproducibility
+    add(Heading(L("report.section.software")))
+    add(Paragraph(L("report.software_intro")))
+    add(Table([L("report.col.software"), L("report.col.version")],
+              [[name, version] for name, version in reproducibility.software_versions()]
+              + [["Causal Lab", reproducibility.APP_VERSION]]))
+    add(Paragraph(F("report.cite_app", citation=reproducibility.citation())))
+
+    # 9. References
+    if cited:
+        add(Heading(L("report.section.references")))
+        for entry in reference_list(keys_of(cited)):
+            add(Paragraph(entry))
 
     add(Paragraph(L("report.footer"), emphasis=True))
     return report

@@ -41,7 +41,7 @@ class BimatrixGame:
     row_player: Msg | str = "Row"
     col_player: Msg | str = "Column"
     description: Msg | str = ""
-    references: str = ""
+    references: tuple[str, ...] = ()      # keys of utils/references.py, optionally "key:pinpoint"
     parameters: dict[str, float] = field(default_factory=dict)
 
     def __post_init__(self):
@@ -189,7 +189,7 @@ def logit_qre(game: BimatrixGame, lam: float, max_step: float = 0.05) -> tuple[n
 # --------------------------------------------------------------------------
 # Catalogue
 # --------------------------------------------------------------------------
-def _game(key: str, rows, cols, a, b, row_player, col_player, references: str) -> BimatrixGame:
+def _game(key: str, rows, cols, a, b, row_player, col_player, references: tuple[str, ...]) -> BimatrixGame:
     return BimatrixGame(name=Msg(f"matrix.{key}.name"),
                         row_actions=[Msg(f"matrix.{key}.row.{r}") for r in rows],
                         col_actions=[Msg(f"matrix.{key}.col.{c}") for c in cols],
@@ -201,26 +201,26 @@ def matrix_catalogue() -> dict[str, BimatrixGame]:
     return {
         "prisoners_dilemma": _game("prisoners_dilemma", ("cooperate", "defect"), ("cooperate", "defect"),
                                    [[3, 0], [5, 1]], [[3, 5], [0, 1]], "player.player1", "player.player2",
-                                   "Tucker (1950); Axelrod (1984)."),
+                                   ("tucker_1950", "axelrod_1984")),
         "matching_pennies": _game("matching_pennies", ("heads", "tails"), ("heads", "tails"),
                                   [[1, -1], [-1, 1]], [[-1, 1], [1, -1]], "player.player1", "player.player2",
-                                  "von Neumann & Morgenstern (1944)."),
+                                  ("von_neumann_morgenstern_1944",)),
         "battle_of_sexes": _game("battle_of_sexes", ("opera", "football"), ("opera", "football"),
                                  [[2, 0], [0, 1]], [[1, 0], [0, 2]], "player.player1", "player.player2",
-                                 "Luce & Raiffa (1957)."),
+                                 ("luce_raiffa_1957",)),
         "hawk_dove": _game("hawk_dove", ("hawk", "dove"), ("hawk", "dove"),
                            [[-1, 4], [0, 2]], [[-1, 0], [4, 2]], "player.player1", "player.player2",
-                           "Maynard Smith & Price (1973)."),
+                           ("maynard_smith_price_1973",)),
         "stag_hunt": _game("stag_hunt", ("stag", "hare"), ("stag", "hare"),
                            [[4, 0], [3, 3]], [[4, 3], [0, 3]], "player.player1", "player.player2",
-                           "Rousseau (1755); Skyrms (2004)."),
+                           ("rousseau_1755", "skyrms_2004")),
         "inspection": _game("inspection", ("comply", "evade"), ("inspect", "skip"),
                             # taxpayer: tax 1, fine 3 if caught evading; authority: inspection costs 0.5,
                             # catching an evader yields 3, an unnoticed evasion costs it 2
                             [[-1, -1], [-4, 0]], [[-0.5, 0], [3, -2]], "player.taxpayer", "player.authority",
-                            "Tsebelis (1989); Andreozzi (2004)."),
+                            ("tsebelis_1989", "andreozzi_2004")),
         "rock_paper_scissors": _game("rock_paper_scissors", ("rock", "paper", "scissors"),
                                      ("rock", "paper", "scissors"),
                                      [[0, -1, 1], [1, 0, -1], [-1, 1, 0]], [[0, 1, -1], [-1, 0, 1], [1, -1, 0]],
-                                     "player.player1", "player.player2", "Fudenberg & Tirole (1991), ch. 1."),
+                                     "player.player1", "player.player2", ("fudenberg_tirole_1991:ch. 1",)),
     }
