@@ -523,6 +523,7 @@
   "report.col.version": "Version",
   "report.cite_app": "Pour citer Causal Lab : {citation}",
   "report.section.references": "Références",
+  "app.author": "Auteur : {name}",
   "report.footer": "Les scores de diagnostic et les recommandations sont des heuristiques, pas des preuves statistiques. Chaque estimation de ce rapport a été calculée par le moteur statistique de Causal Lab sur les données décrites ci-dessus.",
   "project.title": "Projet",
   "project.intro": "Enregistrez le projet en cours dans un fichier sur cet ordinateur, ou ouvrez un projet enregistré. Le fichier contient la question de recherche, les réglages du laboratoire virtuel et toutes les données chargées ; les résultats sont recalculés à l'ouverture. La page Modèle théorique n'est pas enregistrée.",

@@ -46,7 +46,7 @@ from ui.page_text import F, R, error_text, references_caption
 from ui.theory_page import render as render_theory_page
 from utils.i18n import LocalizedError, t, tf
 from utils.project_file import EXTENSION, apply_project, load_project, project_file_name, save_project
-from utils import deployment, session_data
+from utils import deployment, reproducibility, session_data
 from utils.real_data import load_card_krueger
 from utils.validation import (INDICATOR_COLUMNS, REQUIRED_COLUMNS, drop_incomplete_rows, invalid_required_columns,
                               missing_required_columns)
@@ -204,6 +204,7 @@ with st.sidebar:
         st.caption(f"🌐 {L('online.sidebar_note')}")
     else:
         st.caption(f"🔒 {L('settings.local_mode_note')}")
+    st.caption(F("app.author", name=reproducibility.APP_AUTHOR_NAME))
 
 # --------------------------------------------------------------------------
 # DASHBOARD

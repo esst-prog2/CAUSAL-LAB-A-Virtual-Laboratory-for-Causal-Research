@@ -1,5 +1,7 @@
 # Causal Lab
 
+**Author:** Thierry Z. BARHAME · MSc Statistics and Data Analytics, ELTE · Live demo: https://causal-lab-a-virtual-laboratory-for-causal-research-busavtyebb.streamlit.app
+
 A small tool that lets someone with a panel dataset and a treatment date find out — with real numbers, not a guess — whether a difference-in-differences design is even appropriate for their data, and if so, run it correctly.
 
 ## 1. The demo
