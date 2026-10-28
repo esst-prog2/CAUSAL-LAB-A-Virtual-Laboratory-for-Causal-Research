@@ -15,6 +15,7 @@ from theory_engine.vector_catalogue import VECTOR_CATALOGUE, build_vector
 from ui.page_text import F, R, error_text
 from ui.theory_page import _parse_outcomes, _parse_parameters    # theory_page imports this page lazily
 from utils.i18n import LocalizedError
+from utils.references import cite
 
 EDITOR_DEFAULTS = {
     1: dict(name="A", strategies="xA, yA", lower="0", upper="1",
@@ -78,7 +79,7 @@ def _show_equations(game: VectorGame, L) -> None:
         own = ", ".join(sp.latex(s) for s in agent.strategies)
         st.latex(rf"\max_{{{own}}}\; {sp.latex(agent.utility)}")
     if game.references:
-        st.caption(F("md.references", refs=game.references))
+        st.caption(F("md.references", refs=cite(*game.references)))
 
 
 def _voting_chart(game: VectorGame, values: dict[str, float], strategies: dict[str, float], L) -> None:

@@ -34,6 +34,7 @@ from theory_engine.game import (Equilibrium, Game, best_responses, build_custom_
 from theory_engine.predictions import compare_with_estimate, delta_from_data, predict_shift
 from ui.page_text import F, R, error_text
 from utils.i18n import LocalizedError
+from utils.references import cite
 
 VERDICT_STYLE = {"consistent": st.success, "magnitude differs": st.warning, "sign contradicts": st.error}
 VERDICT_KEY = {"consistent": "consistent", "magnitude differs": "magnitude", "sign contradicts": "sign"}
@@ -140,7 +141,7 @@ def _show_equations(game: Game, L) -> None:
     if game.description:
         st.write(R(game.description))
     if game.references:
-        st.caption(F("theory.references", refs=game.references))
+        st.caption(F("theory.references", refs=cite(*game.references)))
 
     st.markdown(f"**{L('theory.equations')}**")
     focs = first_order_conditions(game)

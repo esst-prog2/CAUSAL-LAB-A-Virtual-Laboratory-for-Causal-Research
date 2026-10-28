@@ -56,7 +56,7 @@ class Game:
     closed_form: dict[str, sp.Expr] | None = None              # strategy name -> expression
     smooth: bool = True
     description: str = ""
-    references: str = ""
+    references: tuple[str, ...] = ()      # keys of utils/references.py, optionally "key:pinpoint"
 
     @property
     def strategies(self) -> list[sp.Symbol]:

@@ -66,7 +66,7 @@ def spatial_voting_2d(n: int | None = None) -> VectorGame:
                   Msg("outcome.platform_distance"): sp.sqrt((xa - xb) ** 2 + (ya - yb) ** 2)},
         closed_form={"xA": mean_x, "yA": mean_y, "xB": mean_x, "yB": mean_y},
         description=Msg("model.md_voting.description"),
-        references="Coughlin (1992); Lin, Enelow & Dorussen (1999); Schofield (2007).",
+        references=("coughlin_1992", "lin_enelow_dorussen_1999", "schofield_2007"),
     )
 
 
@@ -109,7 +109,7 @@ def multimarket_cournot(n: int = 2) -> VectorGame:
                   Msg("outcome.md_quantity", k=1): big_q[0], Msg("outcome.md_quantity", k=2): big_q[1]},
         closed_form=closed,
         description=Msg("model.md_cournot.description"),
-        references="Bulow, Geanakoplos & Klemperer (1985).",
+        references=("bulow_geanakoplos_klemperer_1985",),
     )
 
 
@@ -141,7 +141,7 @@ def two_prize_contest(n: int = 2) -> VectorGame:
         outcomes={Msg("outcome.md_effort", k=1): totals[0], Msg("outcome.md_effort", k=2): totals[1]},
         closed_form=closed,
         description=Msg("model.md_contest.description"),
-        references="Snyder (1989); Konrad (2009).",
+        references=("snyder_1989", "konrad_2009"),
     )
 
 

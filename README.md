@@ -325,3 +325,23 @@ python spike/stress_test_calibration.py results_2026-10-16.md --overwrite  # rep
 ```
 
 Without an output name, or if the file already exists, the script stops before simulating anything and changes no file; `--overwrite` is the only way to replace a file. `spike/stress_test_calibration_results.md` (hw4, 2026-10-03) and `spike/stress_test_calibration_results_after_fix.md` (2026-10-06) are historical records; do not overwrite them. These rules are tested by `causal_lab/tests/test_calibration_output.py`, which runs a copy of the script in a temporary folder.
+
+## 7. References and citing
+
+**Bibliography.** Every method, check and model rests on published work. All of it is in one bibliography, `causal_lab/utils/references.py`, which has 65 entries:
+- **In the app:** each method shows its sources, as "References: Author (Year)".
+- **In the report:** the exported report lists the works behind what it used, in APA 7 style, with DOIs.
+- **For LaTeX:** `docs/references.bib` holds the same entries in BibTeX, generated from that file. A test keeps the two in sync: regenerate it with `cd causal_lab && python utils/references.py > ../docs/references.bib`.
+
+**Checked against Crossref.** `spike/check_references.py` compares every entry that has a DOI with its Crossref record: title, year, first author, number of authors, volume, issue and pages. On 2026-10-28 all agreed but one, which is listed as an exception:
+- Skyrms (2004): Crossref gives the online date (2003); APA cites the copyright year printed in the book (2004).
+- The first run also caught a wrong DOI, for Andreozzi (2004). It is now fixed.
+
+**Reproducibility.** The report ends with:
+- the versions of Python and of the packages that computed its numbers;
+- the seed of every random draw (each one is seeded);
+- how to cite Causal Lab.
+
+**Citing Causal Lab.** `CITATION.cff` gives the citation in the Citation File Format; GitHub shows it as "Cite this repository":
+
+> Barhame, T. Z. (2026). *Causal Lab: A virtual laboratory for causal research* (Version 0.1) [Computer software]. https://github.com/esst-prog2/CAUSAL-LAB-A-Virtual-Laboratory-for-Causal-Research

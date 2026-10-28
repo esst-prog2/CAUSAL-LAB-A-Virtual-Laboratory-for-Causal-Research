@@ -13,7 +13,7 @@ import streamlit as st
 from theory_engine.bargaining import nash_bargaining, rubinstein_finite, rubinstein_share
 from theory_engine.catalogue import CATALOGUE, build
 from theory_engine.sequential import solve_stackelberg
-from ui.page_text import F, R, error_text
+from ui.page_text import F, R, error_text, references_caption
 from utils.i18n import LocalizedError
 
 # Models with at least two agents and smooth payoffs: leadership is meaningful there.
@@ -63,11 +63,13 @@ def render_stackelberg(L) -> None:
         gain = result.utilities[result.leader] - sim.utilities[result.leader]
         st.info(F("seq.first_mover", leader=R(result.leader), gain=gain))
     st.caption(L("seq.stackelberg_method"))
+    references_caption("stackelberg")
 
 
 def render_bargaining(L) -> None:
     st.subheader(L("seq.nbs_title"))
     st.caption(L("seq.nbs_intro"))
+    references_caption("bargaining")
     c1, c2, c3, c4 = st.columns(4)
     surplus = c1.number_input(L("seq.surplus"), 0.01, 1e9, 100.0, key="bg_surplus")
     alpha = c2.slider(L("seq.alpha"), 0.01, 0.99, 0.5, 0.01, key="bg_alpha")

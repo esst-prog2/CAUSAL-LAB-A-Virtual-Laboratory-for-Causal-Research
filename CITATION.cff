@@ -1,0 +1,18 @@
+# Citation File Format (https://citation-file-format.github.io). GitHub shows
+# it as "Cite this repository". Kept consistent with
+# causal_lab/utils/reproducibility.py by causal_lab/tests/test_references.py.
+cff-version: 1.2.0
+message: "If you use Causal Lab in your work, please cite it as below."
+type: software
+title: "Causal Lab: A virtual laboratory for causal research"
+version: "0.1"
+authors:
+  - family-names: "Barhame"
+    given-names: "Thierry Z."
+repository-code: "https://github.com/esst-prog2/CAUSAL-LAB-A-Virtual-Laboratory-for-Causal-Research"
+keywords:
+  - causal inference
+  - difference-in-differences
+  - research design
+  - game theory
+  - simulation

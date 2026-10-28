@@ -63,7 +63,7 @@ class VectorGame:
     outcomes: dict[str, sp.Expr] = field(default_factory=dict)
     closed_form: dict[str, sp.Expr] | None = None
     description: str = ""
-    references: str = ""
+    references: tuple[str, ...] = ()      # keys of utils/references.py, optionally "key:pinpoint"
 
     def __post_init__(self):
         if not 1 <= len(self.agents) <= MAX_AGENTS:

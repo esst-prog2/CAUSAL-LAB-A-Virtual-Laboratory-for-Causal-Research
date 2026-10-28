@@ -42,7 +42,7 @@ from simulation_engine.monte_carlo import run_monte_carlo
 from ui.data_sources_page import render as render_data_sources_page
 from ui.methods_page import render as render_methods_page
 from ui import style
-from ui.page_text import F, R, error_text
+from ui.page_text import F, R, error_text, references_caption
 from ui.theory_page import render as render_theory_page
 from utils.i18n import LocalizedError, t, tf
 from utils.project_file import EXTENSION, apply_project, load_project, project_file_name, save_project
@@ -523,6 +523,7 @@ elif page == "estimation":
 
                 st.code(F("estimation.summary", att=result.att, se=result.se, t=result.t_stat,
                           p=result.p_value, lo=result.ci_low, hi=result.ci_high), language="text")
+                references_caption("did")
 
         with tab2:
             # Staggered adoption: each unit's own adoption period is
@@ -539,6 +540,7 @@ elif page == "estimation":
                               yaxis_title=L("event_study.y_axis"), height=400)
             st.plotly_chart(fig, width="stretch")
             st.caption(L("event_study.caption"))
+            references_caption("event_study")
 
         with tab3:
             st.caption(L("staggered.intro"))
@@ -559,6 +561,7 @@ elif page == "estimation":
                 st.dataframe(pd.DataFrame(rows).round(4), width="stretch", hide_index=True)
                 st.caption(F("staggered.details", cohorts=cs.n_cohorts, units=cs.n_units,
                              comparison=L(f"staggered.comparison.{cs.comparison}")))
+                references_caption("staggered")
                 if cs.n_dropped:
                     st.caption(F("staggered.dropped", n=cs.n_dropped))
                 es_cs = cs.event_study
@@ -622,6 +625,7 @@ elif page == "break_my_design":
             st.markdown(f"### {report.identification_strength:.0f} / 100")
             st.caption(F("break.score_basis", k=report.n_computable, n=len(report.checks)))
         st.caption(L("break.disclaimer"))
+        references_caption("stress_test")
 
 # --------------------------------------------------------------------------
 # ROBUSTNESS
