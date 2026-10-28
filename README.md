@@ -302,7 +302,9 @@ streamlit run app.py             # opens http://localhost:8501
 `causal_lab/.streamlit/config.toml` makes the server listen on this machine only and turns off Streamlit's usage statistics, as the app promises ("Your data remain local"; "no data is sent anywhere"). To share the app on a network on purpose: `streamlit run app.py --server.address 0.0.0.0`.
 
 **Online demo (Streamlit Community Cloud).** The same code runs as a public demo:
-- **Address:** *(link added once deployed)*.
+- **Address:** https://causal-lab-a-virtual-laboratory-for-causal-research-busavtyebb.streamlit.app (deployed on 2026-10-28). It is deployed from the fork `thierryzbarhame/CAUSAL-LAB-A-Virtual-Laboratory-for-Causal-Research`, kept in sync with this repository (`gh repo sync thierryzbarhame/CAUSAL-LAB-A-Virtual-Laboratory-for-Causal-Research`).
+- **Why a fork:** the `esst-prog2` organization restricts OAuth App access, so Community Cloud may not read its repositories until an organization owner approves Streamlit.
+- **Checked online:** a browser crawl of every page in EN and FR found no console error, no exception and no cut label. The only requests to other hosts are Streamlit's own usage statistics (`data.streamlit.io`), which Community Cloud enables whatever the config says; the online Settings page says so.
 - **Deploying:** at share.streamlit.io, sign in with GitHub and create an app with:
   - repository `esst-prog2/CAUSAL-LAB-A-Virtual-Laboratory-for-Causal-Research`;
   - branch `main`;

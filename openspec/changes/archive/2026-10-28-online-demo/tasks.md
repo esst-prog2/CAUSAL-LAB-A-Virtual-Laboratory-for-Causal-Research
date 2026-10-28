@@ -7,4 +7,4 @@
 ## 2. Verify
 
 - [x] 2.1 Unit and AppTest tests; checked in a browser on 127.0.0.2 (online notes) and on localhost (local notes).
-- [ ] 2.2 Deploy at share.streamlit.io (repository owner) and crawl the public URL.
+- [x] 2.2 Deployed on 2026-10-28 from the personal fork, because the organization restricts OAuth App access. The public URL was crawled in EN and FR: no error. The host sends Streamlit usage statistics, and the online note now says so.
