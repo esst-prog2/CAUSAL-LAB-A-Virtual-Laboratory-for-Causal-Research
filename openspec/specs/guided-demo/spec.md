@@ -15,10 +15,10 @@ The system SHALL show, for each level of diverging pre-trends, the performance o
 - **THEN** a table gives these statistics for the levels none, low, medium, high and severe, and the text states the coverage under parallel trends and under severe violation, each taken from that table
 
 ### Requirement: The study is reproducible
-The system SHALL store every replication of the study with its seed, and SHALL let the researcher re-run the first 100 worlds of any level and compare them, value by value, with the stored ones.
+The system SHALL store every replication of the study with its seed. It SHALL let the researcher re-run the first 20, 50 or 100 worlds of any level (20 by default) and compare them, value by value, with the stored ones. The page SHALL say about how long each world takes.
 
 #### Scenario: Live re-run
-- **WHEN** the researcher re-runs 100 worlds of the severe level
+- **WHEN** the researcher re-runs 20 worlds of the severe level
 - **THEN** the page says whether they are identical to the stored replications
 
 ### Requirement: The published Card & Krueger table is replicated cell by cell
