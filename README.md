@@ -29,7 +29,7 @@ The table supports three findings:
 - **When they fail, the estimate is not just noisy, it is wrong.** At the *high* and *severe* levels, the DiD reports a significant effect of the wrong sign in almost every world. The test catches the *severe* case, but at *high* it misses 158 worlds in 1,000.
 - **Passing the test does not make the estimate trustworthy.** At the *low* level, 858 of the 1,000 worlds pass, yet only 30.9% of their intervals cover the truth. Estimating only after a passed pretest changes the estimator's distribution (Roth, 2022).
 
-**4. Reproducibility, live.** A button re-runs the first 100 worlds of any level and checks them, value by value, against the stored ones. It takes about 20 seconds and says "identical".
+**4. Reproducibility, live.** A button re-runs the first 20, 50 or 100 worlds of any level and checks them, value by value, against the stored ones. It says "identical". Each world takes about a second on the free online server (20 worlds by default) and much less on a laptop.
 
 **5. Replication of Card & Krueger (1994), Table 3.** The page recomputes rows 1, 2 and 4 from the raw survey data and sets each cell next to the published one:
 - 17 of the 18 published numbers agree to two decimals, including the DiD, 2.75 (1.34);

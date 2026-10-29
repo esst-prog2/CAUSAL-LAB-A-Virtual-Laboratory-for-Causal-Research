@@ -30,7 +30,7 @@ from ui.page_text import F, lang, references_caption
 from utils.real_data import load_card_krueger
 
 ONE_WORLD = 42                    # the seed of the single-world illustration (README section 1)
-LIVE_REPS = 100
+LIVE_CHOICES = (20, 50, 100)     # worlds to re-run live; about 1 s each on the free hosting tier
 
 
 # --------------------------------------------------------------------------
@@ -169,16 +169,18 @@ def _study_figure(summaries, L) -> None:
 
 
 def _live_rerun(reps, L) -> None:
-    with st.expander(F("demo.rerun_title", n=LIVE_REPS)):
-        st.caption(F("demo.rerun_intro", n=LIVE_REPS))
-        level = st.selectbox(L("demo.col.pretrends"), LEVELS, format_func=lambda v: L(f"intensity.{v}"),
+    with st.expander(L("demo.rerun_title")):
+        st.caption(L("demo.rerun_intro"))
+        c1, c2 = st.columns(2)
+        level = c1.selectbox(L("demo.col.pretrends"), LEVELS, format_func=lambda v: L(f"intensity.{v}"),
                              key="demo_rerun_level")
-        if st.button(f"🔁 {F('demo.rerun_button', n=LIVE_REPS)}", key="demo_rerun"):
-            with st.spinner(L("demo.rerun_running")):
-                live = run_level(level, LIVE_REPS)
-            identical = all(same(a, b) for a, b in zip(live, reps[level][:LIVE_REPS], strict=True))
+        n = c2.selectbox(L("demo.rerun_count"), LIVE_CHOICES, key="demo_rerun_n")
+        if st.button(f"🔁 {F('demo.rerun_button', n=n)}", key="demo_rerun"):
+            with st.spinner(F("demo.rerun_running", n=n)):
+                live = run_level(level, n)
+            identical = all(same(a, b) for a, b in zip(live, reps[level][:n], strict=True))
             s = summarize(level, live)
-            st.write(F("demo.rerun_result", n=LIVE_REPS, coverage=pct(s.coverage), bias=num(s.bias, sign=True),
+            st.write(F("demo.rerun_result", n=n, coverage=pct(s.coverage), bias=num(s.bias, sign=True),
                        detection=pct(s.detection)))
             (st.success if identical else st.error)(L("demo.rerun_identical" if identical else "demo.rerun_differs"))
 
