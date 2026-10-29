@@ -112,6 +112,12 @@ _ENTRIES = [
     _a("durbin_watson_1950", ["Durbin, J.", "Watson, G. S."], 1950,
        "Testing for serial correlation in least squares regression: I", "Biometrika", 37, "3/4", "409–428",
        "10.1093/biomet/37.3-4.409"),
+    _a("roth_2022", ["Roth, J."], 2022,
+       "Pretest with caution: Event-study estimates after testing for parallel trends",
+       "American Economic Review: Insights", 4, 3, "305–322", "10.1257/aeri.20210236"),
+    _a("morris_white_crowther_2019", ["Morris, T. P.", "White, I. R.", "Crowther, M. J."], 2019,
+       "Using simulation studies to evaluate statistical methods", "Statistics in Medicine", 38, 11, "2074–2102",
+       "10.1002/sim.8086"),
     _b("wooldridge_2010", ["Wooldridge, J. M."], 2010,
        "Econometric analysis of cross section and panel data (2nd ed.)", "MIT Press"),
     # ----------------------------------------------------------------- RCT
@@ -279,6 +285,9 @@ METHOD_REFERENCES: dict[str, tuple[str, ...]] = {
     "gmm": ("hansen_1982", "hansen_singleton_1982"),
     "stackelberg": ("von_stackelberg_1934", "dixit_1987"),
     "bargaining": ("nash_1950", "rubinstein_1982", "binmore_rubinstein_wolinsky_1986"),
+    "demo_study": ("morris_white_crowther_2019", "roth_2022", "cameron_gelbach_miller_2008",
+                   "bertrand_duflo_mullainathan_2004"),
+    "demo_replication": ("card_krueger_1994",),
 }
 
 

@@ -21,7 +21,7 @@ NAV_SECTIONS = (
 
 # The icon each page's title uses, repeated in the sidebar.
 PAGE_ICONS = {
-    "dashboard": "🔬", "research_question": "📝", "diagnosis": "🧠", "recommendation": "🧪",
+    "dashboard": "🔬", "demo": "🎓", "research_question": "📝", "diagnosis": "🧠", "recommendation": "🧪",
     "virtual_lab": "🧫", "data_sources": "🌍", "estimation": "📈", "methods": "🧭", "theory": "🧮",
     "break_my_design": "💥", "robustness": "🧯", "code": "💻", "report": "📄", "settings": "⚙️",
 }
