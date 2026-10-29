@@ -40,6 +40,7 @@ from robustness_engine.stress_test import run_stress_test
 from simulation_engine.dgp import VirtualWorldConfig, generate
 from simulation_engine.monte_carlo import run_monte_carlo
 from ui.data_sources_page import render as render_data_sources_page
+from ui.demo_page import render as render_demo_page
 from ui.methods_page import render as render_methods_page
 from ui import style
 from ui.page_text import F, R, error_text, references_caption
@@ -86,7 +87,7 @@ if "connectors_enabled" not in st.session_state:
 lang = st.session_state.lang
 
 PAGES = [
-    "dashboard", "research_question", "diagnosis", "recommendation",
+    "dashboard", "demo", "research_question", "diagnosis", "recommendation",
     "virtual_lab", "data_sources", "estimation", "methods", "theory", "break_my_design",
     "robustness", "code", "report", "settings",
 ]
@@ -575,6 +576,12 @@ elif page == "estimation":
                 fig.update_layout(title=L("staggered.event_title"), xaxis_title=L("event_study.x_axis"),
                                   yaxis_title=L("event_study.y_axis"), height=400)
                 st.plotly_chart(fig, width="stretch")
+
+# --------------------------------------------------------------------------
+# GUIDED DEMO (simulation study and Card & Krueger replication)
+# --------------------------------------------------------------------------
+elif page == "demo":
+    render_demo_page(L)
 
 # --------------------------------------------------------------------------
 # CAUSAL METHODS (RCT, Matching, IV, RDD, Synthetic Control, DML)

@@ -6,20 +6,46 @@ A small tool that lets someone with a panel dataset and a treatment date find ou
 
 ## 1. The demo
 
-**1. A world where I know the answer.** On **Virtual Lab** I click **Generate Virtual World**: 100 units over 20 periods, with a true effect of −0.50 that I chose. On **Estimation**, the difference-in-differences gives −0.49, 95% CI [−0.66, −0.33]. The method recovers the truth. **Break My Design** runs its five checks. All pass, and the Identification Strength is 100/100.
+The demo is the **🎓 Guided Demo** page. It tests the app's main claim as a short methods paper would: on data where the answer is known, does difference-in-differences recover it, and does the lab say when it cannot? Every number on the page comes from the engines or from a stored simulation study; none is typed in its text.
 
-**2. The same world, broken.** Back on **Virtual Lab** I set **Diverging pre-trends** to *severe*: the treated units now drift away from the controls even without treatment. I generate again. The true effect is still −0.50, but the DiD now says +1.11, 95% CI [0.94, 1.27]: the wrong sign, and an interval that excludes the truth. **Break My Design** catches it: "Parallel trends: violated", 80/100. This is the point of the lab. An estimator always returns a number; the checks say whether to believe it.
+**1. Question and design.** Each Virtual World has 100 units over 20 periods. 30% of them are treated from period 10, with a true effect of −0.50. Diverging pre-trends make the treated units drift away from the controls by 0.08 × intensity noise SDs per period, at five levels from *none* to *severe*. In every world, the page records:
+- the two-way fixed-effects DiD, with standard errors clustered by unit;
+- the joint lead test of Break My Design, with a wild cluster bootstrap p-value at the 10% level.
 
-**3. Real data.** **Load real data: Card & Krueger (1994)** loads the New Jersey and Pennsylvania minimum-wage panel. The DiD gives +2.75 full-time-equivalent jobs per store (SE 1.34). That is the published estimate: Table 3, row 4, 2.75 (1.34). Break My Design is honest about what two periods allow. Four of the five checks are N/A, and the score says it rests on one check.
+**2. One world each way (seed 42), as an illustration.** With parallel trends, the DiD gives −0.49, 95% CI [−0.66, −0.33], and the pre-trend test passes (p = 0.991). With severe divergence, it gives +1.11 [0.94, 1.27] and the test warns (p = 0.003).
 
-**4. The rest, quickly.**
-- **Causal Methods** runs six other designs on worlds with a known effect: RCT, matching, IV, RDD, synthetic control and double machine learning.
-- **Theoretical Model** solves a game, Cournot for example, predicts the treatment effect, and compares that prediction with the causal estimate.
-- **Report** exports the whole analysis as PDF, Word, LaTeX or Markdown.
+**3. The simulation study, as evidence.** There are 1,000 worlds per level. Following Morris, White & Crowther (2019), each statistic comes with its Monte Carlo SE. The study was computed by `spike/demo_study.py`, and every replication is stored with its seed in `causal_lab/data/demo_study/results.json`.
 
-Every page is available in English and in French.
+| Diverging pre-trends | Bias | Coverage of the 95% CI | Significant, wrong sign | Pre-trend test warns | Coverage when the test does not warn |
+|---|---|---|---|---|---|
+| none | −0.004 (0.003) | 94.5% (0.7) | 0.0% | 9.2% | 95.3% (n = 908) |
+| low | +0.236 | 30.4% (1.5) | 0.0% | 14.2% | 30.9% (n = 858) |
+| medium | +0.556 | 0.0% | 8.3% | 40.0% | 0.0% (n = 600) |
+| high | +0.956 | 0.0% | 99.6% | 84.2% | 0.0% (n = 158) |
+| severe | +1.596 | 0.0% | 100.0% | 99.9% | 0.0% (n = 1) |
 
-The numbers above were read from the app on 2026-10-26, with default settings and seed 42.
+The table supports three findings:
+- **When parallel trends hold, the method works and its uncertainty is honest.** Coverage is at its nominal level, there is no detectable bias, and the empirical and the reported standard errors are both 0.097. The pre-trend test raises false alarms at 9.2%, close to its nominal 10%.
+- **When they fail, the estimate is not just noisy, it is wrong.** At the *high* and *severe* levels, the DiD reports a significant effect of the wrong sign in almost every world. The test catches the *severe* case, but at *high* it misses 158 worlds in 1,000.
+- **Passing the test does not make the estimate trustworthy.** At the *low* level, 858 of the 1,000 worlds pass, yet only 30.9% of their intervals cover the truth. Estimating only after a passed pretest changes the estimator's distribution (Roth, 2022).
+
+**4. Reproducibility, live.** A button re-runs the first 100 worlds of any level and checks them, value by value, against the stored ones. It takes about 20 seconds and says "identical".
+
+**5. Replication of Card & Krueger (1994), Table 3.** The page recomputes rows 1, 2 and 4 from the raw survey data and sets each cell next to the published one:
+- 17 of the 18 published numbers agree to two decimals, including the DiD, 2.75 (1.34);
+- the last one is a standard error, 1.08 against 1.07 published. Combining the published, rounded cell SEs, √(0.52² + 0.94²) = 1.074, also gives 1.07, so the gap is rounding.
+
+**6. What this does not show.** The page says so:
+- the simulated worlds are simple;
+- a passed test is not a proof;
+- a replication checks the computation, not the identification.
+
+**Then, quickly, the rest of the lab:**
+- **Causal Methods:** six other designs on worlds with a known effect (RCT, matching, IV, RDD, synthetic control, DML).
+- **Theoretical Model:** solves a game, predicts the treatment effect, and compares the prediction with the causal estimate.
+- **Report:** exports the analysis with its references and a reproducibility section, as PDF, Word, LaTeX or Markdown.
+
+Every page is available in English and in French. The numbers above are those of the stored study, computed on 2026-10-29 (seeds 20261029 + r).
 
 > **Earlier plan (the brief, kept as history).** I open the app in the browser and upload a CSV: one row per unit per time period, a treatment date, and an outcome column. It shows a plot of average outcomes for treated and untreated units over time, with the treatment date marked. Below it, a diagnosis panel says "Parallel trends: questionable — pre-trend slope difference is 0.34, p = 0.02" and "Recommended: difference-in-differences, but check anticipation effects first." I click "Run DiD" and it shows a coefficient, a standard error, and a two-way fixed-effects regression table. I click "Break this design" and it re-runs the same estimator on a version of the data where I know the true effect is zero, so I can see whether the method still finds a false effect.
 >
