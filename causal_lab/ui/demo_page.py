@@ -24,7 +24,7 @@ import streamlit as st
 from estimators.did import estimate_did
 from robustness_engine.stress_test import _check_parallel_trends
 from simulation_engine.demo_study import (CARD_KRUEGER_TABLE3, LEVELS, design, load_study, replicate_card_krueger,
-                                          run_level, summarize)
+                                          run_level, same, summarize)
 from simulation_engine.dgp import generate
 from ui.page_text import F, lang, references_caption
 from utils.real_data import load_card_krueger
@@ -176,7 +176,7 @@ def _live_rerun(reps, L) -> None:
         if st.button(f"🔁 {F('demo.rerun_button', n=LIVE_REPS)}", key="demo_rerun"):
             with st.spinner(L("demo.rerun_running")):
                 live = run_level(level, LIVE_REPS)
-            identical = live == reps[level][:LIVE_REPS]
+            identical = all(same(a, b) for a, b in zip(live, reps[level][:LIVE_REPS], strict=True))
             s = summarize(level, live)
             st.write(F("demo.rerun_result", n=LIVE_REPS, coverage=pct(s.coverage), bias=num(s.bias, sign=True),
                        detection=pct(s.detection)))

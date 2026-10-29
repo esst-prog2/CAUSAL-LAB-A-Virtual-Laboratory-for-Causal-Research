@@ -14,7 +14,7 @@ import numpy as np
 from streamlit.testing.v1 import AppTest
 
 from simulation_engine.demo_study import (CARD_KRUEGER_TABLE3, LEVELS, SEED_BASE, Replication, load_study, replicate,
-                                          replicate_card_krueger, summarize)
+                                          replicate_card_krueger, same, summarize)
 from utils.real_data import load_card_krueger
 
 APP = str(Path(__file__).resolve().parent.parent / "app.py")
@@ -60,7 +60,16 @@ def test_the_stored_study_is_what_the_code_computes():
     assert meta["seed_base"] == SEED_BASE
     for level in LEVELS:
         for r in (0, 1, meta["replications_per_level"] - 1):
-            assert replicate(level, r) == reps[level][r], (level, r)
+            assert same(replicate(level, r), reps[level][r]), (level, r, replicate(level, r), reps[level][r])
+
+
+def test_same_ignores_floating_point_noise_only():
+    a = Replication(seed=1, true_att=-0.5, estimate=-0.49, se=0.1, ci_low=-0.69, ci_high=-0.29, p_value=1e-6,
+                    pretest_p=0.4, pretest_flag=False)
+    from dataclasses import replace
+    assert same(a, replace(a, estimate=-0.49 * (1 + 1e-12)))
+    assert not same(a, replace(a, estimate=-0.4901))
+    assert not same(a, replace(a, pretest_flag=True))
 
 
 def test_the_claims_made_in_words_hold_in_the_stored_study():

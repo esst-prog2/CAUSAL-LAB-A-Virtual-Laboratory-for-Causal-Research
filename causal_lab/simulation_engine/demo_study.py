@@ -69,6 +69,18 @@ def replicate(level: str, r: int) -> Replication:
                        pretest_flag=pretest.verdict == "WARNING")
 
 
+def same(a: Replication, b: Replication, rel: float = 1e-9) -> bool:
+    """Equal up to floating-point noise: a different BLAS or package version
+    may change the last bits of a regression, not the result."""
+    if a.seed != b.seed or a.pretest_flag != b.pretest_flag:
+        return False
+    for name in ("true_att", "estimate", "se", "ci_low", "ci_high", "p_value", "pretest_p"):
+        x, y = getattr(a, name), getattr(b, name)
+        if (x is None) != (y is None) or (x is not None and abs(x - y) > rel * max(1.0, abs(x), abs(y))):
+            return False
+    return True
+
+
 def run_level(level: str, n_reps: int, start: int = 0) -> list[Replication]:
     return [replicate(level, r) for r in range(start, start + n_reps)]
 
