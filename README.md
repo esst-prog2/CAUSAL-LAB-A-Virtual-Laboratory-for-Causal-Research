@@ -8,13 +8,32 @@ A small tool that lets someone with a panel dataset and a treatment date find ou
 
 The demo is the **🎓 Guided Demo** page. It tests the app's main claim as a short methods paper would: on data where the answer is known, does difference-in-differences recover it, and does the lab say when it cannot? Every number on the page comes from the engines or from a stored simulation study; none is typed in its text.
 
-**1. Question and design.** Each Virtual World has 100 units over 20 periods. 30% of them are treated from period 10, with a true effect of −0.50. Diverging pre-trends make the treated units drift away from the controls by 0.08 × intensity noise SDs per period, at five levels from *none* to *severe*. In every world, the page records:
+**1. Question and design.** Each Virtual World has 100 units over 20 periods. 30% of them are treated from period 10, with a true effect of −0.50. Four threats are varied one at a time, each at five levels from *none* to *severe*:
+- diverging pre-trends;
+- confounding;
+- staggered adoption with effects that grow over time;
+- anticipation.
+
+In every world, the page records:
 - the two-way fixed-effects DiD, with standard errors clustered by unit;
 - the joint lead test of Break My Design, with a wild cluster bootstrap p-value at the 10% level.
 
+**Decision rule: how much bias is too much.** The DiD is acceptable in a scenario when |bias| ≤ 10% of the true effect **and** its 95% interval covers the truth in at least 90% of the worlds. The author fixed this rule on 2026-10-30, after seeing the pre-trends results and before simulating the three other threats; the planning log records it. It answers the question raised in review issue #1.
+
 **2. One world each way (seed 42), as an illustration.** With parallel trends, the DiD gives −0.49, 95% CI [−0.66, −0.33], and the pre-trend test passes (p = 0.991). With severe divergence, it gives +1.11 [0.94, 1.27] and the test warns (p = 0.003).
 
-**3. The simulation study, as evidence.** There are 1,000 worlds per level. Following Morris, White & Crowther (2019), each statistic comes with its Monte Carlo SE. The study was computed by `spike/demo_study.py`, and every replication is stored with its seed in `causal_lab/data/demo_study/results.json`.
+**3. The simulation study, as evidence.** There are 4 threats × 5 levels × 1,000 worlds. Following Morris, White & Crowther (2019), each statistic comes with its Monte Carlo SE. The study was computed by `spike/demo_study.py`, and every replication is stored with its seed in `causal_lab/data/demo_study/results.json`. Under the decision rule:
+
+| Threat | Acceptable up to | First level beyond the rule | Pre-trend test warns there |
+|---|---|---|---|
+| Diverging pre-trends | none | low: bias +0.236 (47% of the effect), coverage 30.4% | 14.2% |
+| Confounding | medium | high: bias +0.106 (21%), coverage 81.9% | 11.5% |
+| Staggered adoption, growing effects | high | severe: bias +0.094 (7%), coverage 86.8% | 10.3% |
+| Anticipation | medium | high: bias +0.056 (11%), coverage 91.2% | 43.3% |
+
+Without any threat, the pre-trend test warns in 9.2% of the worlds, or 10.3% in the staggered design, whose baseline already has staggered adoption.
+
+For diverging pre-trends, the levels in detail:
 
 | Diverging pre-trends | Bias | Coverage of the 95% CI | Significant, wrong sign | Pre-trend test warns | Coverage when the test does not warn |
 |---|---|---|---|---|---|
@@ -24,12 +43,14 @@ The demo is the **🎓 Guided Demo** page. It tests the app's main claim as a sh
 | high | +0.956 | 0.0% | 99.6% | 84.2% | 0.0% (n = 158) |
 | severe | +1.596 | 0.0% | 100.0% | 99.9% | 0.0% (n = 1) |
 
-The table supports three findings:
-- **When parallel trends hold, the method works and its uncertainty is honest.** Coverage is at its nominal level, there is no detectable bias, and the empirical and the reported standard errors are both 0.097. The pre-trend test raises false alarms at 9.2%, close to its nominal 10%.
-- **When they fail, the estimate is not just noisy, it is wrong.** At the *high* and *severe* levels, the DiD reports a significant effect of the wrong sign in almost every world. The test catches the *severe* case, but at *high* it misses 158 worlds in 1,000.
-- **Passing the test does not make the estimate trustworthy.** At the *low* level, 858 of the 1,000 worlds pass, yet only 30.9% of their intervals cover the truth. Estimating only after a passed pretest changes the estimator's distribution (Roth, 2022).
+The study supports five findings:
+- **When nothing is wrong, the method works and its uncertainty is honest.** Coverage is at its nominal level (94.5%, MCSE 0.7), there is no detectable bias, and the empirical and the reported standard errors are both 0.097. The pre-trend test raises false alarms at 9.2%, close to its nominal 10%.
+- **Diverging pre-trends are the most damaging threat.** Even the *low* level breaks the rule. At *high* and *severe*, the DiD reports a significant effect of the wrong sign in almost every world.
+- **Confounding is nearly invisible to the pre-trend test.** At *severe*, the bias is 47% of the effect, yet the test warns in only 14.6% of the worlds, barely above its 9.2% false-alarm rate.
+- **Staggered adoption with growing effects fails on coverage, not on bias.** At *severe*, the bias stays at 7% of the effect, but the coverage falls to 86.8%.
+- **Passing the test does not make the estimate trustworthy.** With *low* diverging pre-trends, 858 of the 1,000 worlds pass the test, yet only 30.9% of their intervals cover the truth. Estimating only after a passed pretest changes the estimator's distribution (Roth, 2022).
 
-**4. Reproducibility, live.** A button re-runs the first 20, 50 or 100 worlds of any level and checks them, value by value, against the stored ones. It says "identical". Each world takes about a second on the free online server (20 worlds by default) and much less on a laptop.
+**4. Reproducibility, live.** A button re-runs the first 20, 50 or 100 worlds of any threat and level and checks them, value by value, against the stored ones. It says "identical". Each world takes about a second on the free online server (20 worlds by default) and much less on a laptop.
 
 **5. Replication of Card & Krueger (1994), Table 3.** The page recomputes rows 1, 2 and 4 from the raw survey data and sets each cell next to the published one:
 - 17 of the 18 published numbers agree to two decimals, including the DiD, 2.75 (1.34);
@@ -45,7 +66,7 @@ The table supports three findings:
 - **Theoretical Model:** solves a game, predicts the treatment effect, and compares the prediction with the causal estimate.
 - **Report:** exports the analysis with its references and a reproducibility section, as PDF, Word, LaTeX or Markdown.
 
-Every page is available in English and in French. The numbers above are those of the stored study, computed on 2026-10-29 (seeds 20261029 + r).
+Every page is available in English and in French. The numbers above are those of the stored study: diverging pre-trends computed on 2026-10-29, the three other threats on 2026-10-30, all with seeds 20261029 + r.
 
 > **Earlier plan (the brief, kept as history).** I open the app in the browser and upload a CSV: one row per unit per time period, a treatment date, and an outcome column. It shows a plot of average outcomes for treated and untreated units over time, with the treatment date marked. Below it, a diagnosis panel says "Parallel trends: questionable — pre-trend slope difference is 0.34, p = 0.02" and "Recommended: difference-in-differences, but check anticipation effects first." I click "Run DiD" and it shows a coefficient, a standard error, and a two-way fixed-effects regression table. I click "Break this design" and it re-runs the same estimator on a version of the data where I know the true effect is zero, so I can see whether the method still finds a false effect.
 >

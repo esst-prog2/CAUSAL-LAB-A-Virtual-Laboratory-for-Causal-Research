@@ -13,8 +13,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import numpy as np
 from streamlit.testing.v1 import AppTest
 
-from simulation_engine.demo_study import (CARD_KRUEGER_TABLE3, LEVELS, SEED_BASE, Replication, load_study, replicate,
-                                          replicate_card_krueger, same, summarize)
+from simulation_engine.demo_study import (CARD_KRUEGER_TABLE3, LEVELS, SEED_BASE, THREATS, Replication,
+                                          largest_acceptable, load_study, replicate, replicate_card_krueger, same,
+                                          summarize)
 from utils.real_data import load_card_krueger
 
 APP = str(Path(__file__).resolve().parent.parent / "app.py")
@@ -54,13 +55,15 @@ def test_summary_statistics_by_hand():
 def test_the_stored_study_is_what_the_code_computes():
     stored = load_study()
     assert stored is not None, "run python spike/demo_study.py"
-    meta, reps = stored
-    assert set(reps) == set(LEVELS)
-    assert all(len(reps[level]) == meta["replications_per_level"] >= 1000 for level in LEVELS)
+    meta, study = stored
+    assert list(study) == list(THREATS)                                        # every threat, in order
     assert meta["seed_base"] == SEED_BASE
-    for level in LEVELS:
-        for r in (0, 1, meta["replications_per_level"] - 1):
-            assert same(replicate(level, r), reps[level][r]), (level, r, replicate(level, r), reps[level][r])
+    for threat, levels in study.items():
+        assert list(levels) == list(LEVELS)
+        assert all(len(levels[level]) == meta["replications_per_level"] >= 1000 for level in LEVELS)
+        for level in LEVELS:
+            for r in (0, meta["replications_per_level"] - 1):
+                assert same(replicate(threat, level, r), levels[level][r]), (threat, level, r)
 
 
 def test_same_ignores_floating_point_noise_only():
@@ -72,8 +75,25 @@ def test_same_ignores_floating_point_noise_only():
     assert not same(a, replace(a, pretest_flag=True))
 
 
+def test_the_decision_rule_by_hand():
+    def world(estimate, covered=True):
+        lo, hi = (estimate - 0.2, estimate + 0.2) if covered else (estimate + 0.1, estimate + 0.2)
+        return Replication(seed=0, true_att=-0.5, estimate=estimate, se=0.1, ci_low=lo, ci_high=hi, p_value=0.001,
+                           pretest_p=0.5, pretest_flag=False)
+    # bias -0.04 (8% of 0.5) with 9 of 10 covered: acceptable; bias +0.06 (12%): not; 8 of 10 covered: not.
+    ok = summarize("none", [world(-0.54)] * 9 + [world(-0.54, covered=False)])
+    too_biased = summarize("low", [world(-0.44)] * 10)
+    undercovers = summarize("medium", [world(-0.5)] * 8 + [world(-0.5, covered=False)] * 2)
+    assert ok.acceptable and not too_biased.acceptable and not undercovers.acceptable
+    assert np.isclose(ok.bias_share, 0.08) and np.isclose(too_biased.bias_share, 0.12)
+    levels = dict(zip(LEVELS, [ok, ok, too_biased, ok, ok], strict=True))
+    assert largest_acceptable(levels) == "low"                                 # the first failure ends the range
+    assert largest_acceptable(dict(zip(LEVELS, [too_biased] * 5, strict=True))) is None
+
+
 def test_the_claims_made_in_words_hold_in_the_stored_study():
-    _, reps = load_study()
+    _, study = load_study()
+    reps = study["differential_trend"]
     s = {level: summarize(level, reps[level]) for level in LEVELS}
     clean, severe = s["none"], s["severe"]
     assert abs(clean.coverage - 0.95) < 3 * clean.coverage_mcse + 0.01          # close to nominal
@@ -87,6 +107,19 @@ def test_the_claims_made_in_words_hold_in_the_stored_study():
     assert s["high"].coverage_given_pass is not None
 
 
+def test_the_answers_per_threat_stated_in_the_readme():
+    # README section 1: how far each threat can go under the author's rule, and what the pretest sees.
+    _, study = load_study()
+    s = {t: {lv: summarize(lv, reps) for lv, reps in levels.items()} for t, levels in study.items()}
+    assert {t: largest_acceptable(by_level) for t, by_level in s.items()} == {
+        "differential_trend": "none", "confounding": "medium", "staggered_dynamic": "high", "anticipation": "medium"}
+    baseline = s["confounding"]["none"].detection
+    assert s["confounding"]["severe"].detection < 2 * baseline                 # confounding is nearly invisible
+    assert s["confounding"]["severe"].bias_share > 0.4
+    sev = s["staggered_dynamic"]["severe"]
+    assert sev.bias_share <= 0.10 and sev.coverage < 0.90                     # fails the rule on coverage alone
+
+
 def test_the_demo_page_renders_in_both_languages():
     for lang in ("en", "fr"):
         at = AppTest.from_file(APP, default_timeout=600)
@@ -96,7 +129,8 @@ def test_the_demo_page_renders_in_both_languages():
         assert not at.exception, [e.message for e in at.exception]
         text = " ".join(str(m.value) for m in at.markdown)
         assert ("17 of 18" if lang == "en" else "17 sur 18") in text
-        assert len(at.dataframe) == 3                                          # one world, study, replication
+        # one world, overview, one table per threat, replication
+        assert len(at.dataframe) == 3 + len(THREATS)
 
 
 if __name__ == "__main__":
