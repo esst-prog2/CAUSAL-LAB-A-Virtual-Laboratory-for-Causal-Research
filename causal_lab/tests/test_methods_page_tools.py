@@ -57,24 +57,27 @@ def test_rdd_inference_choice_and_fuzzy_world_on_the_page():
     at = _app_with_result("rdd", compliance=0.6)
     captions = " ".join(c.value for c in at.caption)
     assert "Fuzzy RD first stage" in captions and "Robust bias-corrected" in captions
-    at.radio(key="mw_rdd_inference").set_value("robust").run()
-    assert not at.exception and at.session_state["method_data"]["rdd"]["options"]["inference"] == "robust"
+    # Robust bias-corrected inference is the default since the validation study (estimators/rdd.py).
+    assert at.radio(key="mw_rdd_inference").value == "robust"
+    assert at.session_state["method_data"]["rdd"]["result"].details["inference"] == "robust"
+    at.radio(key="mw_rdd_inference").set_value("conventional").run()
+    assert not at.exception and at.session_state["method_data"]["rdd"]["options"]["inference"] == "conventional"
     assert at.session_state["method_data"]["rdd"]["result"] is None       # stale result cleared
 
 
 def test_rdd_inference_choice_survives_leaving_the_page():
     # A widget's key is dropped when its page is left: without restoring it, coming
-    # back reverted the choice to conventional and cleared the robust result.
+    # back reverted the choice to the default and cleared the result.
     at = _app_with_result("rdd")
-    at.radio(key="mw_rdd_inference").set_value("robust").run()
+    at.radio(key="mw_rdd_inference").set_value("conventional").run()
     next(b for b in at.button if b.key == "mw_rdd_run").click().run()
-    assert at.session_state["method_data"]["rdd"]["result"].details["inference"] == "robust"
+    assert at.session_state["method_data"]["rdd"]["result"].details["inference"] == "conventional"
     at.session_state["page"] = "dashboard"
     at.run()
     at.session_state["page"] = "methods"
     at.run()
     assert not at.exception
-    assert at.radio(key="mw_rdd_inference").value == "robust"
+    assert at.radio(key="mw_rdd_inference").value == "conventional"
     assert at.session_state["method_data"]["rdd"]["result"] is not None
 
 

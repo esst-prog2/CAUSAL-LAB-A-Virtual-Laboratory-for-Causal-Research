@@ -69,3 +69,10 @@ When a treatment-received column is mapped, the system SHALL estimate a fuzzy RD
 #### Scenario: Fuzzy virtual world
 - **WHEN** the RDD world is generated with compliance 0.6 and effect 2
 - **THEN** the first-stage jump is about 0.6 and the fuzzy estimate is within three standard errors of 2, while a sharp estimate on the same data recovers about 0.6 × 2
+
+### Requirement: Robust inference by default
+The Causal Methods page SHALL report robust bias-corrected inference (Calonico et al., 2014) for regression discontinuity unless the researcher chooses conventional inference.
+
+#### Scenario: Running RDD with default settings
+- **WHEN** the researcher runs RDD without changing the inference choice
+- **THEN** the reported confidence interval and p-value are the robust bias-corrected ones

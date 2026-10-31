@@ -32,7 +32,7 @@ from code_generator.generator import CodeGenParams, generate_all
 from estimators.common import Z_95
 from estimators.did import estimate_did
 from estimators.event_study import estimate_event_study
-from estimators.staggered_did import estimate_staggered_did
+from estimators.staggered_did import SMALL_COHORT, estimate_staggered_did
 from report_engine.builder import build_report
 from report_engine.render import FORMATS, render_report, to_markdown
 from robustness_engine.robustness import run_robustness_battery
@@ -554,7 +554,7 @@ elif page == "estimation":
             if cs is not None:
                 c1, c2, c3 = st.columns(3)
                 c1.metric(L("common.estimated_att"), f"{cs.att:.4f}")
-                c2.metric(L("staggered.bootstrap_se"), f"{cs.se:.4f}")
+                c2.metric(F("staggered.se_label", df=cs.df) if cs.inference == "analytic" else L("staggered.bootstrap_se"), f"{cs.se:.4f}")
                 c3.metric(L("common.ci95"), f"[{cs.ci_low:.3f}, {cs.ci_high:.3f}]")
                 rows = [{L("staggered.col.estimator"): L("staggered.twfe"), "ATT": cached_did(df).att},
                         {L("staggered.col.estimator"): L("staggered.cs"), "ATT": cs.att}]
@@ -566,10 +566,12 @@ elif page == "estimation":
                 references_caption("staggered")
                 if cs.n_dropped:
                     st.caption(F("staggered.dropped", n=cs.n_dropped))
+                if cs.min_cohort_size < SMALL_COHORT:
+                    st.info(F("staggered.small_cohorts", n=cs.min_cohort_size, minimum=SMALL_COHORT, df=cs.df))
                 es_cs = cs.event_study
                 fig = go.Figure(go.Scatter(
                     x=es_cs["rel_period"], y=es_cs["estimate"],
-                    error_y=dict(type="data", array=Z_95 * es_cs["se"], visible=True),
+                    error_y=dict(type="data", array=es_cs["ci_high"] - es_cs["estimate"], visible=True),
                     mode="markers+lines", name=L("staggered.cs")))
                 fig.add_hline(y=0, line_dash="dot", line_color="gray")
                 fig.add_vline(x=-0.5, line_dash="dash", line_color="red", annotation_text=L("common.treatment"))
