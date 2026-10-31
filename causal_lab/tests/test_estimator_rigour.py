@@ -96,6 +96,42 @@ def test_staggered_did_reports_its_smallest_cohort_and_the_report_warns():
     assert any("smallest adoption cohort has only" in t for t in texts)
 
 
+def test_staggered_analytic_inference_is_welch_in_the_two_group_case():
+    # One cohort treated in period 1, never-treated controls, two periods: the ATT is a
+    # difference of two means of outcome changes, and the analytic test must be Welch's.
+    import pandas as pd
+    from scipy import stats
+    from estimators.staggered_did import estimate_staggered_did
+    rng = np.random.default_rng(7)
+    n_t, n_c = 6, 15
+    rows = []
+    for u in range(n_t + n_c):
+        treated = u < n_t
+        y0 = rng.normal()
+        rows += [(u, 0, 0, y0), (u, 1, int(treated), y0 + rng.normal(0.4 if treated else 0.0, 1.0 + treated))]
+    df = pd.DataFrame(rows, columns=["unit", "period", "D", "Y"])
+    result = estimate_staggered_did(df)
+    change = df.pivot(index="unit", columns="period", values="Y").diff(axis=1)[1]
+    welch = stats.ttest_ind(change[:n_t], change[n_t:], equal_var=False)
+    assert result.inference == "analytic"
+    assert abs(result.att - (change[:n_t].mean() - change[n_t:].mean())) < 1e-12
+    assert abs(result.p_value - welch.pvalue) < 1e-10
+    assert abs(result.df - welch.df) < 1e-8
+
+
+def test_staggered_analytic_inference_handles_a_one_unit_cohort():
+    from estimators.staggered_did import estimate_staggered_did
+    from simulation_engine.dgp import VirtualWorldConfig, generate
+    for seed in range(40):              # find a world with a one-unit cohort
+        df, _ = generate(replace(VirtualWorldConfig(staggered_adoption=True), seed=seed))
+        result = estimate_staggered_did(df)
+        if result.min_cohort_size == 1:
+            break
+    assert result.min_cohort_size == 1
+    assert result.inference == "analytic" and np.isfinite(result.se) and result.se > 0
+    assert np.isfinite(result.event_study["se"]).all()
+
+
 if __name__ == "__main__":
     for name, fn in list(globals().items()):
         if name.startswith("test_"):

@@ -26,7 +26,6 @@ from dataclasses import dataclass, replace
 from pathlib import Path
 
 import numpy as np
-from scipy import stats
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "causal_lab"))
 
@@ -61,8 +60,8 @@ for m in EFFECT:
 SCENARIOS += [Scenario("rdd/robust", "rdd", {}, 1000, {"inference": "robust"}),
               Scenario("rdd/robust-small", "rdd", SMALL["rdd"], 1000, {"inference": "robust"}),
               Scenario("iv/weak", "iv", {"instrument_strength": 0.3}, 1000),
-              Scenario("staggered/default", "staggered", {}, 500),
-              Scenario("staggered/null", "staggered", {"true_att": 0.0}, 500)]
+              Scenario("staggered/default", "staggered", {}, 1000),
+              Scenario("staggered/null", "staggered", {"true_att": 0.0}, 1000)]
 
 
 def run(sc: Scenario) -> list[dict]:
@@ -73,10 +72,10 @@ def run(sc: Scenario) -> list[dict]:
                 cfg = replace(VirtualWorldConfig(staggered_adoption=True), seed=r, **sc.changes)
                 df, truth = generate(cfg)
                 res = estimate_staggered_did(df)
-                # The staggered result has no p-value: the normal test its CI uses.
+                # The analytic t test of the result (Welch-Satterthwaite degrees of freedom).
                 out.append(dict(seed=r, truth=float(truth["true_att"]), estimate=float(res.att), se=float(res.se),
                                 ci_low=float(res.ci_low), ci_high=float(res.ci_high),
-                                p_value=float(2 * stats.norm.sf(abs(res.att / res.se)))))
+                                p_value=float(res.p_value)))
                 continue
             world = WORLDS[sc.method]
             cfg = replace(world.config_cls(), seed=r, **sc.changes)

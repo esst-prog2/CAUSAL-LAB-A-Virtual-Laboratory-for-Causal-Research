@@ -202,7 +202,7 @@ def build_report(state, lang: str, now: datetime | None = None) -> Report:
                 add(Paragraph(F("staggered.details", cohorts=cs.n_cohorts, units=cs.n_units,
                                 comparison=L(f"staggered.comparison.{cs.comparison}"))))
                 if cs.min_cohort_size < SMALL_COHORT:
-                    add(Paragraph(F("staggered.small_cohorts", n=cs.min_cohort_size, minimum=SMALL_COHORT),
+                    add(Paragraph(F("staggered.small_cohorts", n=cs.min_cohort_size, minimum=SMALL_COHORT, df=cs.df),
                                   emphasis=True))
                 references(*METHOD_REFERENCES["staggered"])
 
