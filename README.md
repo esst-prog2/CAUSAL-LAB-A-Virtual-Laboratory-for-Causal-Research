@@ -214,6 +214,36 @@ A person with a messy panel CSV and a treatment date can use this version alone:
 - Given the same column names, the generated Python, R, and Stata scripts all fit the same two-way fixed-effects model with standard errors clustered on the same column.
 - Switching the sidebar language toggle from EN to FR redraws every page's text in French, including messages produced by the engines (stress-test details, rationales, warnings, errors, model texts), falling back to English for any translation key that's missing. Checked by `tests/test_i18n_coverage.py`: 720 keys on 2026-10-25, identical in EN and FR. A scripted French render audit of every page also found no untranslated text outside code blocks. Generated scripts, the per-method technical log (labelled "English"), references, and the user's own column names stay as they are.
 
+**Validation of every estimator (2026-10-31).** Each estimator already matches a reference package (section 3). This study checks its *statistical* behaviour on worlds where the truth is known: 23 scenarios, 1,000 worlds each (200 for DML, 500 for Callaway & Sant'Anna), with Monte Carlo standard errors (`spike/estimator_validation.py`; every replication is in `spike/estimator_validation_2026-10-31.json`). The scenarios are:
+- each method's default world: bias, SE / SD, coverage of the 95% CI, power;
+- the same world with a true effect of 0: the size of the test, which should be about 5%;
+- a small sample;
+- RDD with robust inference, IV with a weak instrument, and Callaway & Sant'Anna.
+
+| Method | Coverage of the 95% CI | Size at 5% (true effect 0) | Finding |
+|---|---|---|---|
+| RCT (Lin, HC2) | 94.6% (0.7) | 5.8% (0.7) | calibrated, also at n = 60 (94.5%) |
+| Matching (bias-corrected) | 95.1% (0.7) | 4.9% (0.7) | calibrated, also at n = 200 (95.5%) |
+| IV (2SLS) | 96.1% (0.6) | 3.9% (0.6) | see the Anderson-Rubin set below |
+| RDD, conventional | 94.3%; **91.6% at n = 400** | 5.7% (0.7) | under-covers in small samples |
+| RDD, robust bias-corrected | 95.8%; 93.8% at n = 400 | — | **now the app's default** |
+| Synthetic control (placebo test) | — | **7.2% (0.8)**; cannot reject with 8 donors | warning added |
+| DML | 93.0% (1.8) | 5.5% (1.6) | calibrated; small bias +0.016 at θ = 0 (0.5 SE) |
+| Callaway & Sant'Anna | **91.4% (1.3)** | **8.6% (1.3)** | under-covers with cohorts of about 3 units; warning added |
+
+What changed because of it:
+- **RDD:** robust bias-corrected inference (Calonico et al., 2014) is now the app's default, because the conventional interval under-covers in small samples. `estimate_rdd` keeps its conventional default, the rdrobust row the reference tests compare.
+- **IV:** the result now gives the **Anderson-Rubin confidence set** (Anderson & Rubin, 1949; Andrews et al., 2019), which is valid however weak the instrument. It is exact for one instrument (a quadratic inequality) and found by test inversion for several; it equals an independent statsmodels inversion to 1e-6. With a weak instrument (first-stage coefficient 0.15) and strong endogeneity:
+
+  | Over 1,000 worlds | Coverage of the 95% CI | Size at 5% |
+  |---|---|---|
+  | 2SLS Wald interval | 90.1% | 9.9% |
+  | Anderson-Rubin set | 95.3% | 4.7% |
+
+  The weak-instrument warning now points to it. With one instrument 2SLS has no finite mean, which is why the mean bias at n = 200 (−0.13) is not a meaningful figure.
+- **Synthetic control:** the placebo p-value cannot fall below 1 / (donors + 1). With fewer than 19 donors no effect can be significant at 5%, and the result now says so. The 7.2% size with 20 donors is reported as a limit: the placebo units are not exactly exchangeable with the treated unit.
+- **Callaway & Sant'Anna:** the result reports its smallest cohort, and the page and the report warn when it has fewer than 5 units. A jackknife standard error was tried on 300 worlds: SE / SD 0.98 against 0.96 for the bootstrap, but coverage 92.7% against 92.0%, not a significant gain. The problem is the normal approximation with 3-unit cohorts, which no standard error fixes, so the bootstrap is kept and the limit is stated.
+
 ## 5. What could stop this
 
 - **Statistical correctness.**

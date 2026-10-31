@@ -36,6 +36,11 @@ from estimators.common import Z_95
 from utils.i18n import LocalizedError
 
 N_BOOTSTRAP = 199
+# Below this many units in a cohort the normal-approximation CI under-covers: in the
+# validation study (spike/estimator_validation.py), with the smallest cohort at 3 units
+# in the median world, the 95% CI covered 91-92% of the time with either the bootstrap
+# or a jackknife standard error. The result reports the smallest cohort; the pages warn.
+SMALL_COHORT = 5
 COMPARISONS = ("never_treated", "not_yet_treated")
 
 
@@ -51,6 +56,7 @@ class StaggeredDiDResult:
     n_units: int
     comparison: str                 # "never_treated" | "not_yet_treated"
     n_dropped: int = 0              # units dropped because not observed in every period
+    min_cohort_size: int = 0        # units in the smallest adoption cohort
 
 
 def _wide(df: pd.DataFrame, outcome_col, unit_col, time_col, treatment_col):
@@ -142,5 +148,5 @@ def estimate_staggered_did(df: pd.DataFrame, outcome_col: str = "Y", treatment_c
         att=att, se=se, ci_low=att - Z_95 * se, ci_high=att + Z_95 * se,
         group_time=gt, event_study=es.reset_index(drop=True),
         n_cohorts=int(gt["cohort"].nunique()), n_units=n_units, comparison=comparison,
-        n_dropped=n_dropped,
+        n_dropped=n_dropped, min_cohort_size=int(gt.groupby("cohort")["n_cohort"].first().min()),
     )

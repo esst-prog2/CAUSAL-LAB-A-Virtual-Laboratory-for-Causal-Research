@@ -36,6 +36,12 @@ from utils.i18n import LocalizedError, Msg
 MIN_OBS_PER_SIDE = 10
 C_TRIANGULAR = 3.4375
 INFERENCES = ("conventional", "robust")
+# What the app reports by default. A validation study (spike/estimator_validation.py,
+# 1,000 worlds) found the conventional CI under-covers in small samples (91.6% at
+# n = 400) and the robust bias-corrected CI does not (93.8%), as Calonico, Cattaneo
+# & Titiunik (2014) predict. The function default stays "conventional", the
+# rdrobust "Conventional" row that the reference tests compare.
+APP_INFERENCE = "robust"
 WEAK_FIRST_STAGE_F = 10.0
 
 

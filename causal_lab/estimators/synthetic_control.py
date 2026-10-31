@@ -169,6 +169,12 @@ def estimate_synthetic_control(df: pd.DataFrame, unit_col: str = "unit", period_
     outcome_sd = float(np.std(wide[treated_unit].to_numpy()[pre]))
     if outcome_sd > 0 and main["pre_rmspe"] > 0.5 * outcome_sd:
         warnings.append(Msg("warn.sc_fit", rmspe=main["pre_rmspe"]))
+    # The placebo p-value is a rank among len(donors) + 1 units: it cannot fall
+    # below 1 / (len(donors) + 1), so with fewer than 19 donors no effect, however
+    # large, is significant at 5% (validation study: 0% rejections with 8 donors).
+    if 1 / (len(donors) + 1) > 0.05:
+        warnings.append(Msg("warn.sc_few_donors", donors=len(donors), units=len(donors) + 1,
+                            p_min=1 / (len(donors) + 1)))
 
     weights = pd.DataFrame({"donor": donors, "weight": main["weights"]}) \
         .sort_values("weight", ascending=False).reset_index(drop=True)

@@ -32,7 +32,7 @@ from code_generator.generator import CodeGenParams, generate_all
 from estimators.common import Z_95
 from estimators.did import estimate_did
 from estimators.event_study import estimate_event_study
-from estimators.staggered_did import estimate_staggered_did
+from estimators.staggered_did import SMALL_COHORT, estimate_staggered_did
 from report_engine.builder import build_report
 from report_engine.render import FORMATS, render_report, to_markdown
 from robustness_engine.robustness import run_robustness_battery
@@ -566,6 +566,8 @@ elif page == "estimation":
                 references_caption("staggered")
                 if cs.n_dropped:
                     st.caption(F("staggered.dropped", n=cs.n_dropped))
+                if cs.min_cohort_size < SMALL_COHORT:
+                    st.warning(F("staggered.small_cohorts", n=cs.min_cohort_size, minimum=SMALL_COHORT))
                 es_cs = cs.event_study
                 fig = go.Figure(go.Scatter(
                     x=es_cs["rel_period"], y=es_cs["estimate"],

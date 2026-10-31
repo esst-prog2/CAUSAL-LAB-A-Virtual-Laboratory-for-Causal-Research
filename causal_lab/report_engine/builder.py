@@ -16,7 +16,7 @@ from datetime import datetime
 from code_generator.generator import CodeGenParams, generate_all
 from estimators.did import estimate_did
 from estimators.event_study import estimate_event_study
-from estimators.staggered_did import estimate_staggered_did
+from estimators.staggered_did import SMALL_COHORT, estimate_staggered_did
 from robustness_engine.robustness import run_robustness_battery
 from robustness_engine.stress_test import run_stress_test
 from utils import reproducibility, session_data
@@ -201,6 +201,9 @@ def build_report(state, lang: str, now: datetime | None = None) -> Report:
                           + ([[L("common.true_att"), _num(truth["true_att"]), ""]] if truth is not None else [])))
                 add(Paragraph(F("staggered.details", cohorts=cs.n_cohorts, units=cs.n_units,
                                 comparison=L(f"staggered.comparison.{cs.comparison}"))))
+                if cs.min_cohort_size < SMALL_COHORT:
+                    add(Paragraph(F("staggered.small_cohorts", n=cs.min_cohort_size, minimum=SMALL_COHORT),
+                                  emphasis=True))
                 references(*METHOD_REFERENCES["staggered"])
 
         # 5. Break My Design and robustness
