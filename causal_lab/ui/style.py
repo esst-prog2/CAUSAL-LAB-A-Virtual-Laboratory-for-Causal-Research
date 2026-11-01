@@ -48,7 +48,8 @@ pio.templates["causal_lab"] = go.layout.Template(layout=go.Layout(colorway=CATEG
 pio.templates.default = "plotly+causal_lab"
 
 _BASE_CSS = """
-.block-container { max-width: 1200px; padding-top: 2.6rem; }
+/* Room for the toolbar the online host draws above the page (Fork, GitHub) */
+.block-container { max-width: 1200px; padding-top: 4rem; }
 
 /* Running text keeps a readable measure, even in the wide layout */
 [data-testid="stMain"] [data-testid="stMarkdownContainer"] > p,
@@ -150,7 +151,7 @@ _BASE_CSS = """
 .cl-step.done .cl-badge { background: rgba(46, 158, 131, 0.18); }
 
 @media (max-width: 640px) {
-  .block-container { padding-top: 3.2rem; }
+  .block-container { padding-top: 3.6rem; }
   .cl-head h1 { font-size: 2rem; }
   .cl-head .cl-sub { font-size: 1.05rem; }
   .cl-head .cl-mission { font-size: 1rem; }
