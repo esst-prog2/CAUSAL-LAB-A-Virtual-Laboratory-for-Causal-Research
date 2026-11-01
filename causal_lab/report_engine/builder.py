@@ -13,6 +13,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime
 
+from causal_engine.recommendation import NEEDS_INFO, recommended
 from code_generator.generator import CodeGenParams, generate_all
 from estimators.did import estimate_did
 from estimators.event_study import estimate_event_study
@@ -34,6 +35,10 @@ DESIGN_FIELDS = (            # (wizard label key, ResearchDesignInput field, opt
     ("wizard.has_pre", "has_pre_treatment_periods", False),
     ("wizard.n_pre", "n_pre_periods", False),
     ("wizard.n_post", "n_post_periods", False),
+    ("wizard.control_group", "has_control_group", False),
+    ("wizard.n_treated", "n_treated_units", True),
+    ("wizard.instrument", "instrument", True),
+    ("wizard.confounders", "confounders_observed", True),
 )
 THREATS = ("confounding", "spillovers", "serial_correlation", "treatment_heterogeneity",
            "differential_trend", "anticipation", "dynamic_effects")
@@ -118,17 +123,25 @@ def build_report(state, lang: str, now: datetime | None = None) -> Report:
         for note in diagnosis.notes:
             add(Paragraph(R(note)))
     if recs:
-        best = recs[0]
+        best = recommended(recs)
         add(Heading(L("recommendation.title"), 2))
-        add(Paragraph(f"{L('recommendation.primary_method')}{colon}{L(f'method.{best.key}')} "
-                      f"({L('recommendation.confidence')}{colon}{L(f'level.{best.confidence}')})"))
-        for note in best.rationale:
-            add(Paragraph("— " + R(note)))
-        add(Paragraph(f"{L('recommendation.main_assumption')}{colon}{R(best.main_assumption)}"))
-        add(Paragraph(f"{L('recommendation.main_concern')}{colon}{R(best.main_concern)}"))
+        if best is None:
+            add(Paragraph(L("recommendation.none_title"), emphasis=True))
+            add(Paragraph(L("recommendation.none_body")))
+        else:
+            add(Paragraph(f"{L('recommendation.recommended')}{colon}{L(f'method.{best.key}')} "
+                          f"({L('recommendation.confidence')}{colon}{L(f'level.{best.confidence}')})"))
+            add(Paragraph(f"{L('recommendation.estimand')}{colon}{L(f'rec.{best.key}.estimand')}"))
+            for note in best.rationale:
+                add(Paragraph("— " + R(note)))
+            for part in ("identification", "assumptions", "diagnostics"):
+                add(Paragraph(f"{L(f'recommendation.{part}')}{colon}{L(f'rec.{best.key}.{part}')}"))
         add(Table([L("report.col.method"), L("recommendation.score"), L("recommendation.confidence")],
-                  [[L(f"method.{r.key}"), f"{r.overall:.0f}/100", L(f"level.{r.confidence}")] for r in recs]))
-        add(Paragraph(L("recommendation.disclaimer"), emphasis=True))
+                  [[L(f"method.{r.key}"),
+                    f"{r.overall:.0f}/100" if r.supported else " ".join(R(m) for m in r.unmet),
+                    L(f"level.{r.confidence}") if r.supported else
+                    (L("recommendation.needs_info") if r.status == NEEDS_INFO else "—")] for r in recs]))
+        add(Paragraph(L("recommendation.score_note"), emphasis=True))
 
     # 3. Data
     df = session_data.active_data(state)

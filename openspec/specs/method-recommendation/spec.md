@@ -6,63 +6,75 @@ Computes a transparent "CAUSAL LAB Method Suitability Score" (0-100) for a fixed
 ## Requirements
 
 ### Requirement: Scored, ranked candidate list
-The system SHALL score every candidate method in the fixed library and return them ranked from most to least suitable.
+The system SHALL check every candidate method against the conditions without which it does not identify a causal effect, and score only the methods whose conditions hold. Methods SHALL be ranked in this order:
+- supported methods, by score;
+- methods that need information;
+- methods ruled out.
 
 #### Scenario: Recommending methods
 - **WHEN** `recommend(design, diagnosis)` is called
-- **THEN** it returns a list of 7 `MethodScore` records — Randomized Controlled Trial, Difference-in-Differences, Event Study, Synthetic Control, Regression Discontinuity, Instrumental Variables, Matching / Propensity Score — sorted by `overall` score descending
+- **THEN** it returns 8 `MethodScore` records, in the order above: Randomized Controlled Trial, Regression Discontinuity, Difference-in-Differences, Event Study, Synthetic Control, Instrumental Variables, Interrupted Time Series, and Matching / Propensity Score
 
 #### Scenario: Score composition
-- **WHEN** a `MethodScore` is produced for any method
-- **THEN** it has one or more named components each scored 0-100, an `overall` score equal to the mean of its components, a `confidence` label (HIGH if overall ≥ 75, MEDIUM if ≥ 50, else LOW), a rationale text list, a `main_assumption`, and a `main_concern`
+- **WHEN** a supported method is scored
+- **THEN** its score has three components, each from 0 to 100: design credibility, assumption plausibility and data adequacy
+- **AND** its `overall` is their mean
+- **AND** its `confidence` is HIGH if overall ≥ 75, MEDIUM if overall ≥ 50, and LOW otherwise
+- **AND** it carries a rationale, a `main_assumption` and a `main_concern`
 
-### Requirement: DiD score reflects data structure, timing, and diagnosis
-The system SHALL score Difference-in-Differences from data structure fit, pre-treatment-period availability, assignment mechanism, confounding risk, spillover risk, and endogeneity risk.
+#### Scenario: Ruled-out method
+- **WHEN** a method's necessary condition fails
+- **THEN** its status is `not_supported`, its overall is 0, and `unmet` lists the failed conditions
 
-#### Scenario: Staggered timing penalty
-- **WHEN** `treatment_timing` is "staggered"
-- **THEN** the DiD "Treatment timing" component score is reduced by 20 points relative to the non-staggered case, and the rationale recommends a heterogeneity-robust estimator (Callaway & Sant'Anna, or de Chaisemartin & D'Haultfoeuille) over the canonical two-way fixed-effects specification
+### Requirement: Each method needs its identifying conditions
+The system SHALL recommend a method only when its necessary conditions hold:
+- RCT: random assignment.
+- RDD: an assignment or eligibility cutoff.
+- IV: an instrument is declared available. "Not sure" means the method needs information.
+- DiD: untreated comparison units, followed before and after treatment, with at least one pre-period and one post-period.
+- Event study: the DiD conditions, plus at least two pre-periods.
+- Synthetic control: one or a few treated units, a panel of donor units, and at least five pre-treatment periods.
+- Interrupted time series: longitudinal data, with at least three pre-treatment observations.
+- Matching / regression adjustment: all important confounders measured. "Not sure" means the method needs information, unless assignment is random.
 
-#### Scenario: High spillover risk adds an extension recommendation
-- **WHEN** the diagnosis's `potential_spillovers` is HIGH
-- **THEN** the DiD "Spatial compatibility" component drops to 40 (from 85), `main_concern` is set to "Spatial spillovers", and the rationale recommends a Spatial Spillover Analysis extension alongside the baseline DiD
+A policy intervention or panel data SHALL NOT by themselves make DiD supported.
 
-### Requirement: Event Study score extends the DiD score
-The system SHALL score Event Study as the DiD score plus a pre-period-availability component.
+#### Scenario: Random assignment
+- **WHEN** the assignment mechanism is random
+- **THEN** the recommended method is the RCT
 
-#### Scenario: Sufficient pre-periods
-- **WHEN** `n_pre_periods` is 2 or more
-- **THEN** the Event Study "Pre-period availability" component is 90
+#### Scenario: A real cutoff
+- **WHEN** the assignment mechanism is a threshold
+- **THEN** the recommended method is RDD
 
-#### Scenario: Insufficient pre-periods
-- **WHEN** `n_pre_periods` is fewer than 2
-- **THEN** the Event Study "Pre-period availability" component is 40 and the rationale notes the limited ability to assess pre-trends
+#### Scenario: One treated region with a long pre-period
+- **WHEN** one unit is treated by a policy in a panel with ten pre-treatment periods
+- **THEN** synthetic control is recommended over DiD
 
-### Requirement: RCT score reflects the declared assignment mechanism only
-The system SHALL score Randomized Controlled Trial almost entirely on whether the assignment mechanism is declared as "random", since it cannot verify randomization after the fact.
+#### Scenario: A panel without comparison units
+- **WHEN** no untreated comparison units are observed
+- **THEN** DiD and the event study are ruled out
 
-#### Scenario: Random assignment declared
-- **WHEN** `assignment_mechanism` is "random"
-- **THEN** the RCT "Random assignment" and "Identification" components are 98 each
+### Requirement: No credible design is stated
+The system SHALL state explicitly when no method's necessary conditions hold, and SHALL list what would make each method credible.
 
-#### Scenario: Non-random assignment declared
-- **WHEN** `assignment_mechanism` is not "random"
-- **THEN** the RCT "Random assignment" component is 2 and "Identification" is 5, and the rationale states an RCT-style analysis is not applicable retroactively
+#### Scenario: Self-selection observed once, with nothing else
+- **WHEN** a self-selected treatment is observed in a cross-section, with no instrument and with unmeasured confounders
+- **THEN** no method is recommended
+- **AND** the Recommendation page and the report say that no credible causal design is supported, with the reasons
 
-### Requirement: IV and RDD scores are capped when required design elements are undeclared
-The system SHALL cap the Instrumental Variables and Regression Discontinuity scores when the project has not declared an instrument or a threshold-based assignment mechanism, since relevance/exclusion or cutoff validity cannot be assessed automatically.
+### Requirement: Structured recommendation
+For the recommended method, the system SHALL give:
+- the causal estimand;
+- why the method fits;
+- the identification strategy;
+- the key assumptions;
+- the threats and diagnostics;
+- the alternative methods, with when each is preferable;
+- the additional details needed (the questions behind each method that needs information).
 
-#### Scenario: No declared instrument
-- **WHEN** Instrumental Variables is scored
-- **THEN** its "Assumed instrument availability" component is fixed at 30 regardless of design, and the rationale states relevance and the exclusion restriction cannot be assessed automatically because no instrument has been declared
-
-#### Scenario: Non-threshold assignment
-- **WHEN** `assignment_mechanism` is not "threshold"
-- **THEN** the Regression Discontinuity "Threshold-based assignment" component is 10 (versus 90 when it is "threshold")
-
-### Requirement: Matching score reflects endogeneity risk
-The system SHALL score Matching / Propensity Score inversely to the diagnosis's potential-endogeneity risk, since matching only controls for observed confounders.
-
-#### Scenario: High endogeneity risk
-- **WHEN** the diagnosis's `potential_endogeneity` is HIGH
-- **THEN** the "Selection-on-observables plausibility" component is low (100 minus 90% of the HIGH risk weight), and the rationale states unobserved confounding cannot be ruled out or tested directly
+#### Scenario: Default design
+- **WHEN** the researcher runs the diagnosis on a policy evaluated in a panel with a pre-period, with the instrument and the confounders answered "not sure"
+- **THEN** DiD is recommended, with the ATT as estimand
+- **AND** IV and matching are listed as possible with more information
+- **AND** each of the two questions to answer is shown

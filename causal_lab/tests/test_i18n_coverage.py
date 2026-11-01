@@ -1,6 +1,7 @@
 """Every translation key the code can ask for exists in English and
 French, with the same placeholders (README section 4: switching to FR
 redraws every page's text in French)."""
+import itertools
 import json
 import re
 import string
@@ -74,17 +75,27 @@ def test_dynamic_key_families_exist():
                              "region", "spatial_cell", "time_series"],
         "data_structure": ["cross_section", "panel", "repeated_cross_section", "time_series", "spatial",
                            "spatio_temporal_panel", "experimental", "survey", "administrative"],
+        "n_treated_units": ["one", "few", "many"],
+        "instrument": ["available", "none", "unsure"],
+        "confounders_observed": ["measured", "not_measured", "unsure"],
     }
     expected |= {f"opt.{o}" for values in options.values() for o in values}
     # recommendation components and method keys for several designs
-    for mech in options["assignment_mechanism"]:
-        for timing in options["treatment_timing"]:
-            design = ResearchDesignInput(assignment_mechanism=mech, treatment_timing=timing)
-            diag = diagnose(design)
-            expected |= {f"diagnosis.dim.{slug}" for slug, _ in diag.as_rows()}
-            for score in recommend(design, diag):
-                expected.add(f"method.{score.key}")
-                expected |= {f"rec.component.{component_slug(c)}" for c in score.components}
+    for mech, timing, data, treated, instrument, confounders in itertools.product(
+            options["assignment_mechanism"], options["treatment_timing"], ["panel", "cross_section", "time_series"],
+            options["n_treated_units"], options["instrument"], options["confounders_observed"]):
+        design = ResearchDesignInput(assignment_mechanism=mech, treatment_timing=timing, data_structure=data,
+                                     n_treated_units=treated, instrument=instrument, confounders_observed=confounders,
+                                     n_pre_periods=6, treatment_type="continuous", has_spatial_component=True,
+                                     has_control_group=data != "time_series")
+        diag = diagnose(design)
+        expected |= {f"diagnosis.dim.{slug}" for slug, _ in diag.as_rows()}
+        for score in recommend(design, diag):
+            expected.add(f"method.{score.key}")
+            expected |= {f"rec.component.{component_slug(c)}" for c in score.components}
+            expected |= {m.key for m in score.unmet + score.rationale + [score.main_assumption, score.main_concern]}
+            expected |= {f"rec.{score.key}.{part}" for part in ("estimand", "identification", "assumptions",
+                                                                 "diagnostics", "when")}
     assert VirtualWorldConfig  # imported for the threat field names above
     missing = sorted(k for k in expected if k not in EN)
     assert not missing, missing
