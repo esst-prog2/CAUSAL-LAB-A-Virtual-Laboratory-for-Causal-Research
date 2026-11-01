@@ -27,7 +27,8 @@ import plotly.graph_objects as go
 import streamlit as st
 
 from causal_engine.diagnosis import DiagnosisResult, ResearchDesignInput, diagnose
-from causal_engine.recommendation import MethodScore, component_slug, recommend
+from causal_engine.recommendation import (NEEDS_INFO, NOT_SUPPORTED, MethodScore, component_slug, recommend,
+                                          recommended)
 from code_generator.generator import CodeGenParams, generate_all
 from estimators.common import Z_95
 from estimators.did import estimate_did
@@ -317,6 +318,16 @@ elif page == "research_question":
                                       disabled=not d.has_pre_treatment_periods)
     d.n_post_periods = c3.number_input(L("wizard.n_post"), min_value=0, value=d.n_post_periods)
 
+    st.subheader(L("step6.title"))
+    st.caption(L("step6.intro"))
+    c1, c2 = st.columns(2)
+    d.has_control_group = c1.checkbox(L("wizard.control_group"), value=d.has_control_group)
+    d.n_treated_units = option_select(c2, "wizard.n_treated", ["one", "few", "many"], d.n_treated_units)
+    c1, c2 = st.columns(2)
+    d.instrument = option_select(c1, "wizard.instrument", ["available", "none", "unsure"], d.instrument)
+    d.confounders_observed = option_select(c2, "wizard.confounders", ["measured", "not_measured", "unsure"],
+                                           d.confounders_observed)
+
     st.session_state.design = d
 
     if st.button(L("wizard.run"), icon=":material/play_arrow:", type="primary"):
@@ -358,43 +369,68 @@ elif page == "recommendation":
         no_design("recommendation.empty")
     else:
         recs: list[MethodScore] = st.session_state.recommendations
-        best = recs[0]
+        best = recommended(recs)
+        others = [r for r in recs if r.supported and r is not best]
+        pending = [r for r in recs if r.status == NEEDS_INFO]
+        ruled_out = [r for r in recs if r.status == NOT_SUPPORTED]
 
         def method_name(score: MethodScore) -> str:
             return L(f"method.{score.key}")
 
-        st.markdown(f"### {L('recommendation.primary_method')}: **{method_name(best)}**")
-        st.markdown(f"**{L('recommendation.confidence')}: {L(f'level.{best.confidence}')}**")
-        for r in best.rationale:
-            st.write("— " + R(r))
-        c1, c2 = st.columns(2)
-        c1.info(f"**{L('recommendation.main_assumption')}:** {R(best.main_assumption)}")
-        c2.warning(f"**{L('recommendation.main_concern')}:** {R(best.main_concern)}")
+        def reasons(score: MethodScore) -> str:
+            return " ".join(R(m) for m in score.unmet)
 
-        st.divider()
-        st.subheader(L("recommendation.all_candidates"))
+        if best is None:
+            st.error(f"**{L('recommendation.none_title')}**")
+            st.markdown(L("recommendation.none_body"))
+            for r in pending + ruled_out:
+                st.markdown(f"- **{method_name(r)}**: {reasons(r)}")
+        else:
+            st.markdown(f"### {L('recommendation.recommended')}: {method_name(best)}")
+            st.caption(f"{L('recommendation.confidence')}: {L(f'level.{best.confidence}')} · {best.overall:.0f}/100")
+            st.markdown(f"**{L('recommendation.estimand')}.** {L(f'rec.{best.key}.estimand')}")
+            st.markdown(f"**{L('recommendation.why')}**")
+            st.markdown("\n".join(f"- {R(note)}" for note in best.rationale))
+            st.markdown(f"**{L('recommendation.identification')}.** {L(f'rec.{best.key}.identification')}")
+            c1, c2 = st.columns(2)
+            c1.info(f"**{L('recommendation.assumptions')}.** {L(f'rec.{best.key}.assumptions')}")
+            c2.warning(f"**{L('recommendation.diagnostics')}.** {L(f'rec.{best.key}.diagnostics')}")
+            if others or pending:
+                st.markdown(f"**{L('recommendation.alternatives')}**")
+                st.markdown("\n".join([f"- **{method_name(r)}** ({r.overall:.0f}/100): {L(f'rec.{r.key}.when')}"
+                                        for r in others]
+                                       + [f"- **{method_name(r)}** ({L('recommendation.needs_info').lower()}): "
+                                          f"{L(f'rec.{r.key}.when')}" for r in pending]))
+            if pending:
+                st.markdown(f"**{L('recommendation.details_needed')}**")
+                st.markdown("\n".join(f"- {reasons(r)}" for r in pending))
 
-        fig = go.Figure(go.Bar(
-            x=[r.overall for r in recs],
-            y=[method_name(r) for r in recs],
-            orientation="h",
-            marker_color=[style.PRIMARY if r is best else style.SEQUENTIAL[0] for r in recs],
-        ))
-        fig.update_layout(xaxis_title=L("recommendation.score_axis"), yaxis_title="",
-                           height=350, margin=dict(l=10, r=10, t=10, b=10))
-        st.plotly_chart(fig, width="stretch")
-
-        for r in recs:
-            with st.expander(f"{method_name(r)} — {r.overall:.0f}/100 ({L(f'level.{r.confidence}')})"):
-                st.table(pd.DataFrame(
-                    [(L(f"rec.component.{component_slug(k)}"), v) for k, v in r.components.items()],
-                    columns=[L("recommendation.component"), L("recommendation.score")]))
-                for note in r.rationale:
-                    st.write("— " + R(note))
-                st.caption(f"{L('recommendation.main_assumption')}: {R(r.main_assumption)}")
-                st.caption(f"{L('recommendation.main_concern')}: {R(r.main_concern)}")
-
-        st.caption(L("recommendation.disclaimer"))
+        scored = [r for r in recs if r.supported]
+        if scored:
+            st.divider()
+            st.subheader(L("recommendation.all_candidates"))
+            fig = go.Figure(go.Bar(
+                x=[r.overall for r in scored],
+                y=[method_name(r) for r in scored],
+                orientation="h",
+                marker_color=[style.PRIMARY if r is best else style.SEQUENTIAL[0] for r in scored],
+            ))
+            fig.update_layout(xaxis_title=L("recommendation.score_axis"), yaxis_title="", yaxis_autorange="reversed",
+                              height=80 + 45 * len(scored), margin=dict(l=10, r=10, t=10, b=10))
+            st.plotly_chart(fig, width="stretch")
+            for r in scored:
+                with st.expander(f"{method_name(r)} — {r.overall:.0f}/100 ({L(f'level.{r.confidence}')})"):
+                    st.table(pd.DataFrame(
+                        [(L(f"rec.component.{component_slug(k)}"), v) for k, v in r.components.items()],
+                        columns=[L("recommendation.component"), L("recommendation.score")]))
+                    for note in r.rationale:
+                        st.write("— " + R(note))
+                    st.caption(f"{L('recommendation.main_assumption')}: {R(r.main_assumption)}")
+                    st.caption(f"{L('recommendation.main_concern')}: {R(r.main_concern)}")
+            st.caption(L("recommendation.score_note"))
+        if best is not None and ruled_out:
+            with st.expander(L("recommendation.ruled_out")):
+                st.markdown("\n".join(f"- **{method_name(r)}**: {reasons(r)}" for r in ruled_out))
 
 # --------------------------------------------------------------------------
 # VIRTUAL WORLD

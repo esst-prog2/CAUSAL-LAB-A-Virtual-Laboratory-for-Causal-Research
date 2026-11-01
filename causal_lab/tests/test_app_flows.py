@@ -210,6 +210,21 @@ def test_dashboard_states_the_demo_finding_and_opens_the_demo():
     assert at.session_state.page == "demo"
 
 
+def test_recommendation_says_when_no_credible_design_is_supported():
+    # Method-selection discipline: a self-selected treatment observed once, with no
+    # instrument and unmeasured confounders, supports no causal design; the page says so.
+    from causal_engine.diagnosis import ResearchDesignInput
+    at = _run_app()
+    at.session_state.design = ResearchDesignInput(
+        assignment_mechanism="self_selected", data_structure="cross_section", has_pre_treatment_periods=False,
+        n_pre_periods=0, instrument="none", confounders_observed="not_measured")
+    _goto(at, "research_question")
+    _button(at, "wizard.run").click().run()
+    _goto(at, "recommendation")
+    assert any(t("recommendation.none_title", "en") in e.value for e in at.error)
+    assert not any(m.value.startswith("### " + t("recommendation.recommended", "en")) for m in at.markdown)
+
+
 if __name__ == "__main__":
     test_dashboard_shortcut_opens_its_page()
     test_language_switch_keeps_the_page()
@@ -223,4 +238,5 @@ if __name__ == "__main__":
     test_every_page_is_titled_with_its_sidebar_name()
     test_empty_pages_offer_a_way_out()
     test_dashboard_states_the_demo_finding_and_opens_the_demo()
+    test_recommendation_says_when_no_credible_design_is_supported()
     print("test_app_flows: OK")

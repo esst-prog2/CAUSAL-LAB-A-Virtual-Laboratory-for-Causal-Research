@@ -62,7 +62,7 @@ def test_report_has_every_section_and_the_engines_numbers():
     assert _value(REPORT_EN, "True ATT") == f"{STATE['virtual_truth']['true_att']:.4f}"
     stress = run_stress_test(STATE["virtual_df"], treatment_period=STATE["virtual_cfg"].treatment_period,
                              ids_encode_neighbourhood=True)
-    strength = next(b.text for b in REPORT_EN.blocks if isinstance(b, Paragraph) and b.text.startswith("Identification"))
+    strength = next(b.text for b in REPORT_EN.blocks if isinstance(b, Paragraph) and b.text.startswith("Identification Strength"))
     assert f"{stress.identification_strength:.0f} / 100" in strength
     assert any("Callaway" in h or "Staggered" in h or "robust" in h.lower() for h in heads)   # staggered world
     matching = STATE["method_data"]["matching"]["result"]
@@ -73,7 +73,7 @@ def test_report_has_every_section_and_the_engines_numbers():
 def test_report_follows_the_interface_language():
     fr = build_report(STATE, "fr")
     assert fr.title == "Rapport Causal Lab" and "Données" in _headings(fr)
-    assert any(isinstance(b, Paragraph) and b.text.startswith("Méthode principale : ") for b in fr.blocks)
+    assert any(isinstance(b, Paragraph) and b.text.startswith("Méthode recommandée : ") for b in fr.blocks)
     assert len(fr.blocks) == len(REPORT_EN.blocks)
 
 

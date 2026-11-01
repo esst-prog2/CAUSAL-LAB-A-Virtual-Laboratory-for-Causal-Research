@@ -53,6 +53,11 @@ class ResearchDesignInput:
     has_pre_treatment_periods: bool = True
     n_pre_periods: int = 1
     n_post_periods: int = 1
+    # What the identification of each method needs (Method Recommendation gates).
+    has_control_group: bool = True             # untreated units observed alongside the treated
+    n_treated_units: str = "many"              # one | few | many
+    instrument: str = "unsure"                 # available | none | unsure
+    confounders_observed: str = "unsure"       # measured | not_measured | unsure
 
 
 @dataclass
