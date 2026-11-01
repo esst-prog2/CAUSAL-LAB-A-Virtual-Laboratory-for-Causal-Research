@@ -25,7 +25,7 @@ import streamlit as st
 
 from estimators.common import Z_95, MethodResult
 from code_generator.methods import code_options, generate_method_code
-from estimators.rdd import INFERENCES
+from estimators.rdd import APP_INFERENCE, INFERENCES
 from estimators.registry import run_method, virtual_options
 from robustness_engine.method_stress import run_method_stress_test
 from simulation_engine.method_monte_carlo import run_method_monte_carlo
@@ -111,7 +111,7 @@ def _virtual_world_inputs(method: str, spec: MethodSpec, state: dict, L) -> None
             return
         options = virtual_options(method, truth)
         if method == "rdd":
-            options["inference"] = st.session_state.get("mw_rdd_inference", "conventional")
+            options["inference"] = st.session_state.get("mw_rdd_inference", APP_INFERENCE)
         state.update(df=df, truth=truth, mapping=dict(truth["roles"]), options=options,
                      source="virtual", result=None, error=None, dropped=0, config=asdict(config),
                      stress=None, mc=None)
@@ -152,7 +152,7 @@ def _upload_inputs(method: str, state: dict, L) -> None:
                                             key=f"mw_{method}_cutoff")
         bw = st.number_input(L("methods.bandwidth"), min_value=0.0, value=0.0, key=f"mw_{method}_bw")
         options["bandwidth"] = bw or None
-        options["inference"] = st.session_state.get("mw_rdd_inference", "conventional")
+        options["inference"] = st.session_state.get("mw_rdd_inference", APP_INFERENCE)
     if method == "synthetic_control" and mapping.get("unit") in raw.columns and mapping.get("period") in raw.columns:
         units = sorted(raw[mapping["unit"]].dropna().unique().tolist(), key=str)
         periods = sorted(raw[mapping["period"]].dropna().unique().tolist())
@@ -359,10 +359,10 @@ def render(L) -> None:
         # Streamlit drops a widget's key when its page is left: restore the choice
         # from the method's own options, or it would silently revert to conventional.
         if "mw_rdd_inference" not in st.session_state:
-            st.session_state["mw_rdd_inference"] = (state["options"] or {}).get("inference", "conventional")
+            st.session_state["mw_rdd_inference"] = (state["options"] or {}).get("inference", APP_INFERENCE)
         inference = st.radio(L("methods.rdd_inference"), list(INFERENCES), horizontal=True, key="mw_rdd_inference",
                              format_func=lambda v: L(f"methods.rdd_inference.{v}"))
-        if state["options"] and state["options"].get("inference", "conventional") != inference:
+        if state["options"] and state["options"].get("inference", APP_INFERENCE) != inference:
             state["options"] = {**state["options"], "inference": inference}
             state.update(result=None, stress=None, mc=None)       # results belong to the other inference
 
@@ -472,7 +472,7 @@ def _monte_carlo_section(method: str, state: dict, L) -> None:
     if st.button(f"🎲 {L('methods.mc_run')}", key=f"mw_{method}_mc_run"):
         bar = st.progress(0.0)
         try:
-            extra = {"inference": state["options"].get("inference", "conventional")} if method == "rdd" else None
+            extra = {"inference": state["options"].get("inference", APP_INFERENCE)} if method == "rdd" else None
             state["mc"] = run_method_monte_carlo(method, config, n_reps=reps, base_seed=config.seed,
                                                  progress=lambda done, total: bar.progress(done / total),
                                                  extra_options=extra)

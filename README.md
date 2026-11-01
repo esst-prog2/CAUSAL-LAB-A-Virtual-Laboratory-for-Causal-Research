@@ -97,7 +97,7 @@ on screen     upload or generate → see the pre/post trend plot and the
 - Accept an uploaded CSV in the same panel shape, validated against the five required columns at upload time — a missing column is reported by name instead of failing later.
 - Plot treated vs. untreated average outcomes over time, with the treatment date marked (Estimation page).
 - Check pre-treatment trends and report a plain-language verdict ("plausible" / "questionable" / "violated") with the number behind it, as one of five checks in a "Break My Design" stress-test battery (parallel trends, anticipation, spillovers, serial correlation, heterogeneous effects) that also reports an overall Identification Strength score.
-- Run a heterogeneity-robust DiD for staggered adoption (Callaway & Sant'Anna 2021), with an event study and bootstrap SEs, shown next to TWFE and the true effect. On staggered worlds with growing effects, TWFE has a bias of +0.21 and 38% CI coverage, while Callaway & Sant'Anna has a bias of +0.006 and 93% coverage (60 Monte Carlo worlds).
+- Run a heterogeneity-robust DiD for staggered adoption (Callaway & Sant'Anna 2021), with an event study and analytic small-sample SEs (since 2026-10-31; a unit bootstrap before), shown next to TWFE and the true effect. On staggered worlds with growing effects, TWFE has a bias of +0.21 and 38% CI coverage, while Callaway & Sant'Anna has a bias of +0.006 and 93% coverage (60 Monte Carlo worlds).
 - Run a two-way fixed-effects DiD estimator and report the coefficient, standard error, and p-value. It is validated against `linearmodels.PanelOLS`: identical coefficient and clustered standard errors within 2% (`tests/test_did_reference.py`).
 - Run an Event Study (leads-and-lags) estimator and plot dynamic, period-by-period treatment effects around the treatment date.
 - Score seven candidate causal-identification methods (RCT, DiD, Event Study, Synthetic Control, RDD, IV, Matching) against the declared research design with a transparent, explainable Method Suitability Score, and recommend the best fit — the app shows its work rather than picking silently.
@@ -214,6 +214,42 @@ A person with a messy panel CSV and a treatment date can use this version alone:
 - Given the same column names, the generated Python, R, and Stata scripts all fit the same two-way fixed-effects model with standard errors clustered on the same column.
 - Switching the sidebar language toggle from EN to FR redraws every page's text in French, including messages produced by the engines (stress-test details, rationales, warnings, errors, model texts), falling back to English for any translation key that's missing. Checked by `tests/test_i18n_coverage.py`: 720 keys on 2026-10-25, identical in EN and FR. A scripted French render audit of every page also found no untranslated text outside code blocks. Generated scripts, the per-method technical log (labelled "English"), references, and the user's own column names stay as they are.
 
+**Validation of every estimator (2026-10-31).** Each estimator already matches a reference package (section 3). This study checks its *statistical* behaviour on worlds where the truth is known: 23 scenarios, 1,000 worlds each (200 for DML, 500 for Callaway & Sant'Anna), with Monte Carlo standard errors (`spike/estimator_validation.py`; every replication is in `spike/estimator_validation_2026-10-31.json`). The scenarios are:
+- each method's default world: bias, SE / SD, coverage of the 95% CI, power;
+- the same world with a true effect of 0: the size of the test, which should be about 5%;
+- a small sample;
+- RDD with robust inference, IV with a weak instrument, and Callaway & Sant'Anna.
+
+| Method | Coverage of the 95% CI | Size at 5% (true effect 0) | Finding |
+|---|---|---|---|
+| RCT (Lin, HC2) | 94.6% (0.7) | 5.8% (0.7) | calibrated, also at n = 60 (94.5%) |
+| Matching (bias-corrected) | 95.1% (0.7) | 4.9% (0.7) | calibrated, also at n = 200 (95.5%) |
+| IV (2SLS) | 96.1% (0.6) | 3.9% (0.6) | see the Anderson-Rubin set below |
+| RDD, conventional | 94.3%; **91.6% at n = 400** | 5.7% (0.7) | under-covers in small samples |
+| RDD, robust bias-corrected | 95.8%; 93.8% at n = 400 | — | **now the app's default** |
+| Synthetic control (placebo test) | — | **7.2% (0.8)**; cannot reject with 8 donors | warning added |
+| DML | 93.0% (1.8) | 5.5% (1.6) | calibrated; small bias +0.016 at θ = 0 (0.5 SE) |
+| Callaway & Sant'Anna, unit bootstrap (before) | 91.4% (1.3) | 8.6% (1.3) | under-covers with cohorts of about 3 units |
+| Callaway & Sant'Anna, analytic Welch-Satterthwaite (now) | **95.0% (0.7)** | **5.0% (0.7)** | **calibrated** |
+
+What changed because of it:
+- **RDD:** robust bias-corrected inference (Calonico et al., 2014) is now the app's default, because the conventional interval under-covers in small samples. `estimate_rdd` keeps its conventional default, the rdrobust row the reference tests compare.
+- **IV:** the result now gives the **Anderson-Rubin confidence set** (Anderson & Rubin, 1949; Andrews et al., 2019), which is valid however weak the instrument. It is exact for one instrument (a quadratic inequality) and found by test inversion for several; it equals an independent statsmodels inversion to 1e-6. With a weak instrument (first-stage coefficient 0.15) and strong endogeneity:
+
+  | Over 1,000 worlds | Coverage of the 95% CI | Size at 5% |
+  |---|---|---|
+  | 2SLS Wald interval | 90.1% | 9.9% |
+  | Anderson-Rubin set | 95.3% | 4.7% |
+
+  The weak-instrument warning now points to it. With one instrument 2SLS has no finite mean, which is why the mean bias at n = 200 (−0.13) is not a meaningful figure.
+- **Synthetic control:** the placebo p-value cannot fall below 1 / (donors + 1). With fewer than 19 donors no effect can be significant at 5%, and the result now says so. The 7.2% size with 20 donors is reported as a limit: the placebo units are not exactly exchangeable with the treated unit.
+- **Callaway & Sant'Anna:** with cohorts of about 3 units, the unit bootstrap gave intervals that were too short: coverage 91.4%, size 8.6%.
+  - A jackknife was tried and was not significantly better (92.7% against 92.0% on 300 worlds).
+  - The fix is **analytic inference**. Each aggregate is a sum of one contribution per unit; its variance sums n_s times the unbiased (n_s − 1) variance of the contributions within each adoption cohort and in the never-treated group. The interval uses a Student t with Welch–Satterthwaite degrees of freedom (Welch, 1947).
+  - A one-unit cohort, which occurs in 15% of these worlds, borrows the variance of the same combination of outcome changes among the never-treated units.
+  - On 1,000 worlds: coverage 95.0% (0.7), size 5.0% (0.7). It is also about 40 times faster than the bootstrap, which remains as a fallback only.
+  - The result still reports its smallest cohort and its degrees of freedom; below 5 units, the page and the report say why the interval is wide.
+
 ## 5. What could stop this
 
 - **Statistical correctness.**
@@ -230,7 +266,7 @@ A person with a messy panel CSV and a treatment date can use this version alone:
     | DML (partially linear) | `DoubleML` (same folds and forests) | estimate and SE to rounding |
     | IV first-stage F (HC0) | R `estimatr` (`diagnostics = TRUE`) | to rounding |
     | Imbens-Kalyanaraman bandwidth | R `rdrobust` 0.80, `bwselect = "IK"` | 0.4% (tolerance 1%) |
-    | Callaway & Sant'Anna, never- and not-yet-treated | R `did` (`base_period = "universal"`, `aggte`) | ATT and event study to rounding; bootstrap SE within 4% of the analytical one |
+    | Callaway & Sant'Anna, never- and not-yet-treated | R `did` (`base_period = "universal"`, `aggte`) | ATT and event study to rounding; SE 3.5% above did's, by design: unbiased (n − 1) within-cohort variances where did uses n |
 
     The reference values are stored in `tests/external_reference/expected.json`, so the tests need neither R nor these packages; `make_reference.py` there regenerates them. Eleven deliberately wrong versions of the estimators all make the test fail, for example:
     - HC1 instead of HC2;

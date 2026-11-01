@@ -164,12 +164,13 @@ def test_dml_matches_doubleml():
 def test_callaway_santanna_matches_did():
     # R did: att_gt(base_period = "universal", control_group = ...), then aggte "simple"
     # (overall ATT) and "dynamic" (event study). Point estimates must agree to rounding.
-    # SEs: Causal Lab bootstraps units (199 draws), did is analytical; with 199 draws the
-    # bootstrap SE alone has a Monte Carlo error of about 5%, hence 15% (4% observed).
+    # SEs: both analytic. Causal Lab uses the unbiased (n - 1) variance within each cohort
+    # and did uses n, so ours is slightly larger: 3.5% here (smallest cohort: 7 units).
     for ours, theirs in (("never_treated", "nevertreated"), ("not_yet_treated", "notyettreated")):
         result = estimate_staggered_did(load("cs"), comparison=ours)
         _close(result.att, f"cs.{theirs}.att")
-        _close(result.se, f"cs.{theirs}.se", rel=0.15)
+        assert result.inference == "analytic"
+        assert 1.0 < result.se / EXPECTED[f"cs.{theirs}.se"] < 1.05
         for row in result.event_study.itertuples():
             _close(row.estimate, f"cs.{theirs}.event.{row.rel_period}")
         # The reference period e = -1 is 0 by construction in did and left out by Causal Lab.

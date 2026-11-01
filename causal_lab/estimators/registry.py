@@ -16,7 +16,7 @@ from estimators.dml import estimate_dml
 from estimators.iv import estimate_iv
 from estimators.matching import estimate_matching
 from estimators.rct import estimate_rct
-from estimators.rdd import estimate_rdd
+from estimators.rdd import APP_INFERENCE, estimate_rdd
 from estimators.synthetic_control import estimate_synthetic_control
 from simulation_engine import method_worlds as mw
 
@@ -43,7 +43,7 @@ def virtual_options(method: str, truth: dict) -> dict:
     """Estimator options a generated world implies (cutoff, treated unit...)."""
     roles = truth["roles"]
     if method == "rdd":
-        return {"cutoff": roles["cutoff"], "bandwidth": None, "inference": "conventional"}
+        return {"cutoff": roles["cutoff"], "bandwidth": None, "inference": APP_INFERENCE}
     if method == "synthetic_control":
         return {"treated_unit": roles["treated_unit"], "treatment_period": roles["treatment_period"]}
     return {}
@@ -61,7 +61,7 @@ def run_method(method: str, df: pd.DataFrame, m: dict, options: dict, light: boo
         return estimate_iv(df, m["outcome"], m["treatment"], m.get("instruments"), m.get("controls"))
     if method == "rdd":
         return estimate_rdd(df, m["outcome"], m["running"], options["cutoff"], options.get("bandwidth"),
-                            treatment_col=m.get("treatment"), inference=options.get("inference", "conventional"))
+                            treatment_col=m.get("treatment"), inference=options.get("inference", APP_INFERENCE))
     if method == "synthetic_control":
         return estimate_synthetic_control(df, m["unit"], m["period"], m["outcome"],
                                           options["treated_unit"], options["treatment_period"],
