@@ -102,7 +102,13 @@ def _risk(level: Level, weight: float) -> float:
 # --------------------------------------------------------------------------
 # Gates: the conditions without which a method does not identify the effect
 # --------------------------------------------------------------------------
-def _gates(key: str, d: ResearchDesignInput) -> tuple[list[Msg], list[Msg]]:
+def _geographic_cutoff(d: ResearchDesignInput, diag: DiagnosisResult) -> bool:
+    """Treatment assigned by a geographic boundary: a regression discontinuity in
+    distance to the border (Keele & Titiunik 2015; Dell 2010)."""
+    return d.assignment_mechanism == "geographic" and "border" in diag.question_signals
+
+
+def _gates(key: str, d: ResearchDesignInput, diag: DiagnosisResult) -> tuple[list[Msg], list[Msg]]:
     """(failed conditions, unconfirmed conditions) of method `key`."""
     failed, unsure = [], []
     pre = _pre(d)
@@ -110,7 +116,7 @@ def _gates(key: str, d: ResearchDesignInput) -> tuple[list[Msg], list[Msg]]:
         if d.assignment_mechanism != "random":
             failed.append(Msg("rec.gate.not_random"))
     elif key == "rdd":
-        if d.assignment_mechanism != "threshold":
+        if d.assignment_mechanism != "threshold" and not _geographic_cutoff(d, diag):
             failed.append(Msg("rec.gate.no_cutoff"))
     elif key == "iv":
         if d.instrument == "none":
@@ -197,6 +203,20 @@ def _rationale(key: str, d: ResearchDesignInput, diag: DiagnosisResult) -> list[
         notes.append(Msg("rec.its.has_controls"))
     if key == "matching" and d.assignment_mechanism == "random":
         notes.append(Msg("rec.matching.random"))
+    if key == "rdd" and _geographic_cutoff(d, diag):
+        notes.append(Msg("rec.rdd.geographic"))
+    # What the wording of the question adds, whichever method answers it.
+    signals = diag.question_signals
+    if "staggered" in signals and d.treatment_timing != "staggered" and key in ("did", "event_study"):
+        notes.append(Msg("rec.note.staggered_text"))
+    if "dynamic" in signals and key == "did":
+        notes.append(Msg("rec.note.dynamic"))
+    if "dose" in signals and d.treatment_type == "binary":
+        notes.append(Msg("rec.note.dose"))
+    if "heterogeneity" in signals:
+        notes.append(Msg("rec.note.heterogeneity"))
+    if "mechanism" in signals:
+        notes.append(Msg("rec.note.mechanism"))
     return notes
 
 
@@ -214,7 +234,7 @@ METHOD_KEYS = tuple(_METHODS)
 
 
 def _score(key: str, d: ResearchDesignInput, diag: DiagnosisResult) -> MethodScore:
-    failed, unsure = _gates(key, d)
+    failed, unsure = _gates(key, d, diag)
     status = NOT_SUPPORTED if failed else NEEDS_INFO if unsure else SUPPORTED
     components = _components(key, d, diag) if status != NOT_SUPPORTED else {}
     overall = sum(components.values()) / len(components) if components else 0.0
@@ -231,22 +251,59 @@ def _score(key: str, d: ResearchDesignInput, diag: DiagnosisResult) -> MethodSco
     )
 
 
+def _ask(score: MethodScore, question: Msg) -> None:
+    """A method the form supports, held back until the question below is answered."""
+    if score.status == SUPPORTED:
+        score.status, score.confidence = NEEDS_INFO, "LOW"
+    if score.status == NEEDS_INFO:
+        score.unmet = score.unmet + [question]
+
+
+def _reopen(score: MethodScore, d: ResearchDesignInput, diag: DiagnosisResult, question: Msg) -> None:
+    """A method the form rules out but the question points to: to be confirmed."""
+    score.components = _components(score.key, d, diag)
+    score.overall = sum(score.components.values()) / len(score.components)
+    score.rationale = _rationale(score.key, d, diag)
+    score.status, score.confidence, score.unmet = NEEDS_INFO, "LOW", [question]
+
+
+def _check_question(scores: list[MethodScore], d: ResearchDesignInput, diag: DiagnosisResult) -> None:
+    """The form decides the method only when the wording of the question agrees
+    with it. When the question describes a design the form contradicts, the
+    engine asks instead of answering a different question."""
+    signals = diag.question_signals
+    by_key = {score.key: score for score in scores}
+    if "predictive" in signals and "causal" not in signals:
+        # A prediction or an association is not a causal question.
+        for score in scores:
+            _ask(score, Msg("rec.ask.predictive"))
+        return
+    if "cutoff" in signals and d.assignment_mechanism != "threshold" and not _geographic_cutoff(d, diag):
+        # The question asks for the effect at a cutoff.
+        _reopen(by_key["rdd"], d, diag, Msg("rec.gate.cutoff_unconfirmed"))
+        for score in scores:
+            if score.key != "rdd":
+                _ask(score, Msg("rec.gate.cutoff_estimand"))
+    if "random" in signals and d.assignment_mechanism != "random" and d.instrument != "available":
+        # A lottery or a randomisation in the question; a lottery used as an
+        # instrument (declared available) is consistent with the form.
+        _reopen(by_key["rct"], d, diag, Msg("rec.ask.random"))
+        for score in scores:
+            if score.key not in ("rct", "iv"):
+                _ask(score, Msg("rec.ask.random_others"))
+    if "instrument" in signals and d.instrument == "none":
+        _reopen(by_key["iv"], d, diag, Msg("rec.ask.instrument"))
+    if "single_unit" in signals and d.n_treated_units == "many":
+        # The structure of the units itself is in doubt: every design depends on it.
+        for score in scores:
+            _ask(score, Msg("rec.ask.single_unit"))
+
+
 def recommend(design: ResearchDesignInput, diag: DiagnosisResult) -> list[MethodScore]:
     """Every candidate method: first those whose conditions hold, ranked by
     score; then those that need information; then those ruled out."""
     scores = [_score(key, design, diag) for key in _METHODS]
-    if diag.cutoff_in_question and design.assignment_mechanism != "threshold":
-        # The question asks for the effect at a cutoff, but the form does not say a
-        # cutoff assigns treatment: ask, rather than answer a different question.
-        for s in scores:
-            if s.key == "rdd":
-                s.components = _components("rdd", design, diag)
-                s.overall = sum(s.components.values()) / len(s.components)
-                s.rationale = _rationale("rdd", design, diag)
-                s.status, s.unmet = NEEDS_INFO, [Msg("rec.gate.cutoff_unconfirmed")]
-            elif s.status == SUPPORTED:
-                s.status, s.confidence = NEEDS_INFO, "LOW"
-                s.unmet = s.unmet + [Msg("rec.gate.cutoff_estimand")]
+    _check_question(scores, design, diag)
     order = {status: i for i, status in enumerate(STATUSES)}
     scores.sort(key=lambda s: (order[s.status], -s.overall))
     return scores

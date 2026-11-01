@@ -70,8 +70,12 @@ class DiagnosisResult:
     potential_confounding: Level = Level.UNKNOWN
     treatment_heterogeneity: Level = Level.UNKNOWN
     potential_spillovers: Level = Level.UNKNOWN
-    cutoff_in_question: bool = False    # the question describes an assignment cutoff or threshold
+    question_signals: frozenset = frozenset()   # design features the question's wording describes
     notes: list[Msg] = field(default_factory=list)
+
+    @property
+    def cutoff_in_question(self) -> bool:
+        return "cutoff" in self.question_signals
 
     def as_rows(self) -> list[tuple[str, Level]]:
         """(locale key suffix diagnosis.dim.<slug>, level) per dimension."""
@@ -97,10 +101,33 @@ _ENDOGENEITY_KEYWORDS = (
 _HETEROGENEITY_KEYWORDS = (
     "gender", "income", "age", "heterogene", "differ by", "vary by",
 )
-# A cutoff or threshold in the question signals a regression-discontinuity estimand
-# (the effect at the cutoff). "Eligibility" alone is not enough: an eligibility
-# expansion over time is a DiD design.
-_CUTOFF_KEYWORDS = ("cutoff", "cut-off", "cut off", "threshold", "discontinuit", "seuil")
+# Design features the wording of the question describes (English and French),
+# checked against the form by the recommendation engine. Each pattern is narrow on
+# purpose: "eligibility" alone is not a cutoff (an eligibility expansion over time
+# is a DiD design), "natural experiment" is not randomisation, and "National" in a
+# programme's name is not a nationwide treatment.
+QUESTION_SIGNALS = {
+    "cutoff": r"cut-?\s?offs?\b|threshold|discontinuit|\bseuils?\b",
+    "random": r"randomi[sz]|random(ly)?\s+assign|\blotter(y|ies)\b|\brcts?\b|tirage au sort|al[ée]atoire|loterie",
+    "instrument": r"\binstrument|exogenous (shock|variation)|variable instrumentale|choc exog",
+    "staggered": r"stagger|roll-?out|phased[ -]in|[ée]chelonn|d[ée]ploiement progressif",
+    "single_unit": r"nationwide|country-?wide|at the national level|[àa] l'[ée]chelle nationale|"
+                   r"\b(a|one|single) (country|state|region|province|city)\b|\bun seul (pays|[ée]tat)\b",
+    "border": r"\bborders?\b|boundar|fronti[èe]re",
+    "predictive": r"\bpredict|forecast|\bwhich (factors|characteristics|variables)\b|associated with|correlat|"
+                  r"pr[ée]di|pr[ée]voir|facteurs associ",
+    "causal": r"effect|impact|\bcaus|influence|effet|affect",
+    "heterogeneity": r"for whom|subgroup|heterogene|differ by|vary by|sous-groupe|pour qui|h[ée]t[ée]rog[ée]n",
+    "mechanism": r"mechanism|through which|mediat|channel|m[ée]canisme|\bcanal\b|m[ée]diat",
+    "dose": r"\bdoses?\b|each additional|how much|per (euro|dollar)|suppl[ée]mentaire",
+    "dynamic": r"long[- ]run|long[- ]term|over time|years after|dynamic|[àa] long terme|dans le temps|dynamique",
+}
+
+
+def question_signals(text: str) -> frozenset:
+    """The design features the question's wording describes."""
+    low = text.lower()
+    return frozenset(name for name, pattern in QUESTION_SIGNALS.items() if re.search(pattern, low))
 # Keywords that must match as whole words rather than word prefixes
 # (otherwise "age" would match "average", "agency", ...).
 _WHOLE_WORD_KEYWORDS = {"age", "chose", "choice", "demand", "spread"}
@@ -176,7 +203,7 @@ def diagnose(design: ResearchDesignInput) -> DiagnosisResult:
     )
 
     # --- Assignment cutoff described in the question ---------------------------
-    result.cutoff_in_question = _keyword_flag(design.research_question, _CUTOFF_KEYWORDS)
+    result.question_signals = question_signals(design.research_question)
     if result.cutoff_in_question and design.assignment_mechanism != "threshold":
         result.notes.append(Msg("diagnosis.note.cutoff_language"))
 

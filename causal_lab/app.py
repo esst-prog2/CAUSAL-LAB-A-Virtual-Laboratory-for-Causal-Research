@@ -380,6 +380,17 @@ elif page == "recommendation":
         def reasons(score: MethodScore) -> str:
             return " ".join(R(m) for m in score.unmet)
 
+        # The answers the recommendation rests on, so that a default answer is visible.
+        d = st.session_state.design
+        st.caption(F("recommendation.based_on", assignment=L(f"opt.{d.assignment_mechanism}"),
+                     data=L(f"opt.{d.data_structure}"),
+                     pre=d.n_pre_periods if d.has_pre_treatment_periods else 0,
+                     control=L("common.yes") if d.has_control_group else L("common.no"),
+                     treated=L(f"opt.{d.n_treated_units}"), instrument=L(f"opt.{d.instrument}"),
+                     confounders=L(f"opt.{d.confounders_observed}")))
+        if replace(d, research_question="") == ResearchDesignInput():
+            st.info(L("recommendation.defaults_warning"))
+
         if best is None and pending:
             st.warning(f"**{L('recommendation.ask_title')}**")
             st.markdown(L("recommendation.ask_body"))

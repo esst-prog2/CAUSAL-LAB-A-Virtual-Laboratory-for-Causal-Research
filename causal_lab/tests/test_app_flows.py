@@ -225,6 +225,20 @@ def test_recommendation_says_when_no_credible_design_is_supported():
     assert not any(m.value.startswith("### " + t("recommendation.recommended", "en")) for m in at.markdown)
 
 
+def test_recommendation_asks_when_the_question_contradicts_the_form():
+    # The scholarship-at-the-cutoff question with the form at its defaults: the page asks
+    # whether the cutoff decides treatment, and says the answers are still the defaults.
+    at = _run_app()
+    _goto(at, "research_question")
+    at.text_area[0].set_value("What is the effect of a scholarship on enrollment for students near the "
+                              "eligibility cutoff?").run()
+    _button(at, "wizard.run").click().run()
+    _goto(at, "recommendation")
+    assert any(t("recommendation.ask_title", "en") in w.value for w in at.warning)
+    assert any(m.value == t("recommendation.defaults_warning", "en") for m in at.info)
+    assert any("threshold" in m.value for m in at.markdown)
+
+
 if __name__ == "__main__":
     test_dashboard_shortcut_opens_its_page()
     test_language_switch_keeps_the_page()
@@ -239,4 +253,5 @@ if __name__ == "__main__":
     test_empty_pages_offer_a_way_out()
     test_dashboard_states_the_demo_finding_and_opens_the_demo()
     test_recommendation_says_when_no_credible_design_is_supported()
+    test_recommendation_asks_when_the_question_contradicts_the_form()
     print("test_app_flows: OK")
