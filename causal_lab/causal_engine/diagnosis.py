@@ -70,6 +70,7 @@ class DiagnosisResult:
     potential_confounding: Level = Level.UNKNOWN
     treatment_heterogeneity: Level = Level.UNKNOWN
     potential_spillovers: Level = Level.UNKNOWN
+    cutoff_in_question: bool = False    # the question describes an assignment cutoff or threshold
     notes: list[Msg] = field(default_factory=list)
 
     def as_rows(self) -> list[tuple[str, Level]]:
@@ -96,6 +97,10 @@ _ENDOGENEITY_KEYWORDS = (
 _HETEROGENEITY_KEYWORDS = (
     "gender", "income", "age", "heterogene", "differ by", "vary by",
 )
+# A cutoff or threshold in the question signals a regression-discontinuity estimand
+# (the effect at the cutoff). "Eligibility" alone is not enough: an eligibility
+# expansion over time is a DiD design.
+_CUTOFF_KEYWORDS = ("cutoff", "cut-off", "cut off", "threshold", "discontinuit", "seuil")
 # Keywords that must match as whole words rather than word prefixes
 # (otherwise "age" would match "average", "agency", ...).
 _WHOLE_WORD_KEYWORDS = {"age", "chose", "choice", "demand", "spread"}
@@ -169,6 +174,11 @@ def diagnose(design: ResearchDesignInput) -> DiagnosisResult:
         or design.treatment_timing == "staggered"
         else Level.MEDIUM
     )
+
+    # --- Assignment cutoff described in the question ---------------------------
+    result.cutoff_in_question = _keyword_flag(design.research_question, _CUTOFF_KEYWORDS)
+    if result.cutoff_in_question and design.assignment_mechanism != "threshold":
+        result.notes.append(Msg("diagnosis.note.cutoff_language"))
 
     # --- Potential spillovers ------------------------------------------------
     if design.has_spatial_component or _keyword_flag(design.research_question, _SPILLOVER_KEYWORDS):

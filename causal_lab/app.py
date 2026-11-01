@@ -380,11 +380,14 @@ elif page == "recommendation":
         def reasons(score: MethodScore) -> str:
             return " ".join(R(m) for m in score.unmet)
 
-        if best is None:
+        if best is None and pending:
+            st.warning(f"**{L('recommendation.ask_title')}**")
+            st.markdown(L("recommendation.ask_body"))
+            st.markdown("\n".join(f"- **{method_name(r)}**: {reasons(r)}" for r in pending))
+        elif best is None:
             st.error(f"**{L('recommendation.none_title')}**")
             st.markdown(L("recommendation.none_body"))
-            for r in pending + ruled_out:
-                st.markdown(f"- **{method_name(r)}**: {reasons(r)}")
+            st.markdown("\n".join(f"- **{method_name(r)}**: {reasons(r)}" for r in ruled_out))
         else:
             st.markdown(f"### {L('recommendation.recommended')}: {method_name(best)}")
             st.caption(f"{L('recommendation.confidence')}: {L(f'level.{best.confidence}')} · {best.overall:.0f}/100")
@@ -428,7 +431,7 @@ elif page == "recommendation":
                     st.caption(f"{L('recommendation.main_assumption')}: {R(r.main_assumption)}")
                     st.caption(f"{L('recommendation.main_concern')}: {R(r.main_concern)}")
             st.caption(L("recommendation.score_note"))
-        if best is not None and ruled_out:
+        if (best is not None or pending) and ruled_out:
             with st.expander(L("recommendation.ruled_out")):
                 st.markdown("\n".join(f"- **{method_name(r)}**: {reasons(r)}" for r in ruled_out))
 

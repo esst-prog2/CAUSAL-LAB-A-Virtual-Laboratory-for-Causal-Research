@@ -235,6 +235,18 @@ def recommend(design: ResearchDesignInput, diag: DiagnosisResult) -> list[Method
     """Every candidate method: first those whose conditions hold, ranked by
     score; then those that need information; then those ruled out."""
     scores = [_score(key, design, diag) for key in _METHODS]
+    if diag.cutoff_in_question and design.assignment_mechanism != "threshold":
+        # The question asks for the effect at a cutoff, but the form does not say a
+        # cutoff assigns treatment: ask, rather than answer a different question.
+        for s in scores:
+            if s.key == "rdd":
+                s.components = _components("rdd", design, diag)
+                s.overall = sum(s.components.values()) / len(s.components)
+                s.rationale = _rationale("rdd", design, diag)
+                s.status, s.unmet = NEEDS_INFO, [Msg("rec.gate.cutoff_unconfirmed")]
+            elif s.status == SUPPORTED:
+                s.status, s.confidence = NEEDS_INFO, "LOW"
+                s.unmet = s.unmet + [Msg("rec.gate.cutoff_estimand")]
     order = {status: i for i, status in enumerate(STATUSES)}
     scores.sort(key=lambda s: (order[s.status], -s.overall))
     return scores

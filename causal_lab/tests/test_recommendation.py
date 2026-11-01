@@ -79,6 +79,39 @@ def test_no_credible_design_is_said_and_explained():
     assert all(r.unmet for r in recs if not r.supported)
 
 
+SCHOLARSHIP = ("What is the causal effect of receiving a scholarship on university enrollment among students "
+               "whose entrance exam scores are near the scholarship eligibility cutoff?")
+
+
+def test_a_question_about_a_cutoff_is_not_answered_by_did():
+    # User report 2026-11-01: with the form left at its defaults (policy, panel), this
+    # question got DiD. Its estimand is the effect at the cutoff: the engine must ask how
+    # treatment is assigned, not answer another question.
+    design = ResearchDesignInput(research_question=SCHOLARSHIP)
+    diag = diagnose(design)
+    recs = recommend(design, diag)
+    assert diag.cutoff_in_question and recommended(recs) is None
+    assert recs[0].key == "rdd" and recs[0].status == NEEDS_INFO
+    assert all(r.status != SUPPORTED for r in recs)
+    assert any(m.key == "diagnosis.note.cutoff_language" for m in diag.notes)
+
+
+def test_the_scholarship_question_gets_a_regression_discontinuity():
+    design = ResearchDesignInput(research_question=SCHOLARSHIP, assignment_mechanism="threshold",
+                                 data_structure="cross_section", outcome_type="binary", **NO_PRE)
+    best = recommended(recommend(design, diagnose(design)))
+    assert best.key == "rdd" and best.status == SUPPORTED
+    assert not diagnose(design).notes or all(m.key != "diagnosis.note.cutoff_language"
+                                             for m in diagnose(design).notes)
+
+
+def test_an_eligibility_expansion_over_time_is_not_mistaken_for_a_cutoff():
+    design = ResearchDesignInput(research_question="Did the 2014 Medicaid eligibility expansion raise coverage?",
+                                 n_pre_periods=3)
+    assert not diagnose(design).cutoff_in_question
+    assert recommended(recommend(design, diagnose(design))).key in ("did", "event_study")
+
+
 def test_ruled_out_methods_are_never_ranked_above_supported_ones():
     options = itertools.product(["random", "policy", "geographic", "self_selected", "threshold"],
                                 ["cross_section", "panel", "time_series", "spatio_temporal_panel"],

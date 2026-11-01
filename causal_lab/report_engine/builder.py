@@ -126,8 +126,9 @@ def build_report(state, lang: str, now: datetime | None = None) -> Report:
         best = recommended(recs)
         add(Heading(L("recommendation.title"), 2))
         if best is None:
-            add(Paragraph(L("recommendation.none_title"), emphasis=True))
-            add(Paragraph(L("recommendation.none_body")))
+            asking = any(r.status == NEEDS_INFO for r in recs)
+            add(Paragraph(L("recommendation.ask_title" if asking else "recommendation.none_title"), emphasis=True))
+            add(Paragraph(L("recommendation.ask_body" if asking else "recommendation.none_body")))
         else:
             add(Paragraph(f"{L('recommendation.recommended')}{colon}{L(f'method.{best.key}')} "
                           f"({L('recommendation.confidence')}{colon}{L(f'level.{best.confidence}')})"))
