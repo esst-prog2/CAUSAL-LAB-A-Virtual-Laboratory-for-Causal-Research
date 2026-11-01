@@ -26,7 +26,7 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
-from causal_engine.diagnosis import DiagnosisResult, Level, ResearchDesignInput, diagnose
+from causal_engine.diagnosis import DiagnosisResult, ResearchDesignInput, diagnose
 from causal_engine.recommendation import MethodScore, component_slug, recommend
 from code_generator.generator import CodeGenParams, generate_all
 from estimators.common import Z_95
@@ -40,7 +40,7 @@ from robustness_engine.stress_test import run_stress_test
 from simulation_engine.dgp import VirtualWorldConfig, generate
 from simulation_engine.monte_carlo import run_monte_carlo
 from ui.data_sources_page import render as render_data_sources_page
-from ui.demo_page import render as render_demo_page
+from ui.demo_page import pretest_headline, render as render_demo_page
 from ui.methods_page import render as render_methods_page
 from ui import style
 from ui.page_text import F, R, error_text, references_caption
@@ -172,9 +172,38 @@ def ids_encode_neighbourhood() -> bool:
     return session_data.ids_encode_neighbourhood(st.session_state)
 
 
-LEVEL_COLOR = {
-    Level.LOW: "🟢", Level.MEDIUM: "🟡", Level.HIGH: "🔴", Level.UNKNOWN: "⚪",
-}
+def use_card_krueger() -> None:
+    """Make the Card & Krueger (1994) data shipped with the app the active dataset."""
+    st.session_state.uploaded_df = load_card_krueger()
+    st.session_state.uploaded_file_id = "card_krueger_1994"
+    st.session_state.virtual_df = None
+    st.session_state.virtual_truth = None
+    st.session_state.virtual_cfg = None
+
+
+def page_title(page_id: str) -> None:
+    """Every page is titled with its name in the sidebar."""
+    st.title(L(f"nav.{page_id}"))
+
+
+def empty_state(message_key: str, actions: list[tuple[str, str, object]]) -> None:
+    """Why the page is empty, and buttons that lead out of it: (label key, icon, on_click)."""
+    st.info(L(message_key))
+    cols = st.columns(3)
+    for col, (label_key, icon, callback) in zip(cols, actions):
+        col.button(L(label_key), icon=icon, on_click=callback, width="stretch", key=f"empty_{label_key}")
+
+
+def no_dataset() -> None:
+    empty_state("common.no_dataset", [
+        ("empty.open_virtual_lab", style.PAGE_ICONS["virtual_lab"], lambda: go_to("virtual_lab")),
+        ("empty.load_example", ":material/dataset:", use_card_krueger),
+    ])
+
+
+def no_design(message_key: str) -> None:
+    empty_state(message_key, [("empty.open_wizard", style.PAGE_ICONS["research_question"],
+                               lambda: go_to("research_question"))])
 
 # --------------------------------------------------------------------------
 # Sidebar navigation
@@ -182,10 +211,10 @@ LEVEL_COLOR = {
 style.inject({section: L(f"nav.group.{section}") for section, _ in style.NAV_SECTIONS}, PAGES)
 
 with st.sidebar:
-    st.markdown(f"## 🔬 {L('app.title')}")
+    style.brand(L("app.title"))
     st.caption(L("app.subtitle"))
 
-    lang_choice = st.radio("🇫🇷 FR | 🇬🇧 EN", ["en", "fr"],
+    lang_choice = st.radio("Language / Langue", ["en", "fr"],
                             index=0 if lang == "en" else 1, horizontal=True,
                             label_visibility="collapsed", format_func=str.upper)
     if lang_choice != st.session_state.lang:
@@ -196,22 +225,31 @@ with st.sidebar:
     # selected page survives a language switch and can be set by the
     # dashboard shortcuts.
     with st.container(key="nav"):
-        st.radio("Navigation", PAGES, key="page", format_func=lambda p: f"{style.PAGE_ICONS[p]}  {L(f'nav.{p}')}",
+        st.radio("Navigation", PAGES, key="page", format_func=lambda p: f"{style.PAGE_ICONS[p]} {L(f'nav.{p}')}",
                  label_visibility="collapsed")
     page = st.session_state.page
 
     st.divider()
     if deployment.running_online():
-        st.caption(f"🌐 {L('online.sidebar_note')}")
+        st.caption(f":material/public: {L('online.sidebar_note')}")
     else:
-        st.caption(f"🔒 {L('settings.local_mode_note')}")
+        st.caption(f":material/lock: {L('settings.local_mode_note')}")
     st.caption(F("app.author", name=reproducibility.APP_AUTHOR_NAME))
 
 # --------------------------------------------------------------------------
 # DASHBOARD
 # --------------------------------------------------------------------------
 if page == "dashboard":
-    style.hero(L("app.title"), L("app.subtitle"), L("app.tagline"), L("home.mission"))
+    style.header(L("app.title"), L("app.subtitle"), L("home.mission"))
+
+    # The guided demo's main finding, computed from the stored simulation study.
+    headline = pretest_headline()
+    if headline is not None:
+        style.finding(L("home.finding_title"), F("home.finding", level=L(f"intensity.{headline['level']}"),
+                                                  n_pass=headline["n_pass"], reps=headline["reps"],
+                                                  coverage=headline["coverage"]))
+    st.button(L("home.open_demo"), icon=style.PAGE_ICONS["demo"], type="primary",
+              on_click=go_to, args=("demo",))
 
     n_recommendations = len(st.session_state.recommendations or [])
     progress = [
@@ -221,26 +259,22 @@ if page == "dashboard":
         (L("home.metric.dataset"), active_df() is not None, None),
     ]
     style.progress_cards(L("home.progress_title"), [
-        (F("home.step", n=i), name, done,
+        (str(i), name, done,
          str(count) if count else L("home.status.done") if done else L("home.status.todo"))
         for i, (name, done, count) in enumerate(progress, start=1)])
 
     st.write("")
     cols = st.columns(4)
-    cols[0].button(f"📝 {L('home.start_project')}", width="stretch",
-                   on_click=go_to, args=("research_question",))
-    cols[1].button(f"🧪 {L('home.start_experiment')}", width="stretch",
-                   on_click=go_to, args=("virtual_lab",))
-    cols[2].button(f"💥 {L('home.diagnose')}", width="stretch",
-                   on_click=go_to, args=("break_my_design",))
-    cols[3].button(f"💾 {L('home.project')}", width="stretch",
-                   on_click=go_to, args=("settings",))
+    shortcuts = (("home.start_project", "research_question"), ("home.start_experiment", "virtual_lab"),
+                 ("home.diagnose", "break_my_design"), ("home.project", "settings"))
+    for col, (key, target) in zip(cols, shortcuts, strict=True):
+        col.button(L(key), icon=style.PAGE_ICONS[target], width="stretch", on_click=go_to, args=(target,))
 
 # --------------------------------------------------------------------------
 # STEP 1-5: RESEARCH QUESTION WIZARD
 # --------------------------------------------------------------------------
 elif page == "research_question":
-    st.title(f"📝 {L('nav.research_question')}")
+    page_title("research_question")
     d = st.session_state.design
 
     st.subheader(L("step1.title"))
@@ -279,30 +313,35 @@ elif page == "research_question":
 
     c1, c2, c3 = st.columns(3)
     d.has_pre_treatment_periods = c1.checkbox(L("wizard.has_pre"), value=d.has_pre_treatment_periods)
-    d.n_pre_periods = c2.number_input(L("wizard.n_pre"), min_value=0, value=d.n_pre_periods)
+    d.n_pre_periods = c2.number_input(L("wizard.n_pre"), min_value=0, value=d.n_pre_periods,
+                                      disabled=not d.has_pre_treatment_periods)
     d.n_post_periods = c3.number_input(L("wizard.n_post"), min_value=0, value=d.n_post_periods)
 
     st.session_state.design = d
 
-    if st.button(f"➡️ {L('wizard.run')}", type="primary"):
+    if st.button(L("wizard.run"), icon=":material/play_arrow:", type="primary"):
         st.session_state.diagnosis = diagnose(d)
         st.session_state.recommendations = recommend(d, st.session_state.diagnosis)
         st.success(L("wizard.done"))
+        cols = st.columns(3)
+        for col, target in zip(cols, ("diagnosis", "recommendation")):
+            col.button(L(f"nav.{target}"), icon=style.PAGE_ICONS[target], on_click=go_to, args=(target,),
+                       width="stretch")
 
 # --------------------------------------------------------------------------
 # CAUSAL DIAGNOSIS ENGINE
 # --------------------------------------------------------------------------
 elif page == "diagnosis":
-    st.title(f"🧠 {L('diagnosis.title')}")
+    page_title("diagnosis")
 
     if st.session_state.diagnosis is None:
-        st.info(L("diagnosis.empty"))
+        no_design("diagnosis.empty")
     else:
         diag: DiagnosisResult = st.session_state.diagnosis
         cols = st.columns(4)
         for i, (slug, level) in enumerate(diag.as_rows()):
             with cols[i % 4]:
-                st.metric(L(f"diagnosis.dim.{slug}"), f"{LEVEL_COLOR[level]} {L(f'level.{level.value}')}")
+                st.metric(L(f"diagnosis.dim.{slug}"), L(f"level.{level.value}"))
 
         if diag.notes:
             st.subheader(L("diagnosis.notes"))
@@ -313,10 +352,10 @@ elif page == "diagnosis":
 # METHOD RECOMMENDATION ENGINE
 # --------------------------------------------------------------------------
 elif page == "recommendation":
-    st.title(f"🧪 {L('recommendation.title')}")
+    page_title("recommendation")
 
     if not st.session_state.recommendations:
-        st.info(L("recommendation.empty"))
+        no_design("recommendation.empty")
     else:
         recs: list[MethodScore] = st.session_state.recommendations
         best = recs[0]
@@ -339,7 +378,7 @@ elif page == "recommendation":
             x=[r.overall for r in recs],
             y=[method_name(r) for r in recs],
             orientation="h",
-            marker_color=["#2E86AB" if r is best else "#A9C9DE" for r in recs],
+            marker_color=[style.PRIMARY if r is best else style.SEQUENTIAL[0] for r in recs],
         ))
         fig.update_layout(xaxis_title=L("recommendation.score_axis"), yaxis_title="",
                            height=350, margin=dict(l=10, r=10, t=10, b=10))
@@ -361,7 +400,7 @@ elif page == "recommendation":
 # VIRTUAL WORLD
 # --------------------------------------------------------------------------
 elif page == "virtual_lab":
-    st.title(f"🧫 {L('virtual.title')}")
+    page_title("virtual_lab")
     st.caption(L("virtual.intro"))
 
     cfg = st.session_state.vw_config
@@ -397,7 +436,7 @@ elif page == "virtual_lab":
 
     st.session_state.vw_config = cfg
 
-    if st.button(f"⚗️ {L('virtual.generate')}", type="primary"):
+    if st.button(L("virtual.generate"), icon=":material/play_arrow:", type="primary"):
         df, truth = generate(cfg)
         st.session_state.virtual_df = df
         st.session_state.virtual_truth = truth
@@ -443,12 +482,8 @@ elif page == "virtual_lab":
 
     # Real data shipped with the app: the raw Card & Krueger file cannot go
     # through the CSV uploader (fixed-width .dat, no unit/period/D/Y columns).
-    if st.button(f"📂 {L('virtual.load_card_krueger')}"):
-        st.session_state.uploaded_df = load_card_krueger()
-        st.session_state.uploaded_file_id = "card_krueger_1994"
-        st.session_state.virtual_df = None
-        st.session_state.virtual_truth = None
-        st.session_state.virtual_cfg = None
+    if st.button(L("virtual.load_card_krueger"), icon=":material/dataset:"):
+        use_card_krueger()
         st.success(F("virtual.card_krueger_loaded", rows=len(st.session_state.uploaded_df)))
 
     if active_df() is not None:
@@ -461,7 +496,7 @@ elif page == "virtual_lab":
         st.subheader(L("mc.title"))
         st.caption(L("mc.caption"))
         n_reps = st.select_slider(L("mc.replications"), [100, 500, 1000, 5000], value=500)
-        if st.button(f"🎲 {L('mc.run')}"):
+        if st.button(L("mc.run"), icon=":material/casino:"):
             with st.spinner(L("mc.running")):
                 summary = run_monte_carlo(cfg, n_reps=n_reps, base_seed=int(cfg.seed or 0))
             c1, c2, c3, c4 = st.columns(4)
@@ -470,7 +505,7 @@ elif page == "virtual_lab":
             c3.metric(L("mc.coverage"), f"{summary.coverage:.0%}")
             c4.metric(L("mc.ci_length"), f"{summary.avg_ci_length:.3f}")
             fig = go.Figure(go.Histogram(x=summary.estimates, nbinsx=40))
-            fig.add_vline(x=summary.true_att, line_color="red", line_dash="dash",
+            fig.add_vline(x=summary.true_att, line_color=style.TRUTH, line_dash="dash",
                            annotation_text=L("common.true_att"))
             fig.update_layout(title=L("mc.histogram_title"), xaxis_title=L("common.estimated_att"), height=350)
             st.plotly_chart(fig, width="stretch")
@@ -479,10 +514,10 @@ elif page == "virtual_lab":
 # ESTIMATION
 # --------------------------------------------------------------------------
 elif page == "estimation":
-    st.title(f"📈 {L('estimation.title')}")
+    page_title("estimation")
     df = active_df()
     if df is None:
-        st.info(L("common.no_dataset"))
+        no_dataset()
     else:
         treatment_period, staggered = treatment_setup(df)
 
@@ -492,7 +527,7 @@ elif page == "estimation":
         for flag, name in ((1, L("trend.treated")), (0, L("trend.untreated"))):
             if flag in means.columns:
                 fig.add_trace(go.Scatter(x=means.index, y=means[flag], mode="lines+markers", name=name))
-        fig.add_vline(x=treatment_period - 0.5, line_dash="dash", line_color="red",
+        fig.add_vline(x=treatment_period - 0.5, line_dash="dash", line_color=style.MARKER,
                       annotation_text=L("trend.first_adoption") if staggered else L("common.treatment"))
         fig.update_layout(title=L("trend.title"), xaxis_title=L("common.period"),
                           yaxis_title=L("trend.y_axis"), height=360)
@@ -537,7 +572,7 @@ elif page == "estimation":
                 error_y=dict(type="data", array=Z_95 * es.coefficients["se"], visible=True),
                 mode="markers+lines", name=L("common.estimate")))
             fig.add_hline(y=0, line_dash="dot", line_color="gray")
-            fig.add_vline(x=-0.5, line_dash="dash", line_color="red", annotation_text=L("common.treatment"))
+            fig.add_vline(x=-0.5, line_dash="dash", line_color=style.MARKER, annotation_text=L("common.treatment"))
             fig.update_layout(title=L("event_study.title"), xaxis_title=L("event_study.x_axis"),
                               yaxis_title=L("event_study.y_axis"), height=400)
             st.plotly_chart(fig, width="stretch")
@@ -574,7 +609,7 @@ elif page == "estimation":
                     error_y=dict(type="data", array=es_cs["ci_high"] - es_cs["estimate"], visible=True),
                     mode="markers+lines", name=L("staggered.cs")))
                 fig.add_hline(y=0, line_dash="dot", line_color="gray")
-                fig.add_vline(x=-0.5, line_dash="dash", line_color="red", annotation_text=L("common.treatment"))
+                fig.add_vline(x=-0.5, line_dash="dash", line_color=style.MARKER, annotation_text=L("common.treatment"))
                 fig.update_layout(title=L("staggered.event_title"), xaxis_title=L("event_study.x_axis"),
                                   yaxis_title=L("event_study.y_axis"), height=400)
                 st.plotly_chart(fig, width="stretch")
@@ -607,10 +642,10 @@ elif page == "theory":
 # BREAK MY DESIGN
 # --------------------------------------------------------------------------
 elif page == "break_my_design":
-    st.title(f"💥 {L('break.title')}")
+    page_title("break_my_design")
     df = active_df()
     if df is None:
-        st.info(L("common.no_dataset"))
+        no_dataset()
     else:
         treatment_period, _ = treatment_setup(df)
         report = cached_stress_test(df, treatment_period, ids_encode_neighbourhood())
@@ -641,10 +676,10 @@ elif page == "break_my_design":
 # ROBUSTNESS
 # --------------------------------------------------------------------------
 elif page == "robustness":
-    st.title(f"🧯 {L('robustness.title')}")
+    page_title("robustness")
     df = active_df()
     if df is None:
-        st.info(L("common.no_dataset"))
+        no_dataset()
     else:
         treatment_period, _ = treatment_setup(df)
         rows = cached_robustness(df, treatment_period, ids_encode_neighbourhood())
@@ -671,7 +706,7 @@ elif page == "robustness":
 # CODE GENERATOR
 # --------------------------------------------------------------------------
 elif page == "code":
-    st.title(f"💻 {L('code.title')}")
+    page_title("code")
     c1, c2 = st.columns(2)
     data_path = c1.text_input(L("code.data_path"), value="data.csv")
     cluster_col = c2.text_input(L("code.cluster"), value="unit")
@@ -693,11 +728,11 @@ elif page == "code":
 # REPORT
 # --------------------------------------------------------------------------
 elif page == "report":
-    st.title(f"📄 {L('report.title')}")
+    page_title("report")
     st.caption(L("report.intro"))
     fmt = st.radio(L("report.format"), list(FORMATS), horizontal=True, key="report_format",
                    format_func=lambda f: L(f"report.format.{f}"))
-    if st.button(f"📄 {L('report.generate')}", type="primary"):
+    if st.button(L("report.generate"), icon=":material/description:", type="primary"):
         with st.spinner(L("report.generate")):
             built = build_report(st.session_state, lang)
             st.session_state.report_output = (fmt, render_report(built, fmt), to_markdown(built))
@@ -706,7 +741,8 @@ elif page == "report":
         out_fmt, content, preview = output
         extension, mime = FORMATS[out_fmt]
         st.success(F("report.ready", size=f"{len(content) / 1024:.0f}"))
-        st.download_button(f"⬇️ {F('report.download', format=L(f'report.format.{out_fmt}'))}", content,
+        st.download_button(F("report.download", format=L(f"report.format.{out_fmt}")), content,
+                           icon=":material/download:",
                            file_name=project_file_name(st.session_state).replace(EXTENSION, extension), mime=mime)
         with st.expander(L("report.preview")):
             st.markdown(preview)
@@ -715,7 +751,7 @@ elif page == "report":
 # SETTINGS
 # --------------------------------------------------------------------------
 elif page == "settings":
-    st.title(f"⚙️ {L('nav.settings')}")
+    page_title("settings")
     st.subheader(L("settings.language"))
     st.write(F("settings.current_language", language=st.session_state.lang.upper()))
     if deployment.running_online():
@@ -725,7 +761,7 @@ elif page == "settings":
         st.caption(L("settings.build_note"))
 
     st.divider()
-    st.subheader(f"🌍 {L('settings.connectors')}")
+    st.subheader(L("settings.connectors"))
     # A widget's own key is dropped when its page is left, so the choice lives in
     # connectors_enabled and the toggle only mirrors it.
     st.toggle(L("settings.connectors_toggle"), value=st.session_state.connectors_enabled,
@@ -734,11 +770,11 @@ elif page == "settings":
     st.caption(L("settings.connectors_note"))
 
     st.divider()
-    st.subheader(f"💾 {L('project.title')}")
+    st.subheader(L("project.title"))
     st.caption(L("project.intro"))
     c1, c2 = st.columns(2)
     with c1:
-        st.download_button(f"💾 {L('project.save')}", data=save_project(st.session_state),
+        st.download_button(L("project.save"), data=save_project(st.session_state), icon=":material/save:",
                            file_name=project_file_name(st.session_state),
                            mime="application/zip", type="primary", width="stretch")
         st.caption(L("project.save_note"))

@@ -118,7 +118,7 @@ def _model_step(state: dict, L) -> None:
             agent["utility"] = st.text_input(F("theory.utility_label", i=i), default["utility"], key=f"th_ed_u_{i}")
             agents.append(agent)
         outcomes_text = st.text_area(L("theory.outcomes_input"), L("theory.default_outcome"), key="th_ed_outcomes")
-        if st.button(f"🛠️ {L('theory.build')}", key="th_ed_build"):
+        if st.button(L("theory.build"), icon=":material/build:", key="th_ed_build"):
             try:
                 game = build_custom_game(L("theory.custom_name"), _parse_parameters(params_text), agents,
                                          _parse_outcomes(outcomes_text))
@@ -513,7 +513,7 @@ MODEL_KINDS = ("continuous", "multidim", "matrix", "stackelberg", "bargaining")
 
 
 def render(L) -> None:
-    st.title(f"🧮 {L('theory.title')}")
+    st.title(L("nav.theory"))
     st.caption(L("theory.intro"))
     # The radio's own key is dropped when the page is left; theory_kind keeps the choice.
     if "th_kind" not in st.session_state:

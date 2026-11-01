@@ -7,3 +7,6 @@ __pycache__/
 **/.env
 **/.streamlit/secrets.toml
 .claude/settings.local.json
+
+# Impeccable design-critique snapshots (local working notes)
+.impeccable/

@@ -28,6 +28,7 @@ from simulation_engine.demo_study import (CARD_KRUEGER_TABLE3, LEVELS, MAX_BIAS_
                                           largest_acceptable, load_study, replicate_card_krueger, run_level, same,
                                           summarize)
 from simulation_engine.dgp import generate
+from ui import style
 from ui.page_text import F, lang, references_caption
 from utils.real_data import load_card_krueger
 
@@ -71,8 +72,27 @@ def _replication():
     return replicate_card_krueger(load_card_krueger())
 
 
+def _pretest_trap(summaries):
+    """The violated pre-trend level where the most worlds pass the pre-trend test, or None."""
+    violated = [s for s in summaries.values() if s.level != "none" and s.coverage_given_pass is not None]
+    return max(violated, key=lambda s: s.n_pass) if violated else None
+
+
+def pretest_headline() -> dict | None:
+    """The demo's main finding, for the dashboard: how often a DiD whose pre-trend test
+    passed covers the true effect, at the level where most worlds pass it."""
+    stored = _study()
+    if stored is None or "differential_trend" not in stored[1]:
+        return None
+    levels = stored[1]["differential_trend"]
+    s = _pretest_trap({level: summarize(level, reps) for level, reps in levels.items()})
+    if s is None:
+        return None
+    return {"level": s.level, "n_pass": s.n_pass, "reps": s.n_reps, "coverage": pct(s.coverage_given_pass)}
+
+
 def render(L) -> None:
-    st.title(f"🎓 {L('demo.title')}")
+    st.title(L("nav.demo"))
     st.caption(L("demo.intro"))
 
     # 1. Question and design
@@ -165,10 +185,8 @@ def _reading_pretrends(summaries, L) -> None:
                   mean=num(severe.mean_estimate, sign=True), att=num(severe.true_att, sign=True),
                   wrong_sign=pct(severe.wrong_sign), detection=pct(severe.detection),
                   high_level=L("intensity.high"), high_detection=pct(high.detection)))
-    # The violated level where the most worlds pass the pre-trend test.
-    violated = [s for s in summaries.values() if s.level != "none" and s.coverage_given_pass is not None]
-    if violated:
-        s = max(violated, key=lambda s: s.n_pass)
+    s = _pretest_trap(summaries)
+    if s is not None:
         st.markdown(F("demo.reading_pretest", level=L(f"intensity.{s.level}"), n_pass=s.n_pass, reps=s.n_reps,
                       coverage_pass=pct(s.coverage_given_pass)))
 
@@ -208,13 +226,13 @@ def _study_table(summaries, L) -> None:
 def _study_figure(summaries, L, threat: str) -> None:
     x = [L(f"intensity.{level}") for level in summaries]
     fig = go.Figure()
-    for attr, mcse, name in (("coverage", "coverage_mcse", L("demo.col.coverage")),
-                             ("detection", "detection_mcse", L("demo.col.detection"))):
+    for attr, mcse, name, color in (("coverage", "coverage_mcse", L("demo.col.coverage"), style.PRIMARY),
+                                    ("detection", "detection_mcse", L("demo.col.detection"), style.CATEGORICAL[1])):
         fig.add_trace(go.Scatter(x=x, y=[getattr(s, attr) for s in summaries.values()], mode="lines+markers",
-                                 name=name, error_y=dict(type="data", visible=True,
+                                 name=name, line_color=color, error_y=dict(type="data", visible=True,
                                                          array=[1.96 * getattr(s, mcse) for s in summaries.values()])))
-    fig.add_hline(y=0.95, line_dash="dot", annotation_text=L("demo.nominal"), annotation_position="top left")
-    fig.add_hline(y=MIN_COVERAGE, line_dash="dash", line_color="#C2416B", annotation_text=L("demo.min_coverage"),
+    fig.add_hline(y=0.95, line_dash="dot", line_color=style.MUTED, annotation_text=L("demo.nominal"), annotation_position="top left")
+    fig.add_hline(y=MIN_COVERAGE, line_dash="dash", line_color=style.MARKER, annotation_text=L("demo.min_coverage"),
                   annotation_position="bottom right")
     fig.update_layout(xaxis_title=L(f"demo.threat.{threat}.name"), yaxis_title=L("demo.share"),
                       yaxis_tickformat=".0%", yaxis_range=[0, 1.02], height=340, margin=dict(t=30, b=40),
@@ -226,14 +244,16 @@ def _bias_distribution(levels, L, threat: str) -> None:
     """Estimate minus true effect in every world, by level, with the tolerance band."""
     fig = go.Figure()
     tolerance = None
-    for level, reps in levels.items():
+    # Levels are ordered (none -> severe): one sequential ramp, not five unrelated hues.
+    for color, (level, reps) in zip(style.SEQUENTIAL, levels.items()):
         errors = [r.estimate - r.true_att for r in reps]
         tolerance = MAX_BIAS_SHARE * abs(sum(r.true_att for r in reps) / len(reps))
-        fig.add_trace(go.Box(y=errors, name=L(f"intensity.{level}"), boxpoints=False, showlegend=False))
+        fig.add_trace(go.Box(y=errors, name=L(f"intensity.{level}"), boxpoints=False, showlegend=False,
+                             marker_color=color, line_color=color))
     if tolerance is not None:
-        fig.add_hrect(y0=-tolerance, y1=tolerance, fillcolor="#2E9E83", opacity=0.15, line_width=0,
+        fig.add_hrect(y0=-tolerance, y1=tolerance, fillcolor=style.TRUTH, opacity=0.15, line_width=0,
                       annotation_text=L("demo.tolerance_band"), annotation_position="top right")
-    fig.add_hline(y=0, line_dash="dot")
+    fig.add_hline(y=0, line_dash="dot", line_color=style.MUTED)
     fig.update_layout(title=L("demo.bias_dist_title"), xaxis_title=L(f"demo.threat.{threat}.name"),
                       yaxis_title=L("demo.bias_axis"), height=340, margin=dict(t=50, b=40),
                       separators=", " if lang() == "fr" else ".,")
@@ -249,7 +269,7 @@ def _live_rerun(study, L) -> None:
         level = c2.selectbox(L("demo.col.level"), LEVELS, format_func=lambda v: L(f"intensity.{v}"),
                              key="demo_rerun_level")
         n = c3.selectbox(L("demo.rerun_count"), LIVE_CHOICES, key="demo_rerun_n")
-        if st.button(f"🔁 {F('demo.rerun_button', n=n)}", key="demo_rerun"):
+        if st.button(F("demo.rerun_button", n=n), icon=":material/replay:", key="demo_rerun"):
             with st.spinner(F("demo.rerun_running", n=n)):
                 live = run_level(threat, level, n)
             identical = all(same(a, b) for a, b in zip(live, study[threat][level][:n], strict=True))

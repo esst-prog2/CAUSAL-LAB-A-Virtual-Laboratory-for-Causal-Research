@@ -17,6 +17,7 @@ import streamlit as st
 from streamlit.testing.v1 import AppTest
 
 from simulation_engine.dgp import VirtualWorldConfig, generate
+from utils.i18n import t
 
 APP = str(Path(__file__).resolve().parent.parent / "app.py")
 TIMEOUT = 300
@@ -41,6 +42,11 @@ def _run_app(upload: bytes | None = None) -> AppTest:
     return at
 
 
+def _button(at: AppTest, key: str):
+    """The button labelled with the English text of `key`."""
+    return next(b for b in at.button if b.label == t(key, "en"))
+
+
 def _goto(at: AppTest, page: str) -> None:
     at.sidebar.radio(key="page").set_value(page).run()
     assert not at.exception, [e.message for e in at.exception]
@@ -48,7 +54,7 @@ def _goto(at: AppTest, page: str) -> None:
 
 def test_dashboard_shortcut_opens_its_page():
     at = _run_app()
-    at.button[1].click().run()            # "Start a Virtual Experiment"
+    _button(at, "home.start_experiment").click().run()
     assert at.session_state.page == "virtual_lab"
 
 
@@ -87,7 +93,7 @@ def test_uploaded_data_has_no_ground_truth_and_a_later_generation_wins():
         _goto(at, "estimation")
         assert "True ATT" not in [m.label for m in at.metric]
         _goto(at, "virtual_lab")
-        next(b for b in at.button if b.label.startswith("⚗️")).click().run()
+        _button(at, "virtual.generate").click().run()
         at.run()                           # the uploader still holds the same file
         assert at.session_state.uploaded_df is None
         assert at.session_state.virtual_df is not None
@@ -114,7 +120,7 @@ def test_upload_with_a_text_treatment_is_rejected():
 def test_analysis_keeps_the_generating_configuration():
     at = _run_app()
     _goto(at, "virtual_lab")
-    next(b for b in at.button if b.label.startswith("⚗️")).click().run()
+    _button(at, "virtual.generate").click().run()
     generated_period = at.session_state.virtual_cfg.treatment_period
     at.number_input[2].set_value(generated_period - 2).run()   # edit the widget after generating
     assert at.session_state.virtual_cfg.treatment_period == generated_period
@@ -123,7 +129,7 @@ def test_analysis_keeps_the_generating_configuration():
 def test_card_krueger_button_loads_real_data_without_truth():
     at = _run_app()
     _goto(at, "virtual_lab")
-    next(b for b in at.button if b.label.startswith("📂")).click().run()
+    _button(at, "virtual.load_card_krueger").click().run()
     assert not at.exception
     assert at.session_state.uploaded_df is not None
     assert at.session_state.virtual_truth is None and at.session_state.virtual_cfg is None
@@ -137,18 +143,19 @@ def _html(at: AppTest) -> list[str]:
 
 
 def test_sidebar_sections_follow_the_workflow_and_the_language():
-    # app-navigation spec: five sections, in workflow order, headed in the
-    # interface language; switching language keeps the page.
+    # app-navigation spec: six sections, in workflow order, none longer than four
+    # pages, headed in the interface language; switching language keeps the page.
     from ui.style import NAV_SECTIONS
-    from utils.i18n import t
-    assert [first for _, first in NAV_SECTIONS] == ["dashboard", "virtual_lab", "estimation", "break_my_design", "code"]
+    assert [first for _, first in NAV_SECTIONS] == ["dashboard", "research_question", "virtual_lab", "estimation",
+                                                    "break_my_design", "code"]
     at = _run_app()
     _goto(at, "estimation")
-    for lang, headings in (("en", ["Start", "Data", "Analysis", "Stress test", "Output"]), ("fr", None)):
+    for lang, headings in (("en", ["Start", "Research design", "Data", "Analysis", "Stress test", "Output"]),
+                            ("fr", None)):
         if lang == "fr":
             at.sidebar.radio[0].set_value("fr").run()
             headings = [t(f"nav.group.{section}", "fr") for section, _ in NAV_SECTIONS]
-            assert headings != ["Start", "Data", "Analysis", "Stress test", "Output"]
+            assert headings[0] != "Start"
         css = next(body for body in _html(at) if "st-key-nav" in body)
         positions = [css.index(f'content: "{h}"') for h in headings]
         assert positions == sorted(positions)
@@ -174,6 +181,35 @@ def test_dashboard_progress_cards_follow_the_workflow():
     assert f'<span class="cl-badge">{n}</span>' in steps[2]
 
 
+def test_every_page_is_titled_with_its_sidebar_name():
+    # Impeccable critique 2026-10-31: "Virtual Lab" opened a page titled "Virtual World".
+    at = _run_app()
+    for page in ("demo", "research_question", "diagnosis", "recommendation", "virtual_lab", "data_sources",
+                 "estimation", "methods", "theory", "break_my_design", "robustness", "code", "report", "settings"):
+        _goto(at, page)
+        assert at.title[0].value == t(f"nav.{page}", "en"), page
+
+
+def test_empty_pages_offer_a_way_out():
+    at = _run_app()
+    for page in ("estimation", "break_my_design", "robustness"):
+        _goto(at, page)
+        _button(at, "empty.load_example").click().run()
+        assert not at.exception and at.session_state.uploaded_df is not None
+        at.session_state.uploaded_df = None
+    for page in ("diagnosis", "recommendation"):
+        _goto(at, page)
+        _button(at, "empty.open_wizard").click().run()
+        assert at.session_state.page == "research_question"
+
+
+def test_dashboard_states_the_demo_finding_and_opens_the_demo():
+    at = _run_app()
+    assert any("cl-finding" in body for body in _html(at))
+    _button(at, "home.open_demo").click().run()
+    assert at.session_state.page == "demo"
+
+
 if __name__ == "__main__":
     test_dashboard_shortcut_opens_its_page()
     test_language_switch_keeps_the_page()
@@ -184,4 +220,7 @@ if __name__ == "__main__":
     test_card_krueger_button_loads_real_data_without_truth()
     test_sidebar_sections_follow_the_workflow_and_the_language()
     test_dashboard_progress_cards_follow_the_workflow()
+    test_every_page_is_titled_with_its_sidebar_name()
+    test_empty_pages_offer_a_way_out()
+    test_dashboard_states_the_demo_finding_and_opens_the_demo()
     print("test_app_flows: OK")
