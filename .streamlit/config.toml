@@ -22,7 +22,7 @@ showSidebarBorder = true
 metricValueFontSize = "1.9rem"
 metricValueFontWeight = 600
 headingFontWeights = [700, 650, 600]
-chartCategoricalColors = ["#3451B2", "#E07B39", "#2E9E83", "#C2416B", "#7A5AC8", "#8A94A6"]
+chartCategoricalColors = ["#4F68DF", "#E07B39", "#2E9E83", "#C2416B", "#7A5AC8", "#8A94A6"]
 
 [theme.light]
 primaryColor = "#3451B2"

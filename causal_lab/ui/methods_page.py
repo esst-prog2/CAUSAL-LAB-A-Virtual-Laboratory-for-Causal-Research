@@ -31,6 +31,7 @@ from robustness_engine.method_stress import run_method_stress_test
 from simulation_engine.method_monte_carlo import run_method_monte_carlo
 from simulation_engine import method_worlds as mw
 from utils.column_mapping import METHOD_ROLES, prepare_mapped_frame, validate_mapping
+from ui import style
 from ui.page_text import F, R, error_text, references_caption
 from utils.i18n import LocalizedError, Msg
 
@@ -208,7 +209,7 @@ def _balance_chart(balance: pd.DataFrame, columns: list[tuple[str, str]], L) -> 
         fig.add_trace(go.Scatter(x=balance[col], y=balance["covariate"], mode="markers",
                                  marker=dict(size=11), name=name))
     for x in (-0.1, 0.1):
-        fig.add_vline(x=x, line_dash="dot", line_color="gray")
+        fig.add_vline(x=x, line_dash="dot", line_color=style.MUTED)
     fig.update_layout(title=L("methods.balance_title"), xaxis_title=L("methods.std_diff"),
                       height=320, margin=dict(t=50, b=30))
     return fig
@@ -225,7 +226,7 @@ def _comparison_chart(result: MethodResult, name: str, other: float, other_se: f
         x=[result.estimate, other], y=[name, other_name], mode="markers", marker=dict(size=12),
         error_x=dict(type="data", array=[Z_95 * result.se, Z_95 * other_se], visible=True)))
     if truth is not None:
-        fig.add_vline(x=truth["true_effect"], line_dash="dash", line_color="green",
+        fig.add_vline(x=truth["true_effect"], line_dash="dash", line_color=style.TRUTH,
                       annotation_text=L("methods.true_effect"))
     fig.update_layout(title=L("methods.estimate_ci"), xaxis_title=L("methods.effect"), height=260,
                       margin=dict(t=50, b=30))
@@ -291,7 +292,7 @@ def _plots(method: str, result: MethodResult, state: dict, L) -> None:
             fig.add_trace(go.Scatter(x=xs, y=fit["intercept"] + fit["slope"] * (xs - cutoff), mode="lines",
                                      line=dict(width=3), name=L("methods.local_linear_fit"),
                                      showlegend=key == "fit_left"))
-        fig.add_vline(x=cutoff, line_dash="dash", line_color="red", annotation_text=L("methods.cutoff"))
+        fig.add_vline(x=cutoff, line_dash="dash", line_color=style.MARKER, annotation_text=L("methods.cutoff"))
         fig.update_layout(title=L("methods.rdd_title"), xaxis_title=m["running"], yaxis_title=m["outcome"],
                           height=420, margin=dict(t=50, b=30))
         st.plotly_chart(fig, width="stretch")
@@ -313,16 +314,16 @@ def _plots(method: str, result: MethodResult, state: dict, L) -> None:
         fig = go.Figure([go.Scatter(x=paths["period"], y=paths["treated"], name=str(d["treated_unit"])),
                          go.Scatter(x=paths["period"], y=paths["synthetic"], name=L("methods.synthetic"),
                                     line=dict(dash="dash"))])
-        fig.add_vline(x=tp - 0.5, line_dash="dot", line_color="red", annotation_text=L("common.treatment"))
+        fig.add_vline(x=tp - 0.5, line_dash="dot", line_color=style.MARKER, annotation_text=L("common.treatment"))
         fig.update_layout(title=L("methods.sc_paths_title"), height=360, margin=dict(t=50, b=30))
         c1.plotly_chart(fig, width="stretch")
         fig = go.Figure()
         for donor, gaps in d["placebo_gaps"].items():
             fig.add_trace(go.Scatter(x=paths["period"], y=gaps, mode="lines", name=str(donor), showlegend=False,
-                                     line=dict(color="lightgray", width=1)))
+                                     line=dict(color=style.MUTED, width=1), opacity=0.5))
         fig.add_trace(go.Scatter(x=paths["period"], y=paths["gap"], name=L("methods.treated_gap"),
-                                 line=dict(color="crimson", width=3)))
-        fig.add_vline(x=tp - 0.5, line_dash="dot", line_color="red")
+                                 line=dict(color=style.PRIMARY, width=3)))
+        fig.add_vline(x=tp - 0.5, line_dash="dot", line_color=style.MARKER)
         fig.update_layout(title=L("methods.sc_gaps_title"), height=360, margin=dict(t=50, b=30))
         c2.plotly_chart(fig, width="stretch")
         st.markdown(f"**{L('methods.donor_weights')}**")
@@ -345,7 +346,7 @@ def _plots(method: str, result: MethodResult, state: dict, L) -> None:
 # Page
 # --------------------------------------------------------------------------
 def render(L) -> None:
-    st.title(f"🧭 {L('methods.title')}")
+    st.title(L("nav.methods"))
     st.caption(L("methods.intro"))
 
     method = st.selectbox(L("methods.choose"), list(METHODS), format_func=lambda k: L(f"method.{k}"),
@@ -400,8 +401,9 @@ def render(L) -> None:
         st.code("\n".join(R(line) for line in result.summary_lines), language="text")
 
     st.divider()
-    tab_stress, tab_mc, tab_code = st.tabs([f"💥 {L('methods.stress_title')}", f"🎲 {L('methods.mc_title')}",
-                                            f"💻 {L('methods.code_title')}"])
+    tab_stress, tab_mc, tab_code = st.tabs([f":material/bolt: {L('methods.stress_title')}",
+                                            f":material/casino: {L('methods.mc_title')}",
+                                            f":material/code: {L('methods.code_title')}"])
     with tab_stress:
         _stress_section(method, state, result, L)
     with tab_mc:
@@ -427,7 +429,7 @@ def _detail(exc: Exception) -> str:
 
 
 def _stress_section(method: str, state: dict, result: MethodResult, L) -> None:
-    if st.button(f"💥 {L('methods.stress_run')}", key=f"mw_{method}_stress"):
+    if st.button(L("methods.stress_run"), icon=":material/bolt:", key=f"mw_{method}_stress"):
         with st.spinner(L("methods.estimating")):
             try:
                 state["stress"] = run_method_stress_test(method, state["df"], state["mapping"], state["options"],
@@ -469,7 +471,7 @@ def _monte_carlo_section(method: str, state: dict, L) -> None:
     # The V search of a covariate synthetic control costs about 25 times the outcome-only fit.
     slow = 25 if method == "synthetic_control" and getattr(config, "n_covariates", 0) else 1
     st.caption(F("methods.mc_time", seconds=reps * MC_SECONDS[method] * _size_factor(method, config) * slow))
-    if st.button(f"🎲 {L('methods.mc_run')}", key=f"mw_{method}_mc_run"):
+    if st.button(L("methods.mc_run"), icon=":material/casino:", key=f"mw_{method}_mc_run"):
         bar = st.progress(0.0)
         try:
             extra = {"inference": state["options"].get("inference", APP_INFERENCE)} if method == "rdd" else None
@@ -492,7 +494,7 @@ def _monte_carlo_section(method: str, state: dict, L) -> None:
     c2.metric(L("common.ci_length"), "—" if mc.avg_ci_length is None else f"{mc.avg_ci_length:.4f}")
     c3.metric(L("methods.mc_se_ratio"), "—" if mc.se_ratio is None else f"{mc.se_ratio:.3f}")
     fig = go.Figure(go.Histogram(x=mc.estimates, nbinsx=40, name=L("common.estimate")))
-    fig.add_vline(x=mc.true_effect, line_dash="dash", line_color="green", annotation_text=L("methods.true_effect"))
+    fig.add_vline(x=mc.true_effect, line_dash="dash", line_color=style.TRUTH, annotation_text=L("methods.true_effect"))
     fig.update_layout(title=L("methods.mc_hist"), xaxis_title=L("methods.effect"), height=320,
                       margin=dict(t=50, b=30))
     st.plotly_chart(fig, width="stretch")

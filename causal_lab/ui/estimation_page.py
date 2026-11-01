@@ -71,7 +71,7 @@ def render_qre_estimation(game: BimatrixGame, L) -> None:
     if counts is None:
         return
     digest = hashlib.sha1(np.r_[game.row_payoffs.ravel(), game.col_payoffs.ravel(), *counts].tobytes()).hexdigest()
-    if st.button(f"📐 {L('est.qre_run')}", key="mx_est_run"):
+    if st.button(L("est.qre_run"), icon=":material/calculate:", key="mx_est_run"):
         try:
             with st.spinner(L("est.running")):
                 st.session_state["mx_est"] = (digest, fit_logit_qre(game, *counts))
@@ -171,7 +171,7 @@ def render_gmm(state: dict, L) -> None:
 
     run_sig = (sig, tuple(sorted(strategy_columns.items())), tuple(sorted(estimate.items())),
                tuple(sorted(observed.items())), tuple(sorted(fixed.items())), tuple(agents), tuple(instruments), id(df))
-    if st.button(f"📐 {L('est.gmm_run')}", type="primary", key=f"th_{sig}_run"):
+    if st.button(L("est.gmm_run"), icon=":material/calculate:", type="primary", key=f"th_{sig}_run"):
         try:
             with st.spinner(L("est.running")):
                 fit = gmm_first_order_conditions(game, df, strategy_columns, estimate, instruments,

@@ -62,10 +62,12 @@ def _run(fetch, source: str) -> None:
 
 
 def render(L) -> None:
-    st.title(f"🌍 {L('sources.title')}")
+    st.title(L("nav.data_sources"))
     st.caption(L("sources.intro"))
     if not st.session_state.get("connectors_enabled"):
         st.info(L("sources.disabled"))
+        st.button(L("nav.settings"), icon=":material/settings:", key="sources_open_settings",
+                  on_click=lambda: st.session_state.update(page="settings"))
         return
     st.warning(L("sources.network_note"))
     if deployment.running_online():

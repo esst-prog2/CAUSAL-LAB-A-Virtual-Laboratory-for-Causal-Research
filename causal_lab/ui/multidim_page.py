@@ -54,7 +54,7 @@ def _editor(L) -> tuple[VectorGame, dict[str, float], tuple] | None:
         agent["utility"] = st.text_input(F("theory.utility_label", i=i), default["utility"], key=f"md_ed_u_{i}")
         agents.append(agent)
     outcomes_text = st.text_area(L("theory.outcomes_input"), L("md.default_outcome"), key="md_ed_outcomes")
-    if st.button(f"🛠️ {L('theory.build')}", key="md_ed_build"):
+    if st.button(L("theory.build"), icon=":material/build:", key="md_ed_build"):
         try:
             game = build_vector_game(L("theory.custom_name"), _parse_parameters(params_text), agents,
                                      _parse_outcomes(outcomes_text))
