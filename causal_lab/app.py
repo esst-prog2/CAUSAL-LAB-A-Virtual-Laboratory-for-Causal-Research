@@ -27,6 +27,7 @@ import plotly.graph_objects as go
 import streamlit as st
 
 from causal_engine.diagnosis import DiagnosisResult, ResearchDesignInput, diagnose
+from causal_engine.question_analysis import ESTIMAND_METHODS, analyze
 from causal_engine.recommendation import (NEEDS_INFO, NOT_SUPPORTED, MethodScore, component_slug, recommend,
                                           recommended)
 from code_generator.generator import CodeGenParams, generate_all
@@ -43,7 +44,7 @@ from simulation_engine.monte_carlo import run_monte_carlo
 from ui.data_sources_page import render as render_data_sources_page
 from ui.demo_page import pretest_headline, render as render_demo_page
 from ui.methods_page import render as render_methods_page
-from ui import style
+from ui import question_panel, style
 from ui.page_text import F, R, error_text, references_caption
 from ui.theory_page import render as render_theory_page
 from utils.i18n import LocalizedError, t, tf
@@ -283,6 +284,10 @@ elif page == "research_question":
         L("step1.question"), value=d.research_question, height=100,
         placeholder=L("step1.placeholder"),
     )
+    # The question is analysed first: the rest of the form is checked against it.
+    if d.research_question.strip():
+        with st.container(border=True):
+            question_panel.render(analyze(d), d, L, editable=True)
 
     st.subheader(L("step2.title"))
     c1, c2, c3 = st.columns(3)
@@ -380,8 +385,13 @@ elif page == "recommendation":
         def reasons(score: MethodScore) -> str:
             return " ".join(R(m) for m in score.unmet)
 
-        # The answers the recommendation rests on, so that a default answer is visible.
+        # 1. The research question, analysed before any method.
         d = st.session_state.design
+        analysis = st.session_state.diagnosis.analysis if st.session_state.diagnosis is not None else None
+        with st.container(border=True):
+            question_panel.render(analysis, d, L)
+
+        # 2. The answers the recommendation rests on, so that a default answer is visible.
         st.caption(F("recommendation.based_on", assignment=L(f"opt.{d.assignment_mechanism}"),
                      data=L(f"opt.{d.data_structure}"),
                      pre=d.n_pre_periods if d.has_pre_treatment_periods else 0,
@@ -402,6 +412,13 @@ elif page == "recommendation":
         else:
             st.markdown(f"### {L('recommendation.recommended')}: {method_name(best)}")
             st.caption(f"{L('recommendation.confidence')}: {L(f'level.{best.confidence}')} · {best.overall:.0f}/100")
+            if analysis is not None and analysis.elements["treatment"].text and analysis.elements["outcome"].text:
+                population = analysis.elements["population"].text
+                st.markdown(F("recommendation.applied", treatment=f"*{analysis.elements['treatment'].text}*",
+                              outcome=f"*{analysis.elements['outcome'].text}*",
+                              population=F("recommendation.applied_population", population=f"*{population}*")
+                              if population else "", why=R(analysis.elements["assignment"].text)
+                              if analysis.elements["assignment"].text else R(best.rationale[0])))
             st.markdown(f"**{L('recommendation.estimand')}.** {L(f'rec.{best.key}.estimand')}")
             st.markdown(f"**{L('recommendation.why')}**")
             st.markdown("\n".join(f"- {R(note)}" for note in best.rationale))
@@ -418,6 +435,28 @@ elif page == "recommendation":
             if pending:
                 st.markdown(f"**{L('recommendation.details_needed')}**")
                 st.markdown("\n".join(f"- {reasons(r)}" for r in pending))
+            # Why not the others: weaker components, missing information, failed conditions.
+            lines = []
+            estimand = analysis.elements["estimand"].text if analysis is not None else None
+            targets = ESTIMAND_METHODS.get(getattr(estimand, "key", None))
+            for r in others + pending + ruled_out:
+                why = []
+                if targets and r.key not in targets and r.status != NOT_SUPPORTED:
+                    # It answers a different question from the one asked.
+                    why.append(F("recommendation.other_estimand", estimand=L(f"rec.{r.key}.estimand").rstrip("."),
+                                 asked=R(estimand).rstrip(".")))
+                if r.supported:
+                    weaker = [L(f"rec.component.{component_slug(k)}").lower() for k, v in r.components.items()
+                              if v < best.components.get(k, 0)]
+                    if weaker:
+                        why.append(F("recommendation.weaker", components=", ".join(weaker)))
+                else:
+                    why.append(reasons(r))
+                if why:
+                    lines.append(f"- **{method_name(r)}**: " + " ".join(why))
+            if lines:
+                st.markdown(f"**{L('recommendation.why_not')}**")
+                st.markdown("\n".join(lines))
 
         scored = [r for r in recs if r.supported]
         if scored:
@@ -442,7 +481,7 @@ elif page == "recommendation":
                     st.caption(f"{L('recommendation.main_assumption')}: {R(r.main_assumption)}")
                     st.caption(f"{L('recommendation.main_concern')}: {R(r.main_concern)}")
             st.caption(L("recommendation.score_note"))
-        if (best is not None or pending) and ruled_out:
+        if best is None and pending and ruled_out:
             with st.expander(L("recommendation.ruled_out")):
                 st.markdown("\n".join(f"- **{method_name(r)}**: {reasons(r)}" for r in ruled_out))
 

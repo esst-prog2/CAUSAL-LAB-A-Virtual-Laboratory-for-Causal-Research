@@ -273,6 +273,16 @@ def _check_question(scores: list[MethodScore], d: ResearchDesignInput, diag: Dia
     engine asks instead of answering a different question."""
     signals = diag.question_signals
     by_key = {score.key: score for score in scores}
+    analysis = diag.analysis
+    if analysis is not None and analysis.blocking:
+        # Essential elements of the question are missing: ask before ranking.
+        for score in scores:
+            _ask(score, Msg("rec.ask.analysis"))
+    if (analysis is not None and "assignment_mechanism" in analysis.strong
+            and analysis.inferred["assignment_mechanism"] == "self_selected"
+            and d.assignment_mechanism != "self_selected"):
+        for score in scores:
+            _ask(score, Msg("rec.ask.self_selection"))
     if "predictive" in signals and "causal" not in signals:
         # A prediction or an association is not a causal question.
         for score in scores:

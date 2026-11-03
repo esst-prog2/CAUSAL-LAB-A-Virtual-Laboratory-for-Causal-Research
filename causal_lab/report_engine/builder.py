@@ -13,6 +13,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime
 
+from causal_engine.question_analysis import ELEMENTS
 from causal_engine.recommendation import NEEDS_INFO, recommended
 from code_generator.generator import CodeGenParams, generate_all
 from estimators.did import estimate_did
@@ -122,6 +123,17 @@ def build_report(state, lang: str, now: datetime | None = None) -> Report:
                   [[L(f"diagnosis.dim.{slug}"), L(f"level.{level.value}")] for slug, level in diagnosis.as_rows()]))
         for note in diagnosis.notes:
             add(Paragraph(R(note)))
+    analysis = diagnosis.analysis if diagnosis is not None else None
+    if analysis is not None:
+        add(Heading(L("qa.title"), 2))
+        add(Table([L("qa.col.element"), L("qa.col.status"), L("qa.col.analysis")],
+                  [[L(f"qa.element.{name}"), L(f"qa.status.{analysis.elements[name].status}"),
+                    R(analysis.elements[name].text) if analysis.elements[name].text else L("qa.unknown")]
+                   for name in ELEMENTS]))
+        for reason in analysis.blocking:
+            add(Paragraph(R(reason), emphasis=True))
+        for i, question in enumerate(analysis.follow_up, start=1):
+            add(Paragraph(f"{L('qa.follow_up')} {i}{colon}{R(question)}"))
     if recs:
         best = recommended(recs)
         add(Heading(L("recommendation.title"), 2))

@@ -26,6 +26,7 @@ import re
 from dataclasses import dataclass, field
 from enum import Enum
 
+from causal_engine.question_analysis import QuestionAnalysis, analyze
 from utils.i18n import Msg
 
 
@@ -71,6 +72,7 @@ class DiagnosisResult:
     treatment_heterogeneity: Level = Level.UNKNOWN
     potential_spillovers: Level = Level.UNKNOWN
     question_signals: frozenset = frozenset()   # design features the question's wording describes
+    analysis: QuestionAnalysis | None = None     # the research question's causal structure
     notes: list[Msg] = field(default_factory=list)
 
     @property
@@ -204,6 +206,7 @@ def diagnose(design: ResearchDesignInput) -> DiagnosisResult:
 
     # --- Assignment cutoff described in the question ---------------------------
     result.question_signals = question_signals(design.research_question)
+    result.analysis = analyze(design)
     if result.cutoff_in_question and design.assignment_mechanism != "threshold":
         result.notes.append(Msg("diagnosis.note.cutoff_language"))
 

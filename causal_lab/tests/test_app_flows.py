@@ -239,6 +239,26 @@ def test_recommendation_asks_when_the_question_contradicts_the_form():
     assert any("threshold" in m.value for m in at.markdown)
 
 
+def test_the_question_is_analysed_before_any_method():
+    # The core of the app: the question is analysed (stated / inferred / unknown), what
+    # it implies can be carried into the form, and the recommendation explains itself
+    # against the question.
+    at = _run_app()
+    _goto(at, "research_question")
+    at.text_area[0].set_value("What is the causal effect of receiving a scholarship on university enrollment among "
+                              "students whose entrance exam scores are near the scholarship eligibility cutoff?").run()
+    assert t("qa.title", "en") in [h.value for h in at.subheader]
+    assert any("receiving a scholarship" in m.value and t("qa.status.inferred", "en") in m.value for m in at.markdown)
+    _button(at, "qa.apply").click().run()
+    assert at.session_state.design.assignment_mechanism == "threshold"
+    _button(at, "wizard.run").click().run()
+    _goto(at, "recommendation")
+    assert any(m.value.startswith("### " + t("recommendation.recommended", "en")) and "Regression Discontinuity"
+               in m.value for m in at.markdown)
+    why_not = next(m.value for m in at.markdown if "Difference-in-Differences**:" in m.value)
+    assert "different quantity" in why_not
+
+
 if __name__ == "__main__":
     test_dashboard_shortcut_opens_its_page()
     test_language_switch_keeps_the_page()
@@ -254,4 +274,5 @@ if __name__ == "__main__":
     test_dashboard_states_the_demo_finding_and_opens_the_demo()
     test_recommendation_says_when_no_credible_design_is_supported()
     test_recommendation_asks_when_the_question_contradicts_the_form()
+    test_the_question_is_analysed_before_any_method()
     print("test_app_flows: OK")

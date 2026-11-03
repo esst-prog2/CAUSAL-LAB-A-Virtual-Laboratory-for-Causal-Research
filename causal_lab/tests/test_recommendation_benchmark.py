@@ -138,8 +138,8 @@ def test_the_lottery_question_points_to_the_randomised_design():
 
 
 def test_question_wording_adds_its_caveats():
-    design = ResearchDesignInput(research_question="How does the long-run effect of the reform vary by income, and "
-                                 "through which mechanism?", n_pre_periods=3)
+    design = ResearchDesignInput(research_question="How does the long-run effect of the reform on employment vary by "
+                                 "income, and through which mechanism?", n_pre_periods=3)
     keys = {m.key for m in recommended(recommend(design, diagnose(design))).rationale}
     assert {"rec.note.heterogeneity", "rec.note.mechanism", "rec.note.dynamic"} <= keys
 
