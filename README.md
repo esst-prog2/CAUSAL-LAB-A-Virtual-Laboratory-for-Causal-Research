@@ -2,7 +2,9 @@
 
 **Author:** Thierry Z. BARHAME · MSc Statistics and Data Analytics, ELTE · Live demo: https://causal-lab-a-virtual-laboratory-for-causal-research-busavtyebb.streamlit.app
 
-A small tool that lets someone with a panel dataset and a treatment date find out — with real numbers, not a guess — whether a difference-in-differences design is even appropriate for their data, and if so, run it correctly.
+A small tool that lets someone with a panel dataset and a treatment date find out — with real numbers, not a guess — whether a difference-in-differences design is even appropriate for their data, and if so, run it correctly. It has since grown: it reads the research question first and considers eight designs. How that relates to the original one-method brief (issue #1) is set out in [the scope note](docs/SCOPE_CLARIFICATION.md), and is **pending the professor's written confirmation**.
+
+**For the December defense:** [the defense guide](docs/defense/DEFENSE_GUIDE.md).
 
 ## 1. The demo
 
@@ -90,6 +92,61 @@ on screen     upload or generate → see the pre/post trend plot and the
               the true effect if the data was synthetic
 ```
 
+### From the question to a method
+
+The app helps a researcher choose and understand a causal design. **It does not establish causal identification**, and it does not replace careful research design: identification rests on assumptions about the world, which data can sometimes refute and never prove.
+
+1. **Enter a research question** on the Research Question page.
+2. **Its intent is read**: causal, predictive, descriptive or ambiguous.
+3. **Variables and design clues are identified**: treatment, outcome, population, comparison, estimand, assignment, data, confounding.
+4. **The app decides whether it must ask first**, and shows its follow-up questions.
+5. **A framework is recommended**, once the form is answered and the question is causal, or none is if no design's conditions hold.
+6. **The assumptions are explained**, with the identification strategy, internal and external validity, and why each competing method is less appropriate.
+7. **Diagnostics and limits follow**: Break My Design, the robustness battery, and where available a Monte Carlo on a world with a known effect.
+
+### The question analyser
+
+**Why it exists.** A form alone answers the wrong question. On 2026-11-01 a question about students near a scholarship cutoff received DiD, because the form said "policy" and "panel". The analyser reads what is asked before any method is considered. The author presents it as the project's principal contribution; see [the scope note](docs/SCOPE_CLARIFICATION.md), since this is **pending the professor's written confirmation**.
+
+**How it reads a question** (`causal_engine/question_reading.py`, `question_analysis.py`). It is local and deterministic: regular expressions in reusable families (verbs with their inflections, auxiliaries, connectors), in English and French. Each conclusion keeps the words that produced it, and no data leave the machine.
+
+| Intent | When | What happens |
+|---|---|---|
+| Causal | The wording asks what a change does: "does X reduce Y", "effect of X on Y", "is X a cause of Y", "what happens to Y when X", "would Y differ without X" | The structure is laid out |
+| Predictive | Explicit: "predict", "forecast" | No causal method; it says why |
+| Descriptive | Explicit: "how many", "what share", "did Y rise in 2020" | No causal method; it says why |
+| Ambiguous | An association, a comparison of groups, "why", or a wording it does not recognise | It abstains and asks |
+
+Only explicit wording makes a question non-causal: a failed pattern is not a finding about the question. Causal *intent* is not causal *identifiability*: a plainly causal question can still be unanswerable.
+
+**Uncertainty.** Each element is labelled **stated** (clear, quoted), **inferred** (reasoning given), **to confirm** (words extracted, role doubtful) or **unknown**. Doubtful readings are not quoted back as facts. A researcher can tick "My aim is to estimate a causal effect" when the wording misleads the analyser; this changes how the words are read, never the conditions a method must meet.
+
+**Thresholds.** A number is not a regression discontinuity. The analyser separates:
+- an assignment rule, explicit or implied ("eligibility at age 65", "students scoring above 70 receive tutoring"): a threshold assignment is inferred, and it asks whether the rule is sharp and can be manipulated;
+- a number of unclear role ("a BMI over 30"): nothing is inferred, and it asks;
+- an ordinary threshold ("a debt threshold above which growth falls"): nothing about assignment.
+
+**When it asks.** No method is recommended if the question is not causal, if the treatment or outcome cannot be identified, if a threshold's role is unclear, if the question contradicts the form, or if the form is untouched. Without that last rule, any question would get DiD from defaults nobody gave. A box confirms that the defaults do describe the study.
+
+**How well it works.** Evaluated once, on 56 published titles it was not developed on: see section 4. Pattern matching has limits: it reads wording and misses much of it.
+
+### The eight methods in the recommendation
+
+Derived from `METHOD_KEYS` in `causal_engine/recommendation.py`. A method is considered only if its conditions hold. Those that do are put in an argued order, with **no numerical score**: the hand-set credibility numbers used until 2026-11-05 suggested a precision nobody had established. The order holds under the stated conditions and concerns internal validity. No method is superior in every research context.
+
+| Method | Needs | Rests on | Main threats and limits | Estimator here |
+|---|---|---|---|---|
+| Randomised trial | Random assignment | Randomisation carried out as described | Attrition, non-compliance, interference; external validity | Yes |
+| Regression discontinuity | A real assignment cutoff | Continuity at the cutoff, no precise manipulation | Local to the cutoff | Yes (sharp, fuzzy) |
+| Difference-in-differences | Treated and untreated, before and after | Parallel trends, untestable | Anticipation, spillovers, staggered timing with changing effects | Yes, with the full simulation study |
+| Event study | As DiD, with at least 2 pre-periods | Parallel trends | A passed pre-test does not establish them | Yes |
+| Synthetic control | One or a few treated units, donors, at least 5 pre-periods | Fit carries over to the post-period; no shock at the same date | A case study | Yes |
+| Instrumental variables | An instrument the researcher can defend | Relevance, exclusion (untestable), monotonicity | Weak instruments; an effect for compliers only | Yes |
+| Interrupted time series | A long series before and after | Trend continues; nothing else changes at that date | No comparison group | **No: advice only** |
+| Matching | All important confounders measured | Selection on observables, unverifiable | Hidden bias; common support | Yes |
+
+Double machine learning is also estimated on the Causal Methods page. It is not a separate design, so the recommendation does not list it.
+
 ## 3. The size
 
 **Delivered:**
@@ -100,7 +157,7 @@ on screen     upload or generate → see the pre/post trend plot and the
 - Run a heterogeneity-robust DiD for staggered adoption (Callaway & Sant'Anna 2021), with an event study and analytic small-sample SEs (since 2026-10-31; a unit bootstrap before), shown next to TWFE and the true effect. On staggered worlds with growing effects, TWFE has a bias of +0.21 and 38% CI coverage, while Callaway & Sant'Anna has a bias of +0.006 and 93% coverage (60 Monte Carlo worlds).
 - Run a two-way fixed-effects DiD estimator and report the coefficient, standard error, and p-value. It is validated against `linearmodels.PanelOLS`: identical coefficient and clustered standard errors within 2% (`tests/test_did_reference.py`).
 - Run an Event Study (leads-and-lags) estimator and plot dynamic, period-by-period treatment effects around the treatment date.
-- Score seven candidate causal-identification methods (RCT, DiD, Event Study, Synthetic Control, RDD, IV, Matching) against the declared research design with a transparent, explainable Method Suitability Score, and recommend the best fit — the app shows its work rather than picking silently.
+- Check eight candidate causal-identification methods (RCT, RDD, DiD, Event Study, Synthetic Control, IV, Interrupted Time Series, Matching) against the conditions each one needs, after reading the research question, and recommend a design or say that none is credible yet. No numerical score is attached (see section 2).
 - Generate ready-to-run Python, R, and Stata scripts that reproduce the DiD analysis.
 - Run in English or French, switchable from the sidebar at any time.
 - When run on synthetic data, show the estimate next to the true effect that was used to generate it, including a Monte Carlo mode that reports bias, RMSE, and confidence-interval coverage across many replications.
@@ -210,6 +267,7 @@ A person with a messy panel CSV and a treatment date can use this version alone:
 - Given a synthetic dataset built with deliberately diverging pre-trends (violated parallel trends), the diagnosis panel flags it as "questionable" or "violated," not "plausible."
 - Given any panel run through the event-study estimator, its coefficient for the period immediately before treatment (k = -1, the reference period) is exactly zero by construction.
 - Given a research design declared with random assignment, the method recommendation ranks Randomized Controlled Trial above every other candidate method.
+- Given a question that is explicitly predictive or descriptive, no causal method is recommended; given an ambiguous one, the app asks; given an untouched form, no method is recommended (`tests/test_question_reading.py`).
 - Given panel data where control units adjacent to a treated unit shift after treatment (Virtual World with spillovers), the "Break My Design" Spillovers check reports WARNING with the number of adjacent controls, the estimated shift and its p-value, and the overall Identification Strength score is below 100. Adjacency alone, without a shift, does not trigger it (8% false alarms on threat-free worlds, see section 5).
 - Given the same column names, the generated Python, R, and Stata scripts all fit the same two-way fixed-effects model with standard errors clustered on the same column.
 - Switching the sidebar language toggle from EN to FR redraws every page's text in French, including messages produced by the engines (stress-test details, rationales, warnings, errors, model texts), falling back to English for any translation key that's missing. Checked by `tests/test_i18n_coverage.py`: 720 keys on 2026-10-25, identical in EN and FR. A scripted French render audit of every page also found no untranslated text outside code blocks. Generated scripts, the per-method technical log (labelled "English"), references, and the user's own column names stay as they are.
@@ -249,6 +307,16 @@ What changed because of it:
   - A one-unit cohort, which occurs in 15% of these worlds, borrows the variance of the same combination of outcome changes among the never-treated units.
   - On 1,000 worlds: coverage 95.0% (0.7), size 5.0% (0.7). It is also about 40 times faster than the bootstrap, which remains as a fallback only.
   - The result still reports its smallest cohort and its degrees of freedom; below 5 units, the page and the report say why the interval is wide.
+
+### Evaluation of the question analyser
+
+Protocol fixed before any question was collected ([PROTOCOL](docs/evaluation/PROTOCOL.md)); set frozen by hash; analyser not tuned on it; one run. Full [report](docs/evaluation/REPORT.md).
+
+- **Set:** 56 published articles whose title is a question, selected from OpenAlex by a fixed rule: 33 causal, 12 ambiguous, 6 descriptive, 5 predictive by wording; 40 with a reported design.
+- **One criterion of seven fails:** recall of causal questions is 0.64 (21/33), under the 0.70 bar. Precision is 0.95 (21/22).
+- **Its errors are mostly abstentions:** 12 causal questions were read as ambiguous, 4 of them because "does X matter?" is not recognised. None was called predictive or descriptive. Abstention on truly ambiguous questions is 0.92 (11/12).
+- **No wrong method** in 40 questions given the form of their design (upper limit of the 95% interval: 9%), and no recommendation from an untouched form. However, 21 of the 40 abstained, and a title alone gave a design clue in only 3 of the 40. **The form does the work**, and that metric cannot show that the app finds a design.
+- **Limits:** labels by a single rater who also wrote the analyser; bars proposed by the agent; English titles of highly cited papers only; only 2 thresholds in the set, and no implicit one, so that behaviour is not validated; no question written by a student yet.
 
 ## 5. What could stop this
 
