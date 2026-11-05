@@ -11,6 +11,7 @@ from __future__ import annotations
 import json
 import sys
 import time
+import urllib.error
 import urllib.parse
 import urllib.request
 from pathlib import Path
@@ -30,6 +31,7 @@ STRATA = {            # stratum -> (filter values, how many are needed)
 KEEP = 25            # candidates kept per stratum, so that recorded exclusions can be replaced in order
 MAX_WORDS = 30
 PAGES = 3
+RETRIES = 40
 
 
 def _abstract(inverted: dict | None) -> str:
@@ -47,8 +49,15 @@ def _get(filter_value: str, page: int) -> list[dict]:
     })
     request = urllib.request.Request(f"https://api.openalex.org/works?{query}",
                                      headers={"User-Agent": "causal-lab-evaluation"})
-    with urllib.request.urlopen(request, timeout=60) as response:
-        return json.load(response)["results"]
+    for _ in range(RETRIES):
+        try:
+            with urllib.request.urlopen(request, timeout=60) as response:
+                return json.load(response)["results"]
+        except urllib.error.HTTPError as error:
+            if error.code != 429:
+                raise
+            time.sleep(int(error.headers.get("Retry-After", 60)) + 5)
+    raise SystemExit("OpenAlex kept refusing the request")
 
 
 def _record(work: dict) -> dict:
@@ -66,7 +75,7 @@ def main(out: Path) -> None:
         for filter_value in filters:
             for page in range(1, PAGES + 1):
                 works += _get(filter_value, page)
-                time.sleep(0.3)
+                time.sleep(2)
         works.sort(key=lambda w: -w["cited_by_count"])
         kept = []
         for work in works:

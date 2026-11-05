@@ -114,4 +114,8 @@ The bars are judgements, not derived values: they express that a wrong reading i
 
 ## Changes to this protocol
 
-None yet.
+All of these were made before any label was written and before the analyser ran on the set.
+
+- **2026-11-05, RCT stratum.** The query retrieved 6 works, of which only one was a randomised trial; the others are meta-analyses, reviews or methods papers. A top-up was added by the same rule (`abstract: "randomly assigned"` and `"randomized field experiment"`, by citations), and the first works that qualify complete the stratum.
+- **2026-11-05, abstracts.** `candidates.json` keeps the provenance without the abstracts, which can be read on OpenAlex.
+- **2026-11-05, predictive and descriptive strata.** A few titles of these strata have another intent by the rules above (one predictive title in the design strata, one ambiguous one in the predictive stratum). Labels follow the wording, not the stratum. All "descriptive" titles selected are "how many" questions, since citation order favours them; this limits what the set says about descriptive wordings.
