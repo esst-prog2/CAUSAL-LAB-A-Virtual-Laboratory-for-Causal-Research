@@ -1,15 +1,16 @@
 """
 The analysis of the research question, shown on the Research Question form
-(as the question is written) and at the top of the Recommendation page:
-each element of the question's causal structure, whether it is stated,
-inferred or unknown, the follow-up questions, and what the question implies
-for the form.
+(as the question is written) and at the top of the Recommendation page: what
+the question asks (its intent), each element of its causal structure, whether
+that element is stated, inferred, to confirm or unknown, the follow-up
+questions, and what the question implies for the form.
 """
 from __future__ import annotations
 
 import streamlit as st
 
 from causal_engine.question_analysis import ELEMENTS, QuestionAnalysis
+from causal_engine.question_reading import CAUSAL
 from ui.page_text import F, R
 
 # Fields of the form the question can imply, with how their value is shown.
@@ -30,12 +31,20 @@ def _apply(analysis: QuestionAnalysis) -> None:
     st.session_state.qa_applied = list(changed)
 
 
+def _set_causal_confirmed() -> None:
+    st.session_state.design.causal_confirmed = st.session_state.qa_confirm_causal
+
+
 def render(analysis: QuestionAnalysis | None, design, L, editable: bool = False) -> None:
     st.subheader(L("qa.title"))
     if analysis is None:
         st.info(L("qa.no_question"))
         return
     st.caption(L("qa.intro"))
+    st.markdown(f"**{L('qa.intent_title')}.** " + " ".join(R(m) for m in analysis.intent_messages()))
+    if editable and (analysis.intent != CAUSAL or analysis.causal_confirmed):
+        st.checkbox(L("qa.confirm_causal"), value=design.causal_confirmed, key="qa_confirm_causal",
+                    on_change=_set_causal_confirmed, help=L("qa.confirm_causal_help"))
     # A Markdown table, so that long inferences wrap instead of being cut.
     lines = [f"| {L('qa.col.element')} | {L('qa.col.status')} | {L('qa.col.analysis')} |", "|---|---|---|"]
     for name in ELEMENTS:

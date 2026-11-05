@@ -48,7 +48,7 @@ CASES = [
     ("Card & Krueger (1994), minimum wage",
      "What is the effect of New Jersey's minimum wage increase on fast-food employment, compared with "
      "Pennsylvania?",
-     dict(assignment_mechanism="policy", data_structure="panel", n_pre_periods=1), "did"),
+     dict(assignment_mechanism="policy", data_structure="panel", n_pre_periods=1, answers_confirmed=True), "did"),
     ("Duflo (2001), school construction in Indonesia",
      "What is the effect of the Indonesian school construction program on years of education and wages?",
      dict(assignment_mechanism="geographic", data_structure="repeated_cross_section", n_pre_periods=1), "did"),
@@ -140,7 +140,8 @@ def test_the_lottery_question_points_to_the_randomised_design():
 def test_question_wording_adds_its_caveats():
     design = ResearchDesignInput(research_question="How does the long-run effect of the reform on employment vary by "
                                  "income, and through which mechanism?", n_pre_periods=3)
-    keys = {m.key for m in recommended(recommend(design, diagnose(design))).rationale}
+    best = recommended(recommend(design, diagnose(design)))
+    keys = {m.key for m in best.rationale}
     assert {"rec.note.heterogeneity", "rec.note.mechanism", "rec.note.dynamic"} <= keys
 
 

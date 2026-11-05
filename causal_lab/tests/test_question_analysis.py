@@ -77,8 +77,8 @@ def test_a_ranking_waits_for_the_essential_elements():
     filled = ResearchDesignInput(research_question=design.research_question, assignment_mechanism="threshold",
                                  data_structure="cross_section", has_pre_treatment_periods=False, n_pre_periods=0)
     assert recommended(recommend(filled, diagnose(filled))).key == "rdd"
-    # A question without a treatment is not causal.
-    assert [m.key for m in _a("Which student characteristics predict dropout?").blocking] == ["qa.block.not_causal"]
+    # An explicit prediction is not causal.
+    assert [m.key for m in _a("Which student characteristics predict dropout?").blocking] == ["qa.block.predictive"]
 
 
 def test_a_lottery_is_the_treatment_or_an_instrument_depending_on_the_question():

@@ -27,6 +27,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 
 from causal_engine.question_analysis import QuestionAnalysis, analyze
+from causal_engine.question_reading import THRESHOLD_ASSIGNMENT, THRESHOLD_UNCLEAR
 from utils.i18n import Msg
 
 
@@ -59,6 +60,9 @@ class ResearchDesignInput:
     n_treated_units: str = "many"              # one | few | many
     instrument: str = "unsure"                 # available | none | unsure
     confounders_observed: str = "unsure"       # measured | not_measured | unsure
+    # The researcher's own statements, which the wording of a question cannot give.
+    causal_confirmed: bool = False             # the aim is a causal effect, whatever the wording suggests
+    answers_confirmed: bool = False            # these answers, defaults included, describe the study
 
 
 @dataclass
@@ -109,16 +113,12 @@ _HETEROGENEITY_KEYWORDS = (
 # is a DiD design), "natural experiment" is not randomisation, and "National" in a
 # programme's name is not a nationwide treatment.
 QUESTION_SIGNALS = {
-    "cutoff": r"cut-?\s?offs?\b|threshold|discontinuit|\bseuils?\b",
     "random": r"randomi[sz]|random(ly)?\s+assign|\blotter(y|ies)\b|\brcts?\b|tirage au sort|al[ée]atoire|loterie",
     "instrument": r"\binstrument|exogenous (shock|variation)|variable instrumentale|choc exog",
     "staggered": r"stagger|roll-?out|phased[ -]in|[ée]chelonn|d[ée]ploiement progressif",
     "single_unit": r"nationwide|country-?wide|at the national level|[àa] l'[ée]chelle nationale|"
-                   r"\b(a|one|single) (country|state|region|province|city)\b|\bun seul (pays|[ée]tat)\b",
+                   r"\b(one|single) (country|state|region|province|city)\b|\bun seul (pays|[ée]tat)\b",
     "border": r"\bborders?\b|boundar|fronti[èe]re",
-    "predictive": r"\bpredict|forecast|\bwhich (factors|characteristics|variables)\b|associated with|correlat|"
-                  r"pr[ée]di|pr[ée]voir|facteurs associ",
-    "causal": r"effect|impact|\bcaus|influence|effet|affect",
     "heterogeneity": r"for whom|subgroup|heterogene|differ by|vary by|sous-groupe|pour qui|h[ée]t[ée]rog[ée]n",
     "mechanism": r"mechanism|through which|mediat|channel|m[ée]canisme|\bcanal\b|m[ée]diat",
     "dose": r"\bdoses?\b|each additional|how much|per (euro|dollar)|suppl[ée]mentaire",
@@ -205,8 +205,13 @@ def diagnose(design: ResearchDesignInput) -> DiagnosisResult:
     )
 
     # --- Assignment cutoff described in the question ---------------------------
-    result.question_signals = question_signals(design.research_question)
+    # Whether a threshold assigns treatment is decided by the analysis of the question,
+    # which tells an assignment rule from an ordinary number.
     result.analysis = analyze(design)
+    threshold = result.analysis.threshold if result.analysis is not None else None
+    result.question_signals = question_signals(design.research_question) | {
+        signal for kind, signal in ((THRESHOLD_ASSIGNMENT, "cutoff"), (THRESHOLD_UNCLEAR, "threshold_unclear"))
+        if threshold == kind}
     if result.cutoff_in_question and design.assignment_mechanism != "threshold":
         result.notes.append(Msg("diagnosis.note.cutoff_language"))
 

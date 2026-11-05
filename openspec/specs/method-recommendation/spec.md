@@ -1,30 +1,9 @@
 # method-recommendation Specification
 
 ## Purpose
-Computes a transparent "CAUSAL LAB Method Suitability Score" (0-100) for a fixed library of seven candidate causal-identification methods, from the research design input and its diagnosis. The score is explicitly presented as an explainable heuristic, never as a guarantee of causal identification.
+Checks eight candidate causal-identification methods against the conditions without which they do not identify an effect, from the research design input, its diagnosis and the analysed question. Supported methods are put in an argued, qualitative order; no numerical credibility is attached, and the recommendation is presented as an aid to research design, never as a guarantee of causal identification.
 
 ## Requirements
-
-### Requirement: Scored, ranked candidate list
-The system SHALL check every candidate method against the conditions without which it does not identify a causal effect, and score only the methods whose conditions hold. Methods SHALL be ranked in this order:
-- supported methods, by score;
-- methods that need information;
-- methods ruled out.
-
-#### Scenario: Recommending methods
-- **WHEN** `recommend(design, diagnosis)` is called
-- **THEN** it returns 8 `MethodScore` records, in the order above: Randomized Controlled Trial, Regression Discontinuity, Difference-in-Differences, Event Study, Synthetic Control, Instrumental Variables, Interrupted Time Series, and Matching / Propensity Score
-
-#### Scenario: Score composition
-- **WHEN** a supported method is scored
-- **THEN** its score has three components, each from 0 to 100: design credibility, assumption plausibility and data adequacy
-- **AND** its `overall` is their mean
-- **AND** its `confidence` is HIGH if overall ≥ 75, MEDIUM if overall ≥ 50, and LOW otherwise
-- **AND** it carries a rationale, a `main_assumption` and a `main_concern`
-
-#### Scenario: Ruled-out method
-- **WHEN** a method's necessary condition fails
-- **THEN** its status is `not_supported`, its overall is 0, and `unmet` lists the failed conditions
 
 ### Requirement: Each method needs its identifying conditions
 The system SHALL recommend a method only when its necessary conditions hold:
@@ -70,11 +49,12 @@ For the recommended method, the system SHALL give:
 - the identification strategy;
 - the key assumptions;
 - the threats and diagnostics;
+- its internal and external validity;
 - the alternative methods, with when each is preferable;
 - the additional details needed (the questions behind each method that needs information).
 
 #### Scenario: Default design
-- **WHEN** the researcher runs the diagnosis on a policy evaluated in a panel with a pre-period, with the instrument and the confounders answered "not sure"
+- **WHEN** the researcher confirms a policy evaluated in a panel with a pre-period, with the instrument and the confounders answered "not sure"
 - **THEN** DiD is recommended, with the ATT as estimand
 - **AND** IV and matching are listed as possible with more information
 - **AND** each of the two questions to answer is shown
@@ -168,11 +148,11 @@ The system SHALL recommend, for each study of the benchmark, the design its auth
 ### Requirement: The recommendation follows from the analysed question
 The system SHALL hold back every method when the analysis of the research question finds an essential gap. It SHALL also hold back every method when the question describes self-selection but the form does not.
 
-Once a method is recommended, the system SHALL explain it against the question: the effect of the stated treatment on the stated outcome for the stated population, and the inferred assignment.
+Once a method is recommended, the system SHALL explain it against the question: the effect of the stated treatment on the stated outcome for the stated population, and the inferred assignment. It SHALL do so only when the treatment and the outcome are labelled stated.
 
 For each competing method, the system SHALL say why it is less appropriate. The reasons are:
 - it estimates a different quantity from the one the question asks for;
-- it is weaker on named score components;
+- the argument for its position is weaker here;
 - information is missing;
 - one of its conditions fails.
 
@@ -185,3 +165,23 @@ For each competing method, the system SHALL say why it is less appropriate. The 
 - **WHEN** the question is "Does joining a gym improve health?" and the assignment mechanism is "policy"
 - **THEN** no method is recommended
 - **AND** the methods ask whether the units select themselves
+
+### Requirement: An argued order, not a numerical score
+The system SHALL check every candidate method against the conditions without which it does not identify a causal effect. Methods SHALL be listed in this order:
+- supported methods, in an argued order;
+- methods that need information;
+- methods ruled out.
+
+The system SHALL NOT attach a numerical credibility to a method. For each method it SHALL state its internal validity, its external validity and the argument for its position, and it SHALL say that the order is qualitative, holds under the stated conditions, and does not make any method superior in every research context.
+
+#### Scenario: Recommending methods
+- **WHEN** `recommend(design, diagnosis)` is called
+- **THEN** it returns 8 `MethodAssessment` records, in the order above: Randomized Controlled Trial, Regression Discontinuity, Difference-in-Differences, Event Study, Synthetic Control, Instrumental Variables, Interrupted Time Series, and Matching / Propensity Score
+
+#### Scenario: One treated unit
+- **WHEN** one unit is treated and a synthetic control's conditions hold
+- **THEN** synthetic control comes before DiD, because the counterfactual is built explicitly and its fit can be inspected
+
+#### Scenario: Ruled-out method
+- **WHEN** a method's necessary condition fails
+- **THEN** its status is `not_supported` and `unmet` lists the failed conditions

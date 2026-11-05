@@ -27,8 +27,8 @@ import plotly.graph_objects as go
 import streamlit as st
 
 from causal_engine.diagnosis import DiagnosisResult, ResearchDesignInput, diagnose
-from causal_engine.question_analysis import ESTIMAND_METHODS, analyze
-from causal_engine.recommendation import (NEEDS_INFO, NOT_SUPPORTED, MethodScore, component_slug, recommend,
+from causal_engine.question_analysis import ESTIMAND_METHODS, STATED, analyze, form_is_default
+from causal_engine.recommendation import (NEEDS_INFO, NOT_SUPPORTED, MethodAssessment, recommend,
                                           recommended)
 from code_generator.generator import CodeGenParams, generate_all
 from estimators.common import Z_95
@@ -333,6 +333,9 @@ elif page == "research_question":
     d.confounders_observed = option_select(c2, "wizard.confounders", ["measured", "not_measured", "unsure"],
                                            d.confounders_observed)
 
+    d.answers_confirmed = st.checkbox(L("wizard.answers_confirmed"), value=d.answers_confirmed,
+                                      help=L("wizard.answers_confirmed_help"))
+
     st.session_state.design = d
 
     if st.button(L("wizard.run"), icon=":material/play_arrow:", type="primary"):
@@ -373,17 +376,17 @@ elif page == "recommendation":
     if not st.session_state.recommendations:
         no_design("recommendation.empty")
     else:
-        recs: list[MethodScore] = st.session_state.recommendations
+        recs: list[MethodAssessment] = st.session_state.recommendations
         best = recommended(recs)
         others = [r for r in recs if r.supported and r is not best]
         pending = [r for r in recs if r.status == NEEDS_INFO]
         ruled_out = [r for r in recs if r.status == NOT_SUPPORTED]
 
-        def method_name(score: MethodScore) -> str:
-            return L(f"method.{score.key}")
+        def method_name(method: MethodAssessment) -> str:
+            return L(f"method.{method.key}")
 
-        def reasons(score: MethodScore) -> str:
-            return " ".join(R(m) for m in score.unmet)
+        def reasons(method: MethodAssessment) -> str:
+            return " ".join(R(m) for m in method.unmet)
 
         # 1. The research question, analysed before any method.
         d = st.session_state.design
@@ -398,7 +401,7 @@ elif page == "recommendation":
                      control=L("common.yes") if d.has_control_group else L("common.no"),
                      treated=L(f"opt.{d.n_treated_units}"), instrument=L(f"opt.{d.instrument}"),
                      confounders=L(f"opt.{d.confounders_observed}")))
-        if replace(d, research_question="") == ResearchDesignInput():
+        if form_is_default(d):
             st.info(L("recommendation.defaults_warning"))
 
         if best is None and pending:
@@ -411,8 +414,8 @@ elif page == "recommendation":
             st.markdown("\n".join(f"- **{method_name(r)}**: {reasons(r)}" for r in ruled_out))
         else:
             st.markdown(f"### {L('recommendation.recommended')}: {method_name(best)}")
-            st.caption(f"{L('recommendation.confidence')}: {L(f'level.{best.confidence}')} · {best.overall:.0f}/100")
-            if analysis is not None and analysis.elements["treatment"].text and analysis.elements["outcome"].text:
+            # The question is quoted back only when its reading leaves no doubt.
+            if analysis is not None and analysis.status("treatment") == STATED and analysis.status("outcome") == STATED:
                 population = analysis.elements["population"].text
                 st.markdown(F("recommendation.applied", treatment=f"*{analysis.elements['treatment'].text}*",
                               outcome=f"*{analysis.elements['outcome'].text}*",
@@ -426,16 +429,17 @@ elif page == "recommendation":
             c1, c2 = st.columns(2)
             c1.info(f"**{L('recommendation.assumptions')}.** {L(f'rec.{best.key}.assumptions')}")
             c2.warning(f"**{L('recommendation.diagnostics')}.** {L(f'rec.{best.key}.diagnostics')}")
+            st.markdown(f"**{L('recommendation.internal')}.** {L(f'rec.{best.key}.internal')}")
+            st.markdown(f"**{L('recommendation.external')}.** {L(f'rec.{best.key}.external')}")
             if others or pending:
                 st.markdown(f"**{L('recommendation.alternatives')}**")
-                st.markdown("\n".join([f"- **{method_name(r)}** ({r.overall:.0f}/100): {L(f'rec.{r.key}.when')}"
-                                        for r in others]
+                st.markdown("\n".join([f"- **{method_name(r)}**: {L(f'rec.{r.key}.when')}" for r in others]
                                        + [f"- **{method_name(r)}** ({L('recommendation.needs_info').lower()}): "
                                           f"{L(f'rec.{r.key}.when')}" for r in pending]))
             if pending:
                 st.markdown(f"**{L('recommendation.details_needed')}**")
                 st.markdown("\n".join(f"- {reasons(r)}" for r in pending))
-            # Why not the others: weaker components, missing information, failed conditions.
+            # Why not the others: a weaker argument here, missing information, failed conditions.
             lines = []
             estimand = analysis.elements["estimand"].text if analysis is not None else None
             targets = ESTIMAND_METHODS.get(getattr(estimand, "key", None))
@@ -446,10 +450,7 @@ elif page == "recommendation":
                     why.append(F("recommendation.other_estimand", estimand=L(f"rec.{r.key}.estimand").rstrip("."),
                                  asked=R(estimand).rstrip(".")))
                 if r.supported:
-                    weaker = [L(f"rec.component.{component_slug(k)}").lower() for k, v in r.components.items()
-                              if v < best.components.get(k, 0)]
-                    if weaker:
-                        why.append(F("recommendation.weaker", components=", ".join(weaker)))
+                    why.append(L(f"rec.{r.key}.rank"))
                 else:
                     why.append(reasons(r))
                 if why:
@@ -458,29 +459,19 @@ elif page == "recommendation":
                 st.markdown(f"**{L('recommendation.why_not')}**")
                 st.markdown("\n".join(lines))
 
-        scored = [r for r in recs if r.supported]
-        if scored:
+        supported = [r for r in recs if r.supported]
+        if supported:
             st.divider()
             st.subheader(L("recommendation.all_candidates"))
-            fig = go.Figure(go.Bar(
-                x=[r.overall for r in scored],
-                y=[method_name(r) for r in scored],
-                orientation="h",
-                marker_color=[style.PRIMARY if r is best else style.SEQUENTIAL[0] for r in scored],
-            ))
-            fig.update_layout(xaxis_title=L("recommendation.score_axis"), yaxis_title="", yaxis_autorange="reversed",
-                              height=80 + 45 * len(scored), margin=dict(l=10, r=10, t=10, b=10))
-            st.plotly_chart(fig, width="stretch")
-            for r in scored:
-                with st.expander(f"{method_name(r)} — {r.overall:.0f}/100 ({L(f'level.{r.confidence}')})"):
-                    st.table(pd.DataFrame(
-                        [(L(f"rec.component.{component_slug(k)}"), v) for k, v in r.components.items()],
-                        columns=[L("recommendation.component"), L("recommendation.score")]))
+            st.caption(L("recommendation.order_note"))
+            for r in supported:
+                with st.expander(method_name(r)):
                     for note in r.rationale:
                         st.write("— " + R(note))
                     st.caption(f"{L('recommendation.main_assumption')}: {R(r.main_assumption)}")
                     st.caption(f"{L('recommendation.main_concern')}: {R(r.main_concern)}")
-            st.caption(L("recommendation.score_note"))
+                    st.caption(f"{L('recommendation.internal')}: {L(f'rec.{r.key}.internal')}")
+                    st.caption(f"{L('recommendation.external')}: {L(f'rec.{r.key}.external')}")
         if best is None and pending and ruled_out:
             with st.expander(L("recommendation.ruled_out")):
                 st.markdown("\n".join(f"- **{method_name(r)}**: {reasons(r)}" for r in ruled_out))

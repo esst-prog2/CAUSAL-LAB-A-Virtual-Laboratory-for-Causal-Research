@@ -236,6 +236,7 @@ def test_recommendation_asks_when_the_question_contradicts_the_form():
     _goto(at, "recommendation")
     assert any(t("recommendation.ask_title", "en") in w.value for w in at.warning)
     assert any(m.value == t("recommendation.defaults_warning", "en") for m in at.info)
+    assert not at.get("plotly_chart")          # the bar chart of scores is gone
     assert any("threshold" in m.value for m in at.markdown)
 
 
@@ -255,8 +256,22 @@ def test_the_question_is_analysed_before_any_method():
     _goto(at, "recommendation")
     assert any(m.value.startswith("### " + t("recommendation.recommended", "en")) and "Regression Discontinuity"
                in m.value for m in at.markdown)
-    why_not = next(m.value for m in at.markdown if "Difference-in-Differences**:" in m.value)
+    why_not = next(m.value for m in at.markdown if "Difference-in-Differences**:" in m.value and "different" in m.value)
     assert "different quantity" in why_not
+
+
+def test_an_ambiguous_question_asks_and_the_researcher_can_answer():
+    # An association is not declared non-causal: the page says it is unclear and asks. Once
+    # the researcher states the causal aim and the design, the conditions decide.
+    at = _run_app()
+    _goto(at, "research_question")
+    at.text_area[0].set_value("Is class size associated with test scores among third graders?").run()
+    assert any(t("qa.intent.ambiguous", "en") in m.value for m in at.markdown)
+    assert any(t("qa.block.ambiguous", "en") == w.value for w in at.warning)
+    assert not any("| stated |" in m.value and "class size" in m.value for m in at.markdown)  # to confirm, not a fact
+    at.checkbox(key="qa_confirm_causal").check().run()
+    assert at.session_state.design.causal_confirmed
+    assert not any(t("qa.block.ambiguous", "en") == w.value for w in at.warning)
 
 
 if __name__ == "__main__":

@@ -13,6 +13,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import numpy as np
 from streamlit.testing.v1 import AppTest
 
+from simulation_engine import demo_study
 from simulation_engine.demo_study import (CARD_KRUEGER_TABLE3, LEVELS, SEED_BASE, THREATS, Replication,
                                           largest_acceptable, load_study, replicate, replicate_card_krueger, same,
                                           summarize)
@@ -131,6 +132,22 @@ def test_the_demo_page_renders_in_both_languages():
         assert ("17 of 18" if lang == "en" else "17 sur 18") in text
         # one world, overview, one table per threat, replication
         assert len(at.dataframe) == 3 + len(THREATS)
+
+
+def test_relative_bias_has_no_meaning_at_a_zero_effect():
+    # The rule is stated as a share of the true effect: at a zero effect it must say it does
+    # not apply, not divide by zero or call the scenario acceptable.
+    base = dict(level="none", n_reps=1000, mean_estimate=0.02, bias=0.02, bias_mcse=0.005, empirical_se=0.1,
+                mean_model_se=0.1, rmse=0.1, coverage=0.95, coverage_mcse=0.007, rejection=0.05, rejection_mcse=0.007,
+                wrong_sign=0.0, detection=0.1, detection_mcse=0.01, n_pass=900, coverage_given_pass=0.95)
+    null = demo_study.Summary(true_att=0.0, **base)
+    assert not null.rule_applies and not null.acceptable and null.bias_share != null.bias_share   # NaN
+    # With a non-zero effect, each half of the rule decides on its own, inclusive at the limit.
+    effect = demo_study.Summary(true_att=-0.5, **base)
+    assert effect.rule_applies and effect.acceptable and abs(effect.bias_share - 0.04) < 1e-12
+    assert not demo_study.Summary(true_att=-0.5, **{**base, "bias": 0.06}).acceptable         # 12% of the effect
+    assert not demo_study.Summary(true_att=-0.5, **{**base, "coverage": 0.89}).acceptable
+    assert demo_study.Summary(true_att=-0.5, **{**base, "coverage": 0.90}).acceptable
 
 
 if __name__ == "__main__":

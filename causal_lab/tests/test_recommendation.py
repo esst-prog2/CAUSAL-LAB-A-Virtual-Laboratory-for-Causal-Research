@@ -125,11 +125,54 @@ def test_ruled_out_methods_are_never_ranked_above_supported_ones():
         recs = recommend(design, diagnose(design))
         statuses = [r.status for r in recs]
         assert statuses == sorted(statuses, key=[SUPPORTED, NEEDS_INFO, NOT_SUPPORTED].index)
-        assert all(r.overall == 0 and r.unmet for r in recs if r.status == NOT_SUPPORTED)
+        assert all(r.unmet for r in recs if r.status == NOT_SUPPORTED)
         if mech == "random":
             assert recommended(recs).key == "rct"
         if mech == "threshold":
             assert recommended(recs).key == "rdd"
+
+
+def test_no_numerical_credibility_is_attached_to_a_method():
+    # The order is argued, not measured: nothing in the engine or on the page suggests a
+    # precision that has not been established empirically.
+    design = ResearchDesignInput(assignment_mechanism="policy", n_pre_periods=4, instrument="available",
+                                 confounders_observed="measured")
+    for method in recommend(design, diagnose(design)):
+        assert not any(hasattr(method, name) for name in ("overall", "components", "confidence"))
+    for lang in ("en", "fr"):
+        texts = json.loads((LOCALES / f"{lang}.json").read_text(encoding="utf-8"))
+        assert not [k for k in texts if k.startswith("rec.component.") or k in ("recommendation.score",
+                                                                                 "recommendation.score_axis")]
+        assert not any("/100" in texts[f"rec.{key}.{part}"] for key in METHOD_KEYS
+                       for part in ("internal", "external", "rank"))
+
+
+def test_the_argued_order_of_the_supported_methods():
+    def order(**fields):
+        design = ResearchDesignInput(**fields)
+        return [r.key for r in recommend(design, diagnose(design)) if r.supported]
+    many = order(assignment_mechanism="policy", n_pre_periods=4, instrument="available", confounders_observed="measured")
+    assert many == ["did", "event_study", "iv", "its", "matching"]
+    # One treated unit: the counterfactual is built explicitly and its fit can be inspected.
+    one = order(assignment_mechanism="policy", n_pre_periods=12, n_treated_units="one", instrument="none",
+                confounders_observed="measured")
+    assert one.index("synthetic_control") < one.index("did")
+    few = order(assignment_mechanism="policy", n_pre_periods=12, n_treated_units="few", instrument="none",
+                confounders_observed="measured")
+    assert few.index("synthetic_control") < few.index("did")
+    short = order(assignment_mechanism="policy", n_pre_periods=6, n_treated_units="few", instrument="none",
+                  confounders_observed="measured")
+    assert short.index("did") < short.index("synthetic_control")
+
+
+def test_a_question_alone_never_yields_a_method():
+    # The form at its defaults says nothing about the data: no DiD by default, whatever the question.
+    question = "What is the effect of the minimum wage on employment?"
+    design = ResearchDesignInput(research_question=question)
+    assert recommended(recommend(design, diagnose(design))) is None
+    # The researcher confirms that these answers do describe the study: the conditions then decide.
+    confirmed = ResearchDesignInput(research_question=question, answers_confirmed=True)
+    assert recommended(recommend(confirmed, diagnose(confirmed))).key == "did"
 
 
 def test_every_method_has_the_structured_answer_in_both_languages():
@@ -137,7 +180,8 @@ def test_every_method_has_the_structured_answer_in_both_languages():
         texts = json.loads((LOCALES / f"{lang}.json").read_text(encoding="utf-8"))
         for key in METHOD_KEYS:
             assert f"method.{key}" in texts, (lang, key)
-            for part in ("intro", "estimand", "identification", "assumptions", "diagnostics", "when", "assumption"):
+            for part in ("intro", "estimand", "identification", "assumptions", "diagnostics", "when", "assumption",
+                         "internal", "external", "rank"):
                 assert f"rec.{key}.{part}" in texts, (lang, key, part)
 
 

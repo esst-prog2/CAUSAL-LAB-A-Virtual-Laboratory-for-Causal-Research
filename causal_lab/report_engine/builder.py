@@ -40,6 +40,8 @@ DESIGN_FIELDS = (            # (wizard label key, ResearchDesignInput field, opt
     ("wizard.n_treated", "n_treated_units", True),
     ("wizard.instrument", "instrument", True),
     ("wizard.confounders", "confounders_observed", True),
+    ("qa.confirm_causal", "causal_confirmed", False),
+    ("wizard.answers_confirmed", "answers_confirmed", False),
 )
 THREATS = ("confounding", "spillovers", "serial_correlation", "treatment_heterogeneity",
            "differential_trend", "anticipation", "dynamic_effects")
@@ -126,6 +128,7 @@ def build_report(state, lang: str, now: datetime | None = None) -> Report:
     analysis = diagnosis.analysis if diagnosis is not None else None
     if analysis is not None:
         add(Heading(L("qa.title"), 2))
+        add(Paragraph(" ".join(R(m) for m in analysis.intent_messages())))
         add(Table([L("qa.col.element"), L("qa.col.status"), L("qa.col.analysis")],
                   [[L(f"qa.element.{name}"), L(f"qa.status.{analysis.elements[name].status}"),
                     R(analysis.elements[name].text) if analysis.elements[name].text else L("qa.unknown")]
@@ -142,19 +145,16 @@ def build_report(state, lang: str, now: datetime | None = None) -> Report:
             add(Paragraph(L("recommendation.ask_title" if asking else "recommendation.none_title"), emphasis=True))
             add(Paragraph(L("recommendation.ask_body" if asking else "recommendation.none_body")))
         else:
-            add(Paragraph(f"{L('recommendation.recommended')}{colon}{L(f'method.{best.key}')} "
-                          f"({L('recommendation.confidence')}{colon}{L(f'level.{best.confidence}')})"))
+            add(Paragraph(f"{L('recommendation.recommended')}{colon}{L(f'method.{best.key}')}"))
             add(Paragraph(f"{L('recommendation.estimand')}{colon}{L(f'rec.{best.key}.estimand')}"))
             for note in best.rationale:
                 add(Paragraph("— " + R(note)))
-            for part in ("identification", "assumptions", "diagnostics"):
+            for part in ("identification", "assumptions", "diagnostics", "internal", "external"):
                 add(Paragraph(f"{L(f'recommendation.{part}')}{colon}{L(f'rec.{best.key}.{part}')}"))
-        add(Table([L("report.col.method"), L("recommendation.score"), L("recommendation.confidence")],
-                  [[L(f"method.{r.key}"),
-                    f"{r.overall:.0f}/100" if r.supported else " ".join(R(m) for m in r.unmet),
-                    L(f"level.{r.confidence}") if r.supported else
-                    (L("recommendation.needs_info") if r.status == NEEDS_INFO else "—")] for r in recs]))
-        add(Paragraph(L("recommendation.score_note"), emphasis=True))
+        add(Table([L("report.col.method"), L("recommendation.col.status"), L("recommendation.col.argument")],
+                  [[L(f"method.{r.key}"), L(f"recommendation.status.{r.status}"),
+                    L(f"rec.{r.key}.rank") if r.supported else " ".join(R(m) for m in r.unmet)] for r in recs]))
+        add(Paragraph(L("recommendation.order_note"), emphasis=True))
 
     # 3. Data
     df = session_data.active_data(state)
