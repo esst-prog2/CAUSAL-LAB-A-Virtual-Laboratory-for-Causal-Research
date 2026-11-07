@@ -2,8 +2,9 @@
 Runs the frozen evaluation of docs/evaluation/PROTOCOL.md: the analyser on
 question_set.json. Refuses to run if the set differs from its recorded hash.
 
-    python spike/evaluate_question_analysis.py
-writes docs/evaluation/results.json and prints the tables of the report.
+    python spike/evaluate_question_analysis.py docs/evaluation/v2
+writes results.json in that folder and prints the tables of the report. It refuses
+to overwrite an existing results.json: a frozen set is run once.
 """
 from __future__ import annotations
 
@@ -21,7 +22,6 @@ from causal_engine.diagnosis import ResearchDesignInput, diagnose  # noqa: E402
 from causal_engine.question_analysis import STATED, analyze  # noqa: E402
 from causal_engine.recommendation import recommend, recommended  # noqa: E402
 
-EVAL = ROOT / "docs" / "evaluation"
 INTENTS = ("causal", "predictive", "descriptive", "ambiguous")
 NO_PRE = dict(has_pre_treatment_periods=False, n_pre_periods=0)
 # The form each design implies, fixed before the run.
@@ -71,6 +71,9 @@ def _method(question: str, design: str, **extra) -> str:
 
 
 def main() -> None:
+    EVAL = Path(sys.argv[1])
+    if (EVAL / "results.json").exists():
+        raise SystemExit(f"{EVAL / 'results.json'} exists: this set has been run. Results are not replaced.")
     raw = (EVAL / "question_set.json").read_bytes()
     recorded = (EVAL / "question_set.sha256").read_text(encoding="utf-8").split()[0]
     digest = hashlib.sha256(raw).hexdigest()
@@ -121,6 +124,9 @@ def main() -> None:
                              "wrong_confirmed": sum(r["method_confirmed"].startswith("wrong") for r in group)}
     ambiguous = [r for r in rows if r["intent"] == "ambiguous"]
     stated = [(r, p) for r in rows for p in ("treatment", "outcome") if r[f"{p}_status"] == STATED and r[f"{p}_ok"] is not None]
+    kinds = ("assignment", "unclear", "ordinary", None)
+    threshold_confusion = {str(a): {str(b): sum(r["threshold"] == a and r["threshold_read"] == b for r in rows) for b in kinds}
+                           for a in kinds}
     no_threshold = [r for r in rows if r["threshold"] != "assignment"]
     has_threshold = [r for r in rows if r["threshold"] == "assignment"]
     summary = {
@@ -135,6 +141,7 @@ def main() -> None:
         "recommended_without_form": sum(r["recommended_no_form"] is not None for r in rows),
         "with_design": len(with_design), "method": dict(method), "method_confirmed": dict(method_confirmed),
         "by_design": by_design,
+        "threshold_confusion": threshold_confusion,
         "threshold_true_positive": sum(r["threshold_read"] == "assignment" for r in has_threshold),
         "threshold_labelled": len(has_threshold),
         "threshold_false_positive": sum(r["threshold_read"] == "assignment" for r in no_threshold),

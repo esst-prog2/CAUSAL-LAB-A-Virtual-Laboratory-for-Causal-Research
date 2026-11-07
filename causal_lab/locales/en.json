@@ -733,6 +733,7 @@
   "qa.applied": "The form now uses what the question implies: {fields}. Check step 6, then run the diagnosis.",
   "qa.form_differs": "The question and the form disagree. {fields}. The form's answer is used until you change it.",
   "qa.infer.cutoff": "By a cutoff on a score or a running variable: the question names \"{words}\"; that crossing it decides who is treated is inferred.",
+  "qa.infer.experiment": "An experiment: the question says \"{words}\". That treatment was randomly assigned is inferred, not stated.",
   "qa.infer.lottery": "At random, by a lottery: the treatment is winning \"{words}\".",
   "qa.infer.border": "By location relative to a border: the question names \"{words}\".",
   "qa.infer.self_selection": "By the units' own choice (self-selection): the question says \"{words}\".",

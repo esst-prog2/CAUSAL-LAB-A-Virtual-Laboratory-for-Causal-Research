@@ -732,6 +732,7 @@
   "qa.applied": "Le formulaire reprend ce que la question implique : {fields}. Vérifiez l'étape 6, puis lancez le diagnostic.",
   "qa.form_differs": "La question et le formulaire divergent. {fields}. C'est la réponse du formulaire qui est utilisée tant que vous ne la changez pas.",
   "qa.infer.cutoff": "Par un seuil sur un score ou une variable de classement : la question nomme « {words} » ; que son franchissement décide du traitement est déduit.",
+  "qa.infer.experiment": "Une expérience : la question dit « {words} ». Que le traitement ait été tiré au sort est déduit, pas énoncé.",
   "qa.infer.lottery": "Au hasard, par une loterie : le traitement est de gagner « {words} ».",
   "qa.infer.border": "Selon la position par rapport à une frontière : la question nomme « {words} ».",
   "qa.infer.self_selection": "Par le choix des unités elles-mêmes (auto-sélection) : la question dit « {words} ».",

@@ -158,7 +158,8 @@ _NOT_AN_EFFECT = re.compile(r"\b(?:side|fixed|random|main|interaction|placebo)[-
                             r"\bimpact factors?\b|\beffets? (?:secondaires?|fixes?|al[ée]atoires?)\b", re.I)
 _EFFECT_NOUN = r"(?:effects?|impacts?|consequences?|influence|effectiveness|efficacy|benefits?)"
 _EFFECT_EN = re.compile(rf"\b(?:[\w-]+\s+)?{_EFFECT_NOUN}\s+(?:of|from)\s+(?P<rest>.+)", re.I | re.S)
-_EFFECT_FR = re.compile(r"\b(?:effets?|impacts?|cons[ée]quences?|influence|efficacit[ée])\s+(?:causal\s+)?"
+_ANY_EFFECT_WORD = re.compile(r"\b(?:effects?|impacts?|consequences?|effets?|cons[ée]quences?|incidence)\b", re.I)
+_EFFECT_FR = re.compile(r"\b(?:effets?|impacts?|cons[ée]quences?|influence|efficacit[ée]|incidence|r[ée]percussions?)\s+(?:causal\s+)?"
                         r"(?:de la|de l'|du|des|de|d')\s*(?P<rest>.+)", re.I | re.S)
 _QUEL_EFFET_FR = re.compile(r"\bquel(?:le)?s?\s+(?:effets?|impacts?|influence|cons[ée]quences?)\s+(?P<t>.+?)\s+"
                             r"(?:a|ont)-(?:t-)?(?:il|elle|ils|elles)\s+(?:eu\s+)?sur\s+(?P<rest>.+)", re.I | re.S)
@@ -176,9 +177,11 @@ _ABSENCE = re.compile(r"\bwould\s+(?P<o>.+?)\s+(?:be|have been)\s+(?:[\w-]+\s+){
                       r"if not for|but for|had\b|if\b)\s*(?P<t>.+)", re.I | re.S)
 _ABSENCE_FR = re.compile(r"\b(?P<o>(?:la|le|les|l['’])\s*.+?)\s+(?:serait|seraient|aurait|auraient)-(?:il|elle|ils|elles)\s+"
                          r"(?:[\w-]+\s+){0,2}?(?:sans|en l['’]absence d(?:e|u|es|['’]))\s*(?P<t>.+)", re.I | re.S)
-_EFFECTIVE = re.compile(r"\b(?:how\s+effective\s+)?(?:is|are|was|were)\s+(?P<t>.+?)\s+(?:(?:cost-)?effective)\s+"
-                        r"(?:at|in|for|on)\s+(?P<o>.+)|\bhow\s+effective\s+(?:is|are|was|were)\s+(?P<t2>.+?)\s+"
-                        r"(?:at|in|for|on)\s+(?P<o2>.+)", re.I | re.S)
+_IF_WOULD = re.compile(r"\bif\s+(?P<t>.+?),?\s+(?:would|will)\s+(?P<o>.+)", re.I | re.S)
+_WOULD_HAD = re.compile(r"\bwould\s+(?P<o>.+?)\s+(?:have\s+)?\w+\s+had\s+(?P<t>.+)", re.I | re.S)
+_EFFECTIVE = re.compile(r"\b(?:how\s+effective\s+)?(?:is|are|was|were)\s+(?P<t>.+?)\s+(?:(?:cost-)?effective)\s*"
+                        r"(?:(?:at|in|for|on)\s+(?P<o>.+))?(?:\?|$)|\bhow\s+effective\s+(?:is|are|was|were)\s+(?P<t2>.+?)"
+                        r"(?:\s+(?:at|in|for|on)\s+(?P<o2>.+))?(?:\?|$)", re.I | re.S)
 _HOW_MANY_CAUSAL = re.compile(rf"\bhow\s+(?:many|much)\s+(?P<o>.+?)\s+{_AUX}\s+(?P<t>.+?)\s+(?:{_BASE})\s*\??\s*$", re.I | re.S)
 _WHAT_CAUSES = re.compile(r"^\s*what\s+(?:causes|caused|drives|drove|is causing|is driving)\s+(?P<o>.+)", re.I | re.S)
 _SOCIAL_COST = re.compile(r"\b(?P<o>(?:economic|social|welfare|human|fiscal|health)\s+costs?)\s+of\s+(?P<rest>.+)", re.I | re.S)
@@ -188,6 +191,9 @@ _RETURNS = re.compile(r"\b(?P<o>(?:[\w-]+\s+)?returns?)\s+to\s+(?P<t>.+)", re.I 
 # "Does X reduce Y?" and its negative, past and modal variants.
 _AUX_CLAUSE = re.compile(rf"\b{_AUX}{_NOT}\s+(?P<tail>.+)", re.I | re.S)
 _VERB_IN_TAIL = re.compile(rf"\b(?P<v>{_BASE})\b", re.I)
+# "Does X matter?", "do programs work?": asks for an effect and names no outcome.
+_BARE_EFFECT = re.compile(rf"^(?P<t>.+?)\s+(?:not\s+)?(?P<v>matter|work|succeed|pay off)\s*(?:\?.*)?$", re.I | re.S)
+_ADVERB_AT_END = re.compile(r"\s+(?:really|actually|truly|indeed|always|also|in fact|necessarily)$", re.I)
 _INTRANSITIVE_IN_TAIL = re.compile(rf"\b(?P<v>{'|'.join(_INTRANSITIVE)})\b", re.I)
 _PERFECT = re.compile(rf"\b(?:has|have|had)(?:n['’]t)?{_NOT}\s+(?P<t>.+?)\s+(?P<v>{_PAST})\b\s*(?P<rest>.*)", re.I | re.S)
 _PERFECT_INTRANSITIVE = re.compile(rf"\b(?:has|have|had)(?:n['’]t)?{_NOT}\s+(?P<t>.+?)\s+(?P<v>{'|'.join(_INTRANSITIVE_PAST)})\b"
@@ -198,11 +204,11 @@ _CLAUSE = re.compile(rf"^\s*(?:how|whether|if|to what extent)?\s*(?P<t>[^?]+?)\s
 
 _FR_ARTICLE = r"(?:la|le|les|l['’]|un|une|ce|cet|cette|ces|son|sa|ses|leur|leurs)"
 _FR_VERB = (r"augment|r[ée]du|am[ée]lior|diminu|affect|influenc|caus|provoqu|entra[îi]n|baiss|accro[îi]t|favoris|nui|"
-            r"renforc|affaibl|modifi|stimul")
-_DOES_FR = re.compile(rf"\b(?P<t>{_FR_ARTICLE}\s*.+?)\s+(?:a|ont)-(?:t-)?(?:il|elle|ils|elles)\s+"
+            r"renforc|affaibl|modifi|stimul|chang")
+_DOES_FR = re.compile(rf"\b(?P<t>{_FR_ARTICLE}\s*.+?)\s+(?:n['’]|ne\s+)?(?:a|ont)-(?:t-)?(?:il|elle|ils|elles)\s+(?:pas\s+)?"
                       rf"(?:(?:un effet|une influence|un impact|des effets)\s+(?:sur\s+)?|(?:{_FR_VERB})\w*\s+)(?P<rest>.+)",
                       re.I | re.S)
-_VERB_FR = re.compile(rf"\b(?P<t>{_FR_ARTICLE}\s*.+?)\s+(?:{_FR_VERB})\w*-(?:t-)?(?:il|elle|ils|elles)\s+(?P<rest>.+)", re.I | re.S)
+_VERB_FR = re.compile(rf"\b(?P<t>{_FR_ARTICLE}\s*.+?)\s+(?:ne\s+)?(?:{_FR_VERB})\w*-(?:t-)?(?:il|elle|ils|elles)\s+(?:pas\s+)?(?P<rest>.+)", re.I | re.S)
 _EST_CE_FR = re.compile(rf"\best-ce qu(?:e\s+|['’])(?P<t>.+?)\s+(?:{_FR_VERB})\w*\s+(?P<rest>.+)", re.I | re.S)
 
 # --------------------------------------------------------------------------
@@ -210,6 +216,7 @@ _EST_CE_FR = re.compile(rf"\best-ce qu(?:e\s+|['’])(?P<t>.+?)\s+(?:{_FR_VERB})
 # --------------------------------------------------------------------------
 _PREDICTIVE = re.compile(r"\b(?:predict\w*|forecast\w*|pr[ée]di(?:re|sent|t|ction|ctions|ctif|ctive|ctifs)|pr[ée]voir|"
                          r"pr[ée]vision\w*|classif(?:y|ier|ication)\b)", re.I)
+_PREDICTING_FIRST = re.compile(r"\b(?:predicting|forecasting|to (?:predict|forecast)|pr[ée]dire|pr[ée]voir)\b", re.I)
 _PREDICT_OBJECT = re.compile(r"\b(?:predict|forecast)\s+(?P<o>.+?)(?:\s+(?:using|with|from|based on)\b.*)?(?:\?|$)", re.I | re.S)
 _DESCRIPTIVE = re.compile(
     r"\bhow (?:many|common|prevalent|frequent|widespread|often)\b|\bhow much\b|\bwhat (?:share|proportion|percentage|fraction)\b|"
@@ -219,13 +226,15 @@ _DESCRIPTIVE = re.compile(
     r"\b(?:describe|characteri[sz]e)\b|\bwhat are the characteristics\b|\bwho (?:are|uses?|used)\b|"
     r"\bcombien\b|\bquell?e?s? (?:est|sont|[ée]tait) (?:la|le|les) (?:part|proportion|pr[ée]valence|moyenne|nombre|"
     r"niveau|taux|[ée]volution|distribution)\b|\bcomment (?:a|ont)\s+[ée]volu|\bd[ée]crire\b", re.I | re.S)
-_ASSOCIATION = re.compile(
+_WEAK_ASSOCIATION = re.compile(
     r"\b(?:relationships?|relations?|associations?|correlations?|links?|connections?|liens?)\s+(?:between|entre)\b|"
+    r"\b(?:the\s+)?role\s+of\b|\ble r[ôo]le d", re.I)
+_ASSOCIATION = re.compile(
     r"\b(?:associated|correlated|linked|related|connected|associ[ée]e?s?|corr[ée]l[ée]e?s?|li[ée]e?s?)\s+(?:with|to|[àa]|avec)\b|"
     r"\bcorrelat\w*|\bwhat (?:explains?|accounts? for)\b|\bwhat (?:factors|variables|characteristics|determinants)\b|"
     r"\bwhich (?:factors|variables|characteristics|determinants)\b|\bdeterminants?\s+of\b|\bwhy\s+(?:do|does|did|are|is|were|was)\b|"
-    r"\b(?:the\s+)?role\s+of\b|\bqu['’]est-ce qui explique\b|\bquels? facteurs\b|\bquelles? variables\b|"
-    r"\bd[ée]terminants? d|\bpourquoi\b|\ble r[ôo]le d", re.I)
+    r"\bwhat determines?\b|\bqu['’]est-ce qui explique\b|\bquels? facteurs\b|\bquelles? variables\b|"
+    r"\bd[ée]terminants? d|\bpourquoi\b", re.I)
 _BETWEEN = re.compile(r"\b(?:between|entre)\s+(?P<t>.+?)\s+(?:and|et)\s+(?P<o>.+)", re.I | re.S)
 _ASSOCIATED = re.compile(r"\b(?:is|are|was|were|does|do|did)\s+(?P<t>.+?)\s+(?:(?:associated|correlated|linked|related|"
                          r"connected)\s+(?:with|to)|correlate\s+with)\s+(?P<o>.+)", re.I | re.S)
@@ -245,6 +254,12 @@ _SUBJECT_VERB_COMPARE = re.compile(rf"\b{_AUX}{_NOT}\s+(?P<t>.+?\b(?:who|that|wi
 _GOOD_FOR = re.compile(r"\b(?:is|are|was|were)\s+(?P<t>.+?)\s+(?:good|bad|beneficial|harmful|better|worse)\s+for\s+(?P<o>.+)", re.I | re.S)
 
 
+def _evidence(words: str, limit: int = 60) -> str:
+    """The words behind a reading, cut on a word boundary."""
+    words = clean(words)
+    return words if len(words) <= limit else words[:limit].rsplit(" ", 1)[0] + "…"
+
+
 def _causal(treatment: str, after: str, evidence: str, certain: bool = True) -> Reading:
     outcome, population = _outcome_and_population(after) if after else ("", "")
     return Reading(CAUSAL, evidence, _treatment_part(treatment), outcome, population, certain)
@@ -259,26 +274,31 @@ def _strong_causal(q: str) -> Reading | None:
     for pattern in (_ABSENCE, _ABSENCE_FR):
         m = pattern.search(q)
         if m:
-            return _causal(m.group("t"), m.group("o"), m.group(0)[:40])
+            return _causal(m.group("t"), m.group("o"), _evidence(m.group(0)))
+    for pattern in (_IF_WOULD, _WOULD_HAD):       # counterfactual, with roles too loose to quote as stated
+        m = pattern.search(q)
+        if m:
+            return Reading(CAUSAL, _evidence(m.group(0)), _treatment_part(m.group("t")), _treatment_part(m.group("o")), "",
+                           certain=False)
     for pattern in (_WHAT_HAPPENS, _WHAT_HAPPENS_FR):
         m = pattern.search(q)
         if m:
-            return _causal(m.group("t"), m.group("o") or "", m.group(0)[:40])
+            return _causal(m.group("t"), m.group("o") or "", _evidence(m.group(0)))
     for pattern in (_CAUSE_NOUN, _CAUSE_NOUN_FR):
         m = pattern.search(q)
         if m:
-            return _causal(m.group("t"), m.group("rest"), m.group(0)[:40])
+            return _causal(m.group("t"), m.group("rest"), _evidence(m.group(0)))
     m = _HAS_EFFECT.search(q)
     if m:
-        return _causal(m.group("t"), m.group("rest"), m.group(0)[:40])
+        return _causal(m.group("t"), m.group("rest"), _evidence(m.group(0)))
     m = _QUEL_EFFET_FR.search(q)
     if m:
-        return _causal(m.group("t"), m.group("rest"), m.group(0)[:40])
+        return _causal(m.group("t"), m.group("rest"), _evidence(m.group(0)))
     for pattern, word in ((_EFFECT_EN, "on"), (_EFFECT_FR, "sur")):
         m = pattern.search(q)
         if m:
             split = _split_on(m.group("rest"), word) or (_split_on(m.group("rest"), "upon") if word == "on" else None)
-            words = m.group(0)[:40]
+            words = _evidence(m.group(0))
             if split:
                 return _causal(split[0], split[1], words)
             treatment, population = _cut(_treatment_part(m.group("rest")), _POPULATION)
@@ -287,20 +307,20 @@ def _strong_causal(q: str) -> Reading | None:
         m = pattern.search(q)
         if m:
             treatment, population = _cut(_treatment_part(m.group("rest")), _POPULATION)
-            return Reading(CAUSAL, m.group(0)[:40], clean(treatment), clean(m.group("o")), clean(population))
+            return Reading(CAUSAL, _evidence(m.group(0)), clean(treatment), clean(m.group("o")), clean(population))
     m = _EFFECTIVE.search(q)
     if m:
-        treatment, outcome = m.group("t") or m.group("t2"), m.group("o") or m.group("o2")
-        return _causal(treatment, outcome, m.group(0)[:40])
+        treatment, outcome = m.group("t") or m.group("t2"), m.group("o") or m.group("o2") or ""
+        return _causal(treatment, outcome, _evidence(m.group(0)))
     m = _HOW_MANY_CAUSAL.search(q)
     if m:
-        return _causal(m.group("t"), m.group("o"), m.group(0)[:40])
+        return _causal(m.group("t"), m.group("o"), _evidence(m.group(0)))
     m = _WHAT_CAUSES.search(q)
     if m:
-        return _causal("", m.group("o"), m.group(0)[:40])
+        return _causal("", m.group("o"), _evidence(m.group(0)))
     m = _RETURNS.search(q)
     if m:
-        return Reading(CAUSAL, m.group(0)[:40], _treatment_part(m.group("t")), clean(m.group("o")))
+        return Reading(CAUSAL, _evidence(m.group(0)), _treatment_part(m.group("t")), clean(m.group("o")))
     return None
 
 
@@ -317,7 +337,7 @@ def _descriptive(q: str) -> Reading | None:
     if not m:
         return None
     obj = _DESCRIBED_OUTCOME.search(q)
-    return Reading(DESCRIPTIVE, m.group(0)[:40], "", _treatment_part(obj.group("o")) if obj else "", "", certain=False)
+    return Reading(DESCRIPTIVE, _evidence(m.group(0)), "", _treatment_part(obj.group("o")) if obj else "", "", certain=False)
 
 
 def _association(q: str) -> Reading | None:
@@ -336,12 +356,20 @@ def _association(q: str) -> Reading | None:
     return _ambiguous(words, "", explained.group("o") if explained else "")
 
 
+def _weak_association(q: str) -> Reading | None:
+    m = _WEAK_ASSOCIATION.search(q)
+    if not m:
+        return None
+    pair = _BETWEEN.search(q)
+    return _ambiguous(m.group(0), pair.group("t"), pair.group("o")) if pair else _ambiguous(m.group(0))
+
+
 def _change_without_cause(treatment: str, rest: str, words: str) -> Reading:
     """A change with no named cause: "did Y rise in 2020?" is descriptive, "did Y rise after the reform?" may be causal."""
     rest = rest.strip()
     if _EVENT_PREP.match(rest) or _WITH_PREP.match(rest) or (rest.lower().startswith("since")
                                                                and not _YEAR_AFTER_SINCE.match(rest)):
-        return _ambiguous(f"{words} {rest}"[:40], re.sub(r"^\S+\s+", "", rest), treatment)
+        return _ambiguous(_evidence(f"{words} {rest}"), re.sub(r"^\S+\s+", "", rest), treatment)
     return Reading(DESCRIPTIVE, words, "", _treatment_part(treatment), "", certain=False)
 
 
@@ -349,7 +377,10 @@ def _verb_clause(q: str) -> Reading | None:
     """Aux + subject + base verb + object, with the first verb form that is really the verb:
     in "does the increase in taxes reduce spending", "increase" is a noun."""
     for clause in _AUX_CLAUSE.finditer(q):
-        tail = clause.group("tail")
+        tail = clause.group("tail").split("?")[0]        # a subtitle is not part of the clause
+        bare = _BARE_EFFECT.match(tail.strip())
+        if bare and not re.fullmatch(r"(?:it|this|that|they|we|you)", bare.group("t").strip(), re.I):
+            return _causal(_ADVERB_AT_END.sub("", bare.group("t").strip()), "", _evidence(clause.group(0)))
         verbs = list(_VERB_IN_TAIL.finditer(tail))
         for i, m in enumerate(verbs):
             subject, verb, rest = tail[:m.start()], m.group("v").lower(), tail[m.end():].strip()
@@ -357,8 +388,9 @@ def _verb_clause(q: str) -> Reading | None:
                 continue
             if _PREP_AFTER_NOUN.match(rest) and " " not in verb and i < len(verbs) - 1:
                 continue                       # a noun followed by the real verb
-            words = clause.group(0)[:len(subject) + len(verb) + 12]
-            subject = re.sub(r"\s+not$", "", subject.strip(), flags=re.I)
+            words = _evidence(clause.group(0))
+            subject = _ADVERB_AT_END.sub("", re.sub(r"\s+not$", "", subject.strip(), flags=re.I))
+            rest = re.sub(r"^or\s+\w+\s+", "", rest, flags=re.I)        # "enhance or impede Y": the outcome is Y
             if verb in _CHANGE_VERBS and (not clean(rest) or _TIME_PREP.match(rest) or _EVENT_PREP.match(rest)
                                           or _WITH_PREP.match(rest)):
                 return _change_without_cause(subject, rest, words)
@@ -367,7 +399,7 @@ def _verb_clause(q: str) -> Reading | None:
             return _causal(subject, rest, words)
         m = _INTRANSITIVE_IN_TAIL.search(tail)
         if m and tail[:m.start()].strip():
-            return _change_without_cause(tail[:m.start()].strip(), tail[m.end():], clause.group(0)[:40])
+            return _change_without_cause(tail[:m.start()].strip(), tail[m.end():], _evidence(clause.group(0)))
     return None
 
 
@@ -378,14 +410,14 @@ def _perfect_or_passive(q: str) -> Reading | None:
         verb = m.group("v").lower()
         if not clean(rest) or _TIME_PREP.match(rest) or _EVENT_PREP.match(rest) or _WITH_PREP.match(rest):
             if any(verb.startswith(v[:-1]) for v in _CHANGE_VERBS):
-                return _change_without_cause(m.group("t"), rest, m.group(0)[:40])
-        return _causal(m.group("t"), rest, m.group(0)[:40])
+                return _change_without_cause(m.group("t"), rest, _evidence(m.group(0)))
+        return _causal(m.group("t"), rest, _evidence(m.group(0)))
     m = _PERFECT_INTRANSITIVE.search(q)
     if m:
-        return _change_without_cause(m.group("t"), m.group("rest"), m.group(0)[:40])
+        return _change_without_cause(m.group("t"), m.group("rest"), _evidence(m.group(0)))
     m = _PASSIVE.search(q)
     if m:
-        return _causal(m.group("t"), m.group("o"), m.group(0)[:40])
+        return _causal(m.group("t"), m.group("o"), _evidence(m.group(0)))
     return None
 
 
@@ -393,7 +425,7 @@ def _french_clause(q: str) -> Reading | None:
     for pattern in (_DOES_FR, _VERB_FR, _EST_CE_FR):
         m = pattern.search(q)
         if m:
-            return _causal(m.group("t"), m.group("rest"), m.group(0)[:40])
+            return _causal(m.group("t"), m.group("rest"), _evidence(m.group(0)))
     return None
 
 
@@ -401,14 +433,18 @@ def _comparison(q: str) -> Reading | None:
     for pattern in (_LIKELY, _GOOD_FOR, _SUBJECT_VERB_COMPARE):
         m = pattern.search(q)
         if m:
-            return _ambiguous(m.group(0)[:40], m.group("t"), m.group("o"))
+            return _ambiguous(_evidence(m.group(0)), m.group("t"), m.group("o"))
     m = _COMPARE.search(q)
-    return _ambiguous(m.group(0)[:40]) if m else None
+    return _ambiguous(_evidence(m.group(0))) if m else None
 
 
 def read_question(question: str) -> Reading:
     """The intent of the question, with the treatment and outcome it names."""
     q = _NOT_AN_EFFECT.sub("", question)
+    predicting = _PREDICTING_FIRST.search(q)
+    effect = _ANY_EFFECT_WORD.search(q)
+    if predicting and (effect is None or predicting.start() < effect.start()):
+        return _predictive(q) or Reading(PREDICTIVE, _evidence(predicting.group(0)), certain=False)
     strong = _strong_causal(q)
     if strong is not None:
         return strong
@@ -419,6 +455,11 @@ def read_question(question: str) -> Reading:
     clause = _verb_clause(q) or _perfect_or_passive(q) or _french_clause(q)
     if clause is not None and clause.intent == CAUSAL:
         return clause
+    # A loose word for a link gives way to an explicit causal clause, as in
+    # "the relationship between X and Y: does X reduce Y?"; on its own it stays ambiguous.
+    weak = _weak_association(q)
+    if weak is not None:
+        return weak
     descriptive = _descriptive(q)
     if descriptive is not None:
         return descriptive
@@ -429,7 +470,7 @@ def read_question(question: str) -> Reading:
         return comparison
     m = _CLAUSE.search(q)            # a statement: "the reform reduces employment", "whether X affects Y"
     if m and not re.match(r"\s*(?:what|which|who|when|where|is|are|was|were)\b", q, re.I):
-        return _causal(m.group("t"), m.group("rest"), m.group(0)[:40], certain=False)
+        return _causal(m.group("t"), m.group("rest"), _evidence(m.group(0)), certain=False)
     return Reading(AMBIGUOUS, "", certain=False)
 
 
@@ -438,7 +479,8 @@ def read_question(question: str) -> Reading:
 # --------------------------------------------------------------------------
 _CUTOFF_WORD = re.compile(r"cut-?\s?offs?\b|\bthresholds?\b|\bseuils?\b", re.I)
 _SHARP = re.compile(r"barely (?:won|lost|passed|failed|above|below|qualified)|just (?:above|below|over|under)|de justesse|"
-                    r"discontinuit\w*", re.I)
+                    r"discontinuit\w*|by a (?:narrow|slim|small) margin|narrowly (?:won|lost|elected|defeated)|"
+                    r"close (?:elections?|races?)|juste (?:au[- ]dessus|au[- ]dessous|en[- ]dessous)", re.I)
 _NEAR_CUTOFF = re.compile(r"(?:near|close to|around|at|proches? d[ue]|autour d[ue])\s+(?:(?:the|a|an|le|la|ce)\s+)?(?:[\w-]+\s+){0,3}?"
                           r"(?:cut-?\s?offs?\b|thresholds?\b|seuils?\b)", re.I)
 _ORDINARY = re.compile(r"threshold (?:effects?|models?|regressions?)|\b(?:above|below|beyond) which\b|significance (?:level|threshold)|"
@@ -448,10 +490,10 @@ _RULE = re.compile(r"\beligib\w*|[ée]ligib\w*|\bqualif\w*|\badmi(?:t|ss)\w*|\be
                    r"d[ée]clench\w*|\badmissib\w*|\bdetermined by\b|\bbased on\b|\bassign\w*|\bsplit\w*|\baward\w*|\bgrant\w*|"
                    r"\bcross\w*", re.I)
 _GETS = r"(?:receives?|gets?|are (?:awarded|assigned|granted|given|eligible)|is (?:awarded|assigned|granted|given|eligible)|obtiennent|re[çc]oivent)"
-_COMPARATOR = (r"\b(?:above|below|over|under|at least|at most|more than|less than|greater than|exceed\w*|au[- ]dessus d[eu]|"
-               r"en[- ]dessous d[eu]|au moins|plus de|moins de)\s+(?:an?\s+|the\s+)?(?:[\w-]+\s+){0,2}?\d[\d.,]*\b"
+_COMPARATOR = (r"\b(?:above|below|over|under|at least|at most|more than|less than|fewer than|greater than|exceed\w*|au[- ]dessus d[eu]|"
+               r"en[- ]dessous d[eu]|au moins|plus de|moins de|[àa] partir de)\s+(?:an?\s+|the\s+)?(?:[\w-]+\s+){0,2}?\d[\d.,]*\b"
                r"(?!\s*(?:years?|months?|weeks?|days?|ans|mois|semaines|jours)\b)|"
-               r"\bat (?:the )?age (?:of )?\d+|[àa] l['’][âa]ge de \d+|\b(?:minimum|passing) (?:grade|score|age|mark|income)\b|"
+               r"\bat (?:the )?age (?:of )?\d+|[àa] l['’][âa]ge de \d+|[àa] partir de \d+ ans\b|\b\d+ years? (?:or older|and over|of age)\b|\b(?:minimum|passing) (?:grade|score|age|mark|income)\b|"
                r"\bnote minimale\b|\b[âa]ge minimum\b")
 
 

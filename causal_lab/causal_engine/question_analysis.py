@@ -96,6 +96,8 @@ class QuestionAnalysis:
 # --------------------------------------------------------------------------
 _PATTERNS = {
     "random_stated": r"randomi[sz]|random(ly)?\s+assign|\brcts?\b|tirage au sort|al[ée]atoirement|essai contr[ôo]l[ée]",
+    # An experiment implies a controlled assignment, but "natural" and "quasi" ones do not.
+    "experiment": r"(?<!natural )(?<!quasi-)(?<!quasi )(?<!thought )\bexperiments?\b|\bexp[ée]rimentation\b",
     "lottery": r"\blotter(y|ies)\b|loterie",
     "self_selection": r"\b(join|joining|joined|choos|chose|opt(ed|ing)? (in|for)|decid|enrol(l)?(ing|ed)? in|"
                       r"take[s]? up|taking up|participat|volunteer|self-select|adh[ée]r|choisi|d[ée]cid|s'inscri|"
@@ -200,6 +202,10 @@ def analyze(design) -> QuestionAnalysis | None:
         e["assignment"] = Element("assignment", STATED, _has("random_stated", q).group(0))
         inferred["assignment_mechanism"] = "random"
         strong.add("assignment_mechanism")
+        follow.append(Msg("qa.ask.random"))
+    elif _has("experiment", q):
+        e["assignment"] = Element("assignment", INFERRED, Msg("qa.infer.experiment", words=_has("experiment", q).group(0)))
+        inferred["assignment_mechanism"] = "random"
         follow.append(Msg("qa.ask.random"))
     elif threshold == THRESHOLD_ASSIGNMENT:
         e["assignment"] = Element("assignment", INFERRED, Msg("qa.infer.cutoff", words=threshold_words))

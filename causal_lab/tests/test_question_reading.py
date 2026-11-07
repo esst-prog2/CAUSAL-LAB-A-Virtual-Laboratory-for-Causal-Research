@@ -200,6 +200,54 @@ def test_no_method_answers_a_question_that_is_not_causal_until_the_researcher_sa
     assert diagnose(design).analysis.intent == AMBIGUOUS and diagnose(design).analysis.causal
 
 
+def test_second_version_wordings():
+    # Written on 2026-11-07 to check version 2, none from the frozen evaluation sets.
+    for question in ("If hospitals merged, would prices go up?",
+                     "Would fewer children have died had the vaccine been introduced earlier?",
+                     "Does parental leave matter?",
+                     "Do job training programs work?",
+                     "Are conditional cash transfers effective?",
+                     "Is a sugar tax cost-effective?",
+                     "L'allocation familiale n'a-t-elle pas augmenté la natalité ?",
+                     "La réforme ne réduit-elle pas le chômage ?",
+                     "Quelle est l'incidence de la scolarité sur les salaires ?"):
+        assert _intent(question) == CAUSAL, question
+    # A prediction governs what follows it; an effect on a forecast stays an effect.
+    assert _intent("Predicting the effect of climate on crop yields with neural networks") == PREDICTIVE
+    assert _intent("What is the effect of training on forecast accuracy?") == CAUSAL
+    # A loose word for a link gives way to an explicit causal clause, not to itself.
+    assert _intent("The relationship between sleep and grades: does sleep improve grades?") == CAUSAL
+    assert _intent("The role of parents in schooling") == AMBIGUOUS
+    assert _intent("Why do firms raise prices?") == AMBIGUOUS
+    # Who the subject is matters: "does it work" names nothing.
+    assert _intent("Does it matter?") == AMBIGUOUS
+    # A conditional's roles are too loose to be quoted as stated.
+    a = analyze(ResearchDesignInput(research_question="If hospitals merged, would prices go up?"))
+    assert a.status("treatment") == UNCERTAIN
+    # Clean extraction of coordinated verbs and adverbs.
+    reading = read_question("Do bonuses really raise or lower productivity?")
+    assert (reading.treatment, reading.outcome) == ("bonuses", "productivity")
+
+
+def test_second_version_thresholds():
+    for question in ("Does winning an election by a narrow margin increase future vote share?",
+                     "Does a subsidy granted only to firms with fewer than 50 employees raise investment?",
+                     "Quel est l'effet de la bourse sur la réussite des étudiants juste au-dessus du seuil ?",
+                     "L'admissibilité à partir de 18 ans change-t-elle le vote ?"):
+        assert threshold_kind(question)[0] == THRESHOLD_ASSIGNMENT, question
+    # A close race is a clue, never a recommendation by itself.
+    design = ResearchDesignInput(research_question="Does winning an election by a narrow margin increase future vote share?")
+    assert recommended(recommend(design, diagnose(design))) is None
+
+
+def test_an_experiment_is_inferred_random_unless_natural():
+    a = analyze(ResearchDesignInput(research_question="Do bonuses raise output? Evidence from a field experiment"))
+    assert a.inferred["assignment_mechanism"] == "random" and a.status("assignment") == INFERRED
+    assert "qa.ask.random" in [m.key for m in a.follow_up]
+    a = analyze(ResearchDesignInput(research_question="Do bonuses raise output? Evidence from a natural experiment"))
+    assert a.inferred.get("assignment_mechanism") != "random"
+
+
 def test_a_late_start_is_not_a_late_estimand():
     a = analyze(ResearchDesignInput(research_question="What is the effect of late school entry on grades?"))
     assert a.status("estimand") == UNKNOWN
