@@ -12,6 +12,14 @@ treatment) as the reference category. The pre-treatment coefficients
 (k < -1) provide an informal, visual test of the parallel-trends
 assumption: they should be statistically indistinguishable from zero
 if the design is valid.
+
+Standard errors follow the DiD's convention (estimators.did): clustered by unit,
+unit dummies not counted in the small-sample factor, Student t with G - 1 degrees
+of freedom. With two periods the one coefficient then has the DiD's exact SE.
+
+With staggered adoption and effects that change over time, these coefficients
+share the contamination of two-way fixed effects: use the event study of
+estimators.staggered_did there.
 """
 from __future__ import annotations
 
@@ -20,6 +28,9 @@ from dataclasses import dataclass
 import numpy as np
 import pandas as pd
 import statsmodels.formula.api as smf
+from scipy import stats
+
+from estimators.did import nested_fe_factor
 
 
 @dataclass
@@ -39,12 +50,11 @@ def estimate_event_study(df: pd.DataFrame, outcome_col: str = "Y",
     """Estimate dynamic (leads/lags) treatment effects.
 
     Units not in the treated group act as the comparison group for
-    all relative-period coefficients (i.e., a stacked, non-staggered
-    event study). For staggered adoption designs, `adoption_period_col`
-    can supply a per-unit adoption period; otherwise
+    all relative-period coefficients. For staggered adoption designs,
+    `adoption_period_col` can supply a per-unit adoption period; otherwise
     `fixed_treatment_period` applies to every treated unit.
     """
-    data = df.copy()
+    data = df.dropna(subset=[outcome_col, unit_col, time_col]).copy()
 
     if adoption_period_col and adoption_period_col in data.columns:
         adoption = data[adoption_period_col]
@@ -80,7 +90,8 @@ def estimate_event_study(df: pd.DataFrame, outcome_col: str = "Y",
 
     formula = f"{outcome_col} ~ C(rel_bucket, Treatment('ref')) + C({unit_col}) + C({time_col})"
     fitted = smf.ols(formula, data=data).fit(cov_type="cluster", cov_kwds={"groups": data[unit_col]})
-    conf_int = fitted.conf_int()
+    factor = nested_fe_factor(data, fitted, unit_col, unit_col)
+    crit = float(stats.t.ppf(0.975, max(data[unit_col].nunique() - 1, 1)))
 
     rows = []
     for name, coef in fitted.params.items():
@@ -91,9 +102,8 @@ def estimate_event_study(df: pd.DataFrame, outcome_col: str = "Y",
             k = int(bucket.replace("k", ""))
         except ValueError:
             continue
-        se = fitted.bse[name]
-        ci = conf_int.loc[name]
-        rows.append(dict(rel_period=k, estimate=coef, se=se, ci_low=ci[0], ci_high=ci[1]))
+        se = fitted.bse[name] * factor
+        rows.append(dict(rel_period=k, estimate=coef, se=se, ci_low=coef - crit * se, ci_high=coef + crit * se))
 
     rows.append(dict(rel_period=reference_period, estimate=0.0, se=0.0,
                       ci_low=0.0, ci_high=0.0))

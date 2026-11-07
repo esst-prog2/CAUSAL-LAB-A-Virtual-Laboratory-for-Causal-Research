@@ -21,7 +21,11 @@ The simulation study and the replication shown on the Guided demo page.
    DiD is acceptable in a scenario when |bias| <= 10% of the true effect
    and its 95% CI covers the truth in at least 90% of the worlds. It was
    fixed after the diverging pre-trends results were seen and before the
-   three other threats were simulated.
+   three other threats were simulated. The first half is relative to the
+   true effect, so it is undefined when that effect is (nearly) zero: there
+   the rule does not apply (`rule_applies`), no scenario is called acceptable
+   by it, and the study must be judged on absolute bias and on the rejection
+   rate, which is then the size of the test.
 
 2. Replication. Card & Krueger (1994), Table 3: mean FTE employment per
    store by state and wave, and the balanced-sample difference-in-
@@ -53,6 +57,7 @@ THREATS = {
 }
 MAX_BIAS_SHARE = 0.10              # |bias| <= 10% of the true effect ...
 MIN_COVERAGE = 0.90                # ... and coverage of the 95% CI >= 90% (the user's rule)
+NEGLIGIBLE_EFFECT = 1e-12            # below this, a share of the true effect has no meaning
 SEED_BASE = 20261029
 RESULTS_FILE = Path(__file__).resolve().parent.parent / "data" / "demo_study" / "results.json"
 
@@ -125,13 +130,20 @@ class Summary:
     coverage_given_pass: float | None
 
     @property
+    def rule_applies(self) -> bool:
+        """The rule is stated relative to the true effect: it needs a non-zero one."""
+        return abs(self.true_att) > NEGLIGIBLE_EFFECT
+
+    @property
     def bias_share(self) -> float:
-        return abs(self.bias) / abs(self.true_att)
+        """|bias| / |true effect|; NaN at a zero effect, where no such share exists."""
+        return abs(self.bias) / abs(self.true_att) if self.rule_applies else float("nan")
 
     @property
     def acceptable(self) -> bool:
-        """The decision rule: small bias and near-nominal coverage."""
-        return self.bias_share <= MAX_BIAS_SHARE and self.coverage >= MIN_COVERAGE
+        """The decision rule: small bias and near-nominal coverage. False at a zero
+        effect: the rule cannot call such a scenario acceptable (see `rule_applies`)."""
+        return self.rule_applies and self.bias_share <= MAX_BIAS_SHARE and self.coverage >= MIN_COVERAGE
 
 
 def largest_acceptable(summaries: dict[str, "Summary"]) -> str | None:
@@ -159,7 +171,7 @@ def summarize(level: str, reps: list[Replication]) -> Summary:
     n = len(reps)
     coverage, coverage_mcse = _share(covered)
     rejection, rejection_mcse = _share(rejected)
-    wrong_sign = float(np.mean(rejected & (np.sign(est) != np.sign(truth))))
+    wrong_sign = float(np.mean(rejected & (truth != 0) & (np.sign(est) != np.sign(truth))))
     detection, detection_mcse = _share(flagged)
     err = est - truth
     passed = ~flagged

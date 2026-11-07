@@ -8,11 +8,15 @@ units end up serving as controls (Goodman-Bacon 2021). Callaway &
 Sant'Anna avoid this by estimating one effect per adoption cohort g and
 period t, each comparing cohort g only with a clean comparison group:
 
-    ATT(g, t) = E[Y_t - Y_{g-1} | G = g] - E[Y_t - Y_{g-1} | comparison]
+    ATT(g, t) = E[Y_t - Y_b | G = g] - E[Y_t - Y_b | comparison],
 
-where the comparison group is the never-treated units (default) or,
-for each t, the units not yet treated by max(t, g-1)+1 ("not yet
-treated"). The ATT(g, t) are then aggregated:
+where b is the last observed period before g (g - 1 in yearly data) and the
+comparison group is the never-treated units (default) or, for each t, the units
+not yet treated after max(t, b) ("not yet treated"). Treatment must be absorbing:
+data where it switches off are refused, because a unit's first treated period
+would not describe what it then receives. Units treated from the first period
+have no pre-treatment period and enter no comparison; they are counted in
+`n_always_treated`. The ATT(g, t) are then aggregated:
 
     overall ATT  — average over post-treatment cells (t >= g), weighted by
                    cohort size, i.e. the mean effect over treated
@@ -71,6 +75,7 @@ class StaggeredDiDResult:
     df: float = float("inf")        # Welch-Satterthwaite degrees of freedom of the overall ATT
     p_value: float = float("nan")
     inference: str = "analytic"     # "analytic" | "bootstrap" (fallback)
+    n_always_treated: int = 0       # units treated from the first period: not used
 
 
 def _wide(df: pd.DataFrame, outcome_col, unit_col, time_col, treatment_col):
@@ -84,25 +89,35 @@ def _wide(df: pd.DataFrame, outcome_col, unit_col, time_col, treatment_col):
     d = df.pivot_table(index=unit_col, columns=time_col, values=treatment_col).reindex_like(y)
     periods = np.array(y.columns)
     treated_any = (d.to_numpy() == 1)
+    switched_off = np.any(treated_any[:, :-1] & ~treated_any[:, 1:], axis=1)
+    if switched_off.any():
+        raise LocalizedError("err.cs_not_absorbing", n=int(switched_off.sum()))
     first = np.where(treated_any.any(axis=1), periods[np.argmax(treated_any, axis=1)], np.inf)
     return y.to_numpy(float), periods, first, int((~complete).sum())
+
+
+def _base(periods, g: float) -> float | None:
+    """The last observed period before g, or None if g is the first."""
+    earlier = [p for p in periods if p < g]
+    return max(earlier) if earlier else None
 
 
 def _group_time(y: np.ndarray, periods: np.ndarray, first: np.ndarray, comparison: str):
     """ATT(g, t) for every cohort g and every period t != g - 1."""
     index = {p: i for i, p in enumerate(periods)}
-    cohorts = sorted(g for g in set(first[np.isfinite(first)]) if g - 1 in index)
+    cohorts = sorted(g for g in set(first[np.isfinite(first)]) if _base(periods, g) is not None)
     rows = []
     for g in cohorts:
         members = first == g
-        base = index[g - 1]
+        before = _base(periods, g)
+        base = index[before]
         for t in periods:
-            if t == g - 1:
+            if t == before:
                 continue
             if comparison == "never_treated":
                 controls = ~np.isfinite(first)
             else:   # not yet treated at either t or the base period
-                controls = first > max(t, g - 1)
+                controls = first > max(t, before)
             controls &= ~members
             if controls.sum() == 0:
                 continue
@@ -131,8 +146,8 @@ def _cells(gt: pd.DataFrame, rel: int | None = None) -> list[tuple[float, float,
     return [(g, t, n / total) for g, t, n in zip(part["cohort"], part["period"], part["n_cohort"], strict=True)]
 
 
-def _controls(first: np.ndarray, comparison: str, g: float, t: float) -> np.ndarray:
-    controls = ~np.isfinite(first) if comparison == "never_treated" else first > max(t, g - 1)
+def _controls(first: np.ndarray, comparison: str, g: float, t: float, before: float) -> np.ndarray:
+    controls = ~np.isfinite(first) if comparison == "never_treated" else first > max(t, before)
     return controls & (first != g)
 
 
@@ -140,8 +155,9 @@ def _contributions(y, index, first, comparison, cells) -> np.ndarray:
     """u with sum(u) = the aggregate: each unit's share of the weighted mean differences."""
     u = np.zeros(len(first))
     for g, t, w in cells:
-        members, controls = first == g, _controls(first, comparison, g, t)
-        change = y[:, index[t]] - y[:, index[g - 1]]
+        before = _base(index, g)
+        members, controls = first == g, _controls(first, comparison, g, t, before)
+        change = y[:, index[t]] - y[:, index[before]]
         u[members] += w * change[members] / members.sum()
         u[controls] -= w * change[controls] / controls.sum()
     return u
@@ -166,7 +182,7 @@ def _analytic(y, index, first, comparison, cells) -> tuple[float, float]:
             donors = first > max(t for g, t, _ in cells if g == s)
         if donors.sum() < 2:
             return float("nan"), float("nan")
-        q = sum(w * (y[donors, index[t]] - y[donors, index[g - 1]]) for g, t, w in cells if g == s)
+        q = sum(w * (y[donors, index[t]] - y[donors, index[_base(index, g)]]) for g, t, w in cells if g == s)
         parts.append(float(np.var(q, ddof=1)))
         dfs.append(int(donors.sum()) - 1)
     v = float(sum(parts))
@@ -239,4 +255,5 @@ def estimate_staggered_did(df: pd.DataFrame, outcome_col: str = "Y", treatment_c
         n_cohorts=int(gt["cohort"].nunique()), n_units=y.shape[0], comparison=comparison,
         n_dropped=n_dropped, min_cohort_size=int(gt.groupby("cohort")["n_cohort"].first().min()),
         df=float(dof), p_value=p_value, inference=inference,
+        n_always_treated=int((first == periods[0]).sum()),
     )

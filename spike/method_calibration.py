@@ -24,6 +24,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "causal_lab"))
 
 from estimators.registry import METHOD_KEYS, WORLDS, virtual_options          # noqa: E402
 from robustness_engine.method_stress import run_method_stress_test           # noqa: E402
+from robustness_engine.stress_test import identification_strength
 from simulation_engine.method_monte_carlo import run_method_monte_carlo      # noqa: E402
 
 MC_REPS = {"dml": 30}
@@ -66,8 +67,8 @@ def main(argv: list[str]) -> None:
             for c in report.checks:
                 warn[c.slug] += c.verdict == "WARNING"
                 na[c.slug] += c.verdict == "N/A"
-            if report.identification_strength is not None:
-                scores.append(report.identification_strength)
+            if identification_strength(report.checks) is not None:
+                scores.append(identification_strength(report.checks))
         mean = sum(scores) / len(scores) if scores else float("nan")
         for slug in warn:
             lines.append(f"| {method} | {label} | {n} | {slug} | {warn[slug] / n:.1%} | {na[slug] / n:.1%} | {mean:.1f} |")

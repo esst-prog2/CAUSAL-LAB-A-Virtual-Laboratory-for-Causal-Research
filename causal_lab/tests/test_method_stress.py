@@ -32,7 +32,7 @@ def test_every_method_runs_its_checks_with_translated_messages():
             for lang in ("en", "fr"):
                 text = render(check.message, lang)
                 assert text and "{" not in text and not text.startswith("mstress."), (method, lang, text)
-        assert report.identification_strength is None or 0 <= report.identification_strength <= 100
+        assert report.summary in ("warning", "no_warning", "insufficient")
 
 
 def test_threats_turned_on_in_the_worlds_are_flagged():
@@ -108,9 +108,9 @@ def test_rdd_placebo_cutoff_flags_a_second_jump():
     assert _verdict(report, "rdd_placebo_cutoffs") == "WARNING"
 
 
-def test_score_counts_passes_among_computable_checks():
+def test_summary_rests_on_the_computable_checks():
     report = _report("iv")                       # weak-instrument PASS, overidentification N/A
-    assert report.n_computable == 1 and report.identification_strength == 100.0
+    assert report.n_computable == 1 and report.summary == "no_warning"
 
 
 if __name__ == "__main__":

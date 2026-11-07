@@ -43,7 +43,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "causal_lab"))
 from statsmodels.tools.sm_exceptions import SingularMatrixWarning
 
 from simulation_engine.dgp import VirtualWorldConfig, generate
-from robustness_engine.stress_test import run_stress_test
+from robustness_engine.stress_test import identification_strength, run_stress_test
 
 N_REPS = 200
 
@@ -82,7 +82,7 @@ def run_batch(threat_kwargs: dict, n_reps: int = N_REPS) -> tuple[dict[str, floa
         for check in report.checks:
             if check.verdict == "WARNING":
                 warning_counts[check.name] += 1
-        scores.append(report.identification_strength)
+        scores.append(identification_strength(report.checks))
     rates = {name: warning_counts[name] / n_reps for name in CHECK_NAMES}
     mean_score = sum(scores) / len(scores)
     return rates, mean_score

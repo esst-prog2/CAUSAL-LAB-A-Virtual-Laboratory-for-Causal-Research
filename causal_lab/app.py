@@ -27,7 +27,8 @@ import plotly.graph_objects as go
 import streamlit as st
 
 from causal_engine.diagnosis import DiagnosisResult, ResearchDesignInput, diagnose
-from causal_engine.recommendation import (NEEDS_INFO, NOT_SUPPORTED, MethodScore, component_slug, recommend,
+from causal_engine.question_analysis import ESTIMAND_METHODS, STATED, analyze, form_is_default
+from causal_engine.recommendation import (NEEDS_INFO, NOT_SUPPORTED, MethodAssessment, recommend,
                                           recommended)
 from code_generator.generator import CodeGenParams, generate_all
 from estimators.common import Z_95
@@ -43,7 +44,7 @@ from simulation_engine.monte_carlo import run_monte_carlo
 from ui.data_sources_page import render as render_data_sources_page
 from ui.demo_page import pretest_headline, render as render_demo_page
 from ui.methods_page import render as render_methods_page
-from ui import style
+from ui import question_panel, style
 from ui.page_text import F, R, error_text, references_caption
 from ui.theory_page import render as render_theory_page
 from utils.i18n import LocalizedError, t, tf
@@ -279,10 +280,19 @@ elif page == "research_question":
     d = st.session_state.design
 
     st.subheader(L("step1.title"))
+    previous_question = d.research_question
     d.research_question = st.text_area(
         L("step1.question"), value=d.research_question, height=100,
         placeholder=L("step1.placeholder"),
     )
+    if d.research_question != previous_question:
+        # A stated causal aim belongs to the question it was stated for.
+        d.causal_confirmed = False
+        st.session_state.pop("qa_confirm_causal", None)
+    # The question is analysed first: the rest of the form is checked against it.
+    if d.research_question.strip():
+        with st.container(border=True):
+            question_panel.render(analyze(d), d, L, editable=True)
 
     st.subheader(L("step2.title"))
     c1, c2, c3 = st.columns(3)
@@ -328,11 +338,15 @@ elif page == "research_question":
     d.confounders_observed = option_select(c2, "wizard.confounders", ["measured", "not_measured", "unsure"],
                                            d.confounders_observed)
 
+    d.answers_confirmed = st.checkbox(L("wizard.answers_confirmed"), value=d.answers_confirmed,
+                                      help=L("wizard.answers_confirmed_help"))
+
     st.session_state.design = d
 
     if st.button(L("wizard.run"), icon=":material/play_arrow:", type="primary"):
         st.session_state.diagnosis = diagnose(d)
         st.session_state.recommendations = recommend(d, st.session_state.diagnosis)
+        st.session_state.diagnosed_design = replace(d)
         st.success(L("wizard.done"))
         cols = st.columns(3)
         for col, target in zip(cols, ("diagnosis", "recommendation")):
@@ -368,26 +382,54 @@ elif page == "recommendation":
     if not st.session_state.recommendations:
         no_design("recommendation.empty")
     else:
-        recs: list[MethodScore] = st.session_state.recommendations
+        recs: list[MethodAssessment] = st.session_state.recommendations
         best = recommended(recs)
         others = [r for r in recs if r.supported and r is not best]
         pending = [r for r in recs if r.status == NEEDS_INFO]
         ruled_out = [r for r in recs if r.status == NOT_SUPPORTED]
 
-        def method_name(score: MethodScore) -> str:
-            return L(f"method.{score.key}")
+        def method_name(method: MethodAssessment) -> str:
+            return L(f"method.{method.key}")
 
-        def reasons(score: MethodScore) -> str:
-            return " ".join(R(m) for m in score.unmet)
+        def reasons(method: MethodAssessment) -> str:
+            return " ".join(R(m) for m in method.unmet)
 
-        if best is None:
+        # 1. The research question, analysed before any method.
+        d = st.session_state.design
+        if st.session_state.get("diagnosed_design") not in (None, d):
+            st.warning(L("recommendation.stale"))
+        analysis = st.session_state.diagnosis.analysis if st.session_state.diagnosis is not None else None
+        with st.container(border=True):
+            question_panel.render(analysis, d, L)
+
+        # 2. The answers the recommendation rests on, so that a default answer is visible.
+        st.caption(F("recommendation.based_on", assignment=L(f"opt.{d.assignment_mechanism}"),
+                     data=L(f"opt.{d.data_structure}"),
+                     pre=d.n_pre_periods if d.has_pre_treatment_periods else 0,
+                     control=L("common.yes") if d.has_control_group else L("common.no"),
+                     treated=L(f"opt.{d.n_treated_units}"), instrument=L(f"opt.{d.instrument}"),
+                     confounders=L(f"opt.{d.confounders_observed}")))
+        if form_is_default(d):
+            st.info(L("recommendation.defaults_warning"))
+
+        if best is None and pending:
+            st.warning(f"**{L('recommendation.ask_title')}**")
+            st.markdown(L("recommendation.ask_body"))
+            st.markdown("\n".join(f"- **{method_name(r)}**: {reasons(r)}" for r in pending))
+        elif best is None:
             st.error(f"**{L('recommendation.none_title')}**")
             st.markdown(L("recommendation.none_body"))
-            for r in pending + ruled_out:
-                st.markdown(f"- **{method_name(r)}**: {reasons(r)}")
+            st.markdown("\n".join(f"- **{method_name(r)}**: {reasons(r)}" for r in ruled_out))
         else:
             st.markdown(f"### {L('recommendation.recommended')}: {method_name(best)}")
-            st.caption(f"{L('recommendation.confidence')}: {L(f'level.{best.confidence}')} · {best.overall:.0f}/100")
+            # The question is quoted back only when its reading leaves no doubt.
+            if analysis is not None and analysis.status("treatment") == STATED and analysis.status("outcome") == STATED:
+                population = analysis.elements["population"].text
+                st.markdown(F("recommendation.applied", treatment=f"*{analysis.elements['treatment'].text}*",
+                              outcome=f"*{analysis.elements['outcome'].text}*",
+                              population=F("recommendation.applied_population", population=f"*{population}*")
+                              if population else "", why=R(analysis.elements["assignment"].text)
+                              if analysis.elements["assignment"].text else R(best.rationale[0])))
             st.markdown(f"**{L('recommendation.estimand')}.** {L(f'rec.{best.key}.estimand')}")
             st.markdown(f"**{L('recommendation.why')}**")
             st.markdown("\n".join(f"- {R(note)}" for note in best.rationale))
@@ -395,40 +437,50 @@ elif page == "recommendation":
             c1, c2 = st.columns(2)
             c1.info(f"**{L('recommendation.assumptions')}.** {L(f'rec.{best.key}.assumptions')}")
             c2.warning(f"**{L('recommendation.diagnostics')}.** {L(f'rec.{best.key}.diagnostics')}")
+            st.markdown(f"**{L('recommendation.internal')}.** {L(f'rec.{best.key}.internal')}")
+            st.markdown(f"**{L('recommendation.external')}.** {L(f'rec.{best.key}.external')}")
             if others or pending:
                 st.markdown(f"**{L('recommendation.alternatives')}**")
-                st.markdown("\n".join([f"- **{method_name(r)}** ({r.overall:.0f}/100): {L(f'rec.{r.key}.when')}"
-                                        for r in others]
+                st.markdown("\n".join([f"- **{method_name(r)}**: {L(f'rec.{r.key}.when')}" for r in others]
                                        + [f"- **{method_name(r)}** ({L('recommendation.needs_info').lower()}): "
                                           f"{L(f'rec.{r.key}.when')}" for r in pending]))
             if pending:
                 st.markdown(f"**{L('recommendation.details_needed')}**")
                 st.markdown("\n".join(f"- {reasons(r)}" for r in pending))
+            # Why not the others: a weaker argument here, missing information, failed conditions.
+            lines = []
+            estimand = analysis.elements["estimand"].text if analysis is not None else None
+            targets = ESTIMAND_METHODS.get(getattr(estimand, "key", None))
+            for r in others + pending + ruled_out:
+                why = []
+                if targets and r.key not in targets and r.status != NOT_SUPPORTED:
+                    # It answers a different question from the one asked.
+                    why.append(F("recommendation.other_estimand", estimand=L(f"rec.{r.key}.estimand").rstrip("."),
+                                 asked=R(estimand).rstrip(".")))
+                if r.supported:
+                    why.append(L(f"rec.{r.key}.rank"))
+                else:
+                    why.append(reasons(r))
+                if why:
+                    lines.append(f"- **{method_name(r)}**: " + " ".join(why))
+            if lines:
+                st.markdown(f"**{L('recommendation.why_not')}**")
+                st.markdown("\n".join(lines))
 
-        scored = [r for r in recs if r.supported]
-        if scored:
+        supported = [r for r in recs if r.supported]
+        if supported:
             st.divider()
             st.subheader(L("recommendation.all_candidates"))
-            fig = go.Figure(go.Bar(
-                x=[r.overall for r in scored],
-                y=[method_name(r) for r in scored],
-                orientation="h",
-                marker_color=[style.PRIMARY if r is best else style.SEQUENTIAL[0] for r in scored],
-            ))
-            fig.update_layout(xaxis_title=L("recommendation.score_axis"), yaxis_title="", yaxis_autorange="reversed",
-                              height=80 + 45 * len(scored), margin=dict(l=10, r=10, t=10, b=10))
-            st.plotly_chart(fig, width="stretch")
-            for r in scored:
-                with st.expander(f"{method_name(r)} — {r.overall:.0f}/100 ({L(f'level.{r.confidence}')})"):
-                    st.table(pd.DataFrame(
-                        [(L(f"rec.component.{component_slug(k)}"), v) for k, v in r.components.items()],
-                        columns=[L("recommendation.component"), L("recommendation.score")]))
+            st.caption(L("recommendation.order_note"))
+            for r in supported:
+                with st.expander(method_name(r)):
                     for note in r.rationale:
                         st.write("— " + R(note))
                     st.caption(f"{L('recommendation.main_assumption')}: {R(r.main_assumption)}")
                     st.caption(f"{L('recommendation.main_concern')}: {R(r.main_concern)}")
-            st.caption(L("recommendation.score_note"))
-        if best is not None and ruled_out:
+                    st.caption(f"{L('recommendation.internal')}: {L(f'rec.{r.key}.internal')}")
+                    st.caption(f"{L('recommendation.external')}: {L(f'rec.{r.key}.external')}")
+        if best is None and pending and ruled_out:
             with st.expander(L("recommendation.ruled_out")):
                 st.markdown("\n".join(f"- **{method_name(r)}**: {reasons(r)}" for r in ruled_out))
 
@@ -583,6 +635,8 @@ elif page == "estimation":
                 c1.metric(L("common.estimated_att"), f"{result.att:.4f}")
                 c2.metric(L("estimation.cluster_se"), f"{result.se:.4f}")
                 c3.metric(L("common.ci95"), f"[{result.ci_low:.3f}, {result.ci_high:.3f}]")
+                for warning in result.warnings:
+                    st.warning(R(warning))
 
                 if truth is not None:
                     true_att = truth["true_att"]
@@ -637,6 +691,8 @@ elif page == "estimation":
                 references_caption("staggered")
                 if cs.n_dropped:
                     st.caption(F("staggered.dropped", n=cs.n_dropped))
+                if cs.n_always_treated:
+                    st.caption(F("staggered.always_treated", n=cs.n_always_treated))
                 if cs.min_cohort_size < SMALL_COHORT:
                     st.info(F("staggered.small_cohorts", n=cs.min_cohort_size, minimum=SMALL_COHORT, df=cs.df))
                 es_cs = cs.event_study
@@ -688,7 +744,8 @@ elif page == "break_my_design":
 
         pt = next(c for c in report.checks if c.name == "Parallel Trends")
         if pt.assessment:
-            {"plausible": st.success, "questionable": st.warning, "violated": st.error}[pt.assessment](
+            # Not rejected is not a success: the test can pass at a large bias (Guided Demo).
+            {"plausible": st.info, "questionable": st.warning, "violated": st.error}[pt.assessment](
                 "### " + F("break.pt_banner", assessment=L(f"assessment.{pt.assessment}")))
 
         st.subheader(L("break.results"))
@@ -698,14 +755,9 @@ elif page == "break_my_design":
             show(f"**{L(f'check.{check.slug}')}** {icon} {L(f'verdict.{check.verdict}')} — {R(check.message)}")
 
         st.divider()
-        st.subheader(L("break.strength"))
-        if report.identification_strength is None:
-            st.info(L("break.no_score"))
-        else:
-            st.progress(report.identification_strength / 100)
-            st.markdown(f"### {report.identification_strength:.0f} / 100")
-            st.caption(F("break.score_basis", k=report.n_computable, n=len(report.checks)))
-        st.caption(L("break.disclaimer"))
+        st.subheader(L("break.summary_title"))
+        (st.warning if report.summary == "warning" else st.info)(L(f"break.summary.{report.summary}"))
+        st.caption(F("break.summary_basis", k=report.n_computable, n=len(report.checks)))
         references_caption("stress_test")
 
 # --------------------------------------------------------------------------

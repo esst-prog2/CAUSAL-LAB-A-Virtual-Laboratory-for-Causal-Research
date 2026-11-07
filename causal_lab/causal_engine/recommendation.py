@@ -4,7 +4,7 @@ Method Recommendation Engine (CAUSAL LAB spec, Section 11-13).
 Recommends the most credible and feasible causal design for the research
 question, not the most familiar one. No method is a default: each one is
 first checked against the conditions without which it does not identify a
-causal effect, and only the methods whose conditions hold are scored.
+causal effect, and only the methods whose conditions hold are ordered.
 
 1. Gate. Each method's necessary conditions are checked against the
    structured design input:
@@ -19,20 +19,22 @@ causal effect, and only the methods whose conditions hold are scored.
      ITS                 a long enough series before and after treatment
      Matching / adjust.  all important confounders measured
 
+   RCT, RDD, IV and matching also compare treated with untreated units within the
+   sample: they need both, and more than one treated unit for any inference.
+
    A method is "supported", "needs_info" (a condition the researcher
    answered "not sure" about) or "not_supported" (a condition fails), with
-   the reasons.
+   the reasons. If no method is supported, the engine says so and lists what
+   would make one credible.
 
-2. Score. Supported methods get a transparent score, the mean of:
-     design credibility       how strong the identifying assumption is when
-                              its conditions hold (randomisation > cutoff >
-                              comparison over time > instrument > ...);
-     assumption plausibility  how this design's diagnosed threats
-                              (confounding, endogeneity, spillovers) weaken it;
-     data adequacy            whether the data are rich enough to check it.
-
-   The score is NOT ground truth (spec Section 12). If no method is
-   supported, the engine says so and lists what would make one credible.
+2. Order. Supported methods are put in an argued order (`_rank`), not given a
+   number: a design whose identifying assumption is created by the assignment
+   comes before one whose assumption concerns an unobserved counterfactual,
+   which comes before one that relies on measuring every confounder. No number
+   is attached, because none has been established empirically. The order holds
+   only under the stated conditions and concerns internal validity: each method
+   carries its own arguments (`rec.<method>.internal`, `.external`, `.rank`).
+   No method is superior in every research context.
 
 Explanations are translatable `Msg` objects (locale keys rec.*);
 `str()` of each gives the English text.
@@ -42,9 +44,9 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from causal_engine.diagnosis import DiagnosisResult, Level, ResearchDesignInput
+from causal_engine.question_analysis import form_is_default
+from causal_engine.question_reading import AMBIGUOUS, DESCRIPTIVE, PREDICTIVE
 from utils.i18n import Msg
-
-_LEVEL_TO_RISK = {Level.LOW: 0.15, Level.MEDIUM: 0.5, Level.HIGH: 0.9, Level.UNKNOWN: 0.5}
 
 SUPPORTED, NEEDS_INFO, NOT_SUPPORTED = "supported", "needs_info", "not_supported"
 STATUSES = (SUPPORTED, NEEDS_INFO, NOT_SUPPORTED)
@@ -55,23 +57,15 @@ UNIT_PANELS = ("panel", "spatio_temporal_panel", "administrative")
 MIN_PRE_SYNTHETIC = 5          # pre-treatment periods needed to judge a synthetic control's fit
 MIN_PRE_ITS = 3                # pre-treatment points needed to estimate an underlying trend
 
-# How strong each identifying assumption is when its conditions hold.
-_CREDIBILITY = {"rct": 98, "rdd": 88, "did": 75, "event_study": 75, "synthetic_control": 75, "iv": 70,
-                "its": 55, "matching": 50}
-
-
-def component_slug(name: str) -> str:
-    """Locale key suffix of a score component (rec.component.<slug>)."""
-    return "".join(c if c.isalnum() else "_" for c in name.lower()).strip("_")
+# The order of the supported methods, strongest identification argument first; see `_rank`.
+_ORDER = ("rct", "rdd", "did", "event_study", "synthetic_control", "iv", "its", "matching")
+SYNTHETIC_BEFORE_DID_PRE = 10  # with a few treated units, this many pre-periods let a synthetic control's fit be judged
 
 
 @dataclass
-class MethodScore:
+class MethodAssessment:
     method: str
     key: str = ""                                     # locale key suffix: method.<key>
-    components: dict = field(default_factory=dict)   # component name -> 0-100
-    overall: float = 0.0
-    confidence: str = "MEDIUM"
     rationale: list[Msg] = field(default_factory=list)
     main_assumption: Msg | str = ""
     main_concern: Msg | str = ""
@@ -83,34 +77,33 @@ class MethodScore:
         return self.status == SUPPORTED
 
 
-def _confidence_from_score(score: float) -> str:
-    if score >= 75:
-        return "HIGH"
-    if score >= 50:
-        return "MEDIUM"
-    return "LOW"
-
-
 def _pre(design: ResearchDesignInput) -> int:
     return design.n_pre_periods if design.has_pre_treatment_periods else 0
-
-
-def _risk(level: Level, weight: float) -> float:
-    return 100 - _LEVEL_TO_RISK[level] * weight
 
 
 # --------------------------------------------------------------------------
 # Gates: the conditions without which a method does not identify the effect
 # --------------------------------------------------------------------------
-def _gates(key: str, d: ResearchDesignInput) -> tuple[list[Msg], list[Msg]]:
+def _geographic_cutoff(d: ResearchDesignInput, diag: DiagnosisResult) -> bool:
+    """Treatment assigned by a geographic boundary: a regression discontinuity in
+    distance to the border (Keele & Titiunik 2015; Dell 2010)."""
+    return d.assignment_mechanism == "geographic" and "border" in diag.question_signals
+
+
+def _gates(key: str, d: ResearchDesignInput, diag: DiagnosisResult) -> tuple[list[Msg], list[Msg]]:
     """(failed conditions, unconfirmed conditions) of method `key`."""
     failed, unsure = [], []
     pre = _pre(d)
+    if key in ("rct", "rdd", "iv", "matching"):
+        if not d.has_control_group:
+            failed.append(Msg("rec.gate.no_control_group"))
+        if d.n_treated_units == "one":
+            failed.append(Msg("rec.gate.one_treated"))
     if key == "rct":
         if d.assignment_mechanism != "random":
             failed.append(Msg("rec.gate.not_random"))
     elif key == "rdd":
-        if d.assignment_mechanism != "threshold":
+        if d.assignment_mechanism != "threshold" and not _geographic_cutoff(d, diag):
             failed.append(Msg("rec.gate.no_cutoff"))
     elif key == "iv":
         if d.instrument == "none":
@@ -147,40 +140,24 @@ def _gates(key: str, d: ResearchDesignInput) -> tuple[list[Msg], list[Msg]]:
 
 
 # --------------------------------------------------------------------------
-# Scores of the methods whose conditions hold
+# The order of the methods whose conditions hold
 # --------------------------------------------------------------------------
-def _components(key: str, d: ResearchDesignInput, diag: DiagnosisResult) -> dict:
-    pre = _pre(d)
-    spill = diag.potential_spillovers
-    if key == "rct":
-        plausibility = _risk(spill, 30)
-        data = 90
-    elif key == "rdd":
-        plausibility = 85                       # treatment set by a known rule; manipulation still to be checked
-        data = 80                               # the running variable is recorded; density near the cutoff is not yet known
-    elif key == "iv":
-        plausibility = 60                       # the exclusion restriction is untestable
-        data = 65
-    elif key in ("did", "event_study"):
-        plausibility = (_risk(diag.potential_confounding, 60) + _risk(spill, 40)) / 2   # parallel trends are untestable
-        if d.n_treated_units == "one":
-            plausibility -= 15                  # inference with one treated unit is fragile
-        data = 90 if pre >= (3 if key == "did" else 4) else 65
-        if key == "event_study":
-            data -= 1                           # the dynamic version of the same design: ranked just after DiD
-    elif key == "synthetic_control":
-        plausibility = _risk(spill, 40)
-        data = 90 if pre >= 10 else 70
-    elif key == "its":
-        plausibility = 55 if d.has_control_group else 65   # with a control group a comparative design is better
-        plausibility -= 20 if diag.potential_confounding == Level.HIGH else 0
-        data = 85 if pre >= 8 else 60
-    else:                                       # matching / regression adjustment
-        plausibility = 85 if d.assignment_mechanism == "random" else _risk(diag.potential_endogeneity, 70)
-        plausibility = min(plausibility, _risk(spill, 40))
-        data = 80 if d.data_structure in ("cross_section", "survey", "experimental", "administrative") else 65
-    return {"Design credibility": _CREDIBILITY[key], "Assumption plausibility": round(plausibility),
-            "Data adequacy": data}
+def _rank(key: str, d: ResearchDesignInput) -> int:
+    """Position among the supported methods; lower comes first. A qualitative order:
+
+    - randomisation and an assignment cutoff create the comparison by design;
+    - comparisons over time rest on an untestable counterfactual trend. With a single
+      treated unit (or a few and a long pre-period) a synthetic control builds that
+      counterfactual explicitly and its fit can be inspected, so it comes first;
+    - an instrument rests on an exclusion restriction that the data cannot test;
+    - a single series has no comparison group at all;
+    - adjustment needs every confounder to be measured.
+    """
+    order = list(_ORDER)
+    if d.n_treated_units == "one" or (d.n_treated_units == "few" and _pre(d) >= SYNTHETIC_BEFORE_DID_PRE):
+        order.remove("synthetic_control")
+        order.insert(order.index("did"), "synthetic_control")
+    return order.index(key)
 
 
 def _rationale(key: str, d: ResearchDesignInput, diag: DiagnosisResult) -> list[Msg]:
@@ -189,6 +166,8 @@ def _rationale(key: str, d: ResearchDesignInput, diag: DiagnosisResult) -> list[
         notes.append(Msg("rec.did.staggered"))
     if key in ("did", "event_study") and d.n_treated_units == "one":
         notes.append(Msg("rec.did.one_treated"))
+    if key in ("did", "event_study") and d.assignment_mechanism == "self_selected":
+        notes.append(Msg("rec.note.did_self_selected"))
     if key in ("did", "event_study", "matching") and d.treatment_type == "continuous":
         notes.append(Msg("rec.note.continuous_treatment"))
     if key in ("did", "event_study", "synthetic_control", "matching") and diag.potential_spillovers == Level.HIGH:
@@ -197,6 +176,20 @@ def _rationale(key: str, d: ResearchDesignInput, diag: DiagnosisResult) -> list[
         notes.append(Msg("rec.its.has_controls"))
     if key == "matching" and d.assignment_mechanism == "random":
         notes.append(Msg("rec.matching.random"))
+    if key == "rdd" and _geographic_cutoff(d, diag):
+        notes.append(Msg("rec.rdd.geographic"))
+    # What the wording of the question adds, whichever method answers it.
+    signals = diag.question_signals
+    if "staggered" in signals and d.treatment_timing != "staggered" and key in ("did", "event_study"):
+        notes.append(Msg("rec.note.staggered_text"))
+    if "dynamic" in signals and key == "did":
+        notes.append(Msg("rec.note.dynamic"))
+    if "dose" in signals and d.treatment_type == "binary":
+        notes.append(Msg("rec.note.dose"))
+    if "heterogeneity" in signals:
+        notes.append(Msg("rec.note.heterogeneity"))
+    if "mechanism" in signals:
+        notes.append(Msg("rec.note.mechanism"))
     return notes
 
 
@@ -213,33 +206,101 @@ _METHODS = {
 METHOD_KEYS = tuple(_METHODS)
 
 
-def _score(key: str, d: ResearchDesignInput, diag: DiagnosisResult) -> MethodScore:
-    failed, unsure = _gates(key, d)
+def _assess(key: str, d: ResearchDesignInput, diag: DiagnosisResult) -> MethodAssessment:
+    failed, unsure = _gates(key, d, diag)
     status = NOT_SUPPORTED if failed else NEEDS_INFO if unsure else SUPPORTED
-    components = _components(key, d, diag) if status != NOT_SUPPORTED else {}
-    overall = sum(components.values()) / len(components) if components else 0.0
     if key == "did":
         concern = "rec.did.concern_spillovers" if diag.potential_spillovers == Level.HIGH else "rec.did.concern_pretrends"
     else:
         concern = f"rec.{key}.concern"
-    return MethodScore(
-        method=_METHODS[key], key=key, components=components, overall=overall,
-        confidence=_confidence_from_score(overall) if status == SUPPORTED else "LOW",
+    return MethodAssessment(
+        method=_METHODS[key], key=key,
         rationale=_rationale(key, d, diag) if status != NOT_SUPPORTED else [],
         main_assumption=Msg(f"rec.{key}.assumption"), main_concern=Msg(concern),
         status=status, unmet=failed + unsure,
     )
 
 
-def recommend(design: ResearchDesignInput, diag: DiagnosisResult) -> list[MethodScore]:
-    """Every candidate method: first those whose conditions hold, ranked by
-    score; then those that need information; then those ruled out."""
-    scores = [_score(key, design, diag) for key in _METHODS]
+def _ask(method: MethodAssessment, question: Msg) -> None:
+    """A method the form supports, held back until the question below is answered."""
+    if method.status == SUPPORTED:
+        method.status = NEEDS_INFO
+    if method.status == NEEDS_INFO:
+        method.unmet = method.unmet + [question]
+
+
+def _reopen(method: MethodAssessment, d: ResearchDesignInput, diag: DiagnosisResult, question: Msg) -> None:
+    """A method the form rules out but the question points to: to be confirmed."""
+    method.rationale = _rationale(method.key, d, diag)
+    method.status, method.unmet = NEEDS_INFO, [question]
+
+
+_NOT_CAUSAL_ASK = {PREDICTIVE: "rec.ask.predictive", DESCRIPTIVE: "rec.ask.descriptive", AMBIGUOUS: "rec.ask.intent"}
+
+
+def _check_question(methods: list[MethodAssessment], d: ResearchDesignInput, diag: DiagnosisResult) -> None:
+    """The form decides the method only when the wording of the question agrees
+    with it. When the question describes a design the form contradicts, the
+    engine asks instead of answering a different question."""
+    signals = diag.question_signals
+    by_key = {method.key: method for method in methods}
+    analysis = diag.analysis
+    if analysis is None and form_is_default(d):
+        # No question and no answer: nothing is known about the study.
+        for method in methods:
+            _ask(method, Msg("rec.ask.nothing_known"))
+        return
+    if analysis is not None and not analysis.causal:
+        # The question does not (yet) ask for a causal effect: no causal method answers it.
+        for method in methods:
+            _ask(method, Msg(_NOT_CAUSAL_ASK[analysis.intent]))
+        return
+    if analysis is not None and analysis.blocking:
+        # Essential elements of the question are missing: ask before ranking.
+        for method in methods:
+            _ask(method, Msg("rec.ask.analysis"))
+    if (analysis is not None and "assignment_mechanism" in analysis.strong
+            and analysis.inferred["assignment_mechanism"] == "self_selected"
+            and d.assignment_mechanism != "self_selected"):
+        for method in methods:
+            _ask(method, Msg("rec.ask.self_selection"))
+    if "cutoff" in signals and d.assignment_mechanism != "threshold" and not _geographic_cutoff(d, diag):
+        # The question asks for the effect at a cutoff.
+        _reopen(by_key["rdd"], d, diag, Msg("rec.gate.cutoff_unconfirmed"))
+        for method in methods:
+            if method.key != "rdd":
+                _ask(method, Msg("rec.gate.cutoff_estimand"))
+    if "threshold_unclear" in signals and d.assignment_mechanism != "threshold":
+        # A number that may or may not decide who is treated: ask which.
+        _reopen(by_key["rdd"], d, diag, Msg("rec.gate.threshold_unclear"))
+        for method in methods:
+            if method.key != "rdd":
+                _ask(method, Msg("rec.gate.threshold_unclear"))
+    if "random" in signals and d.assignment_mechanism != "random" and d.instrument != "available":
+        # A lottery or a randomisation in the question; a lottery used as an
+        # instrument (declared available) is consistent with the form.
+        _reopen(by_key["rct"], d, diag, Msg("rec.ask.random"))
+        for method in methods:
+            if method.key not in ("rct", "iv"):
+                _ask(method, Msg("rec.ask.random_others"))
+    if "instrument" in signals and d.instrument == "none":
+        _reopen(by_key["iv"], d, diag, Msg("rec.ask.instrument"))
+    if "single_unit" in signals and d.n_treated_units == "many":
+        # The structure of the units itself is in doubt: every design depends on it.
+        for method in methods:
+            _ask(method, Msg("rec.ask.single_unit"))
+
+
+def recommend(design: ResearchDesignInput, diag: DiagnosisResult) -> list[MethodAssessment]:
+    """Every candidate method: first those whose conditions hold, in their argued
+    order; then those that need information; then those ruled out."""
+    methods = [_assess(key, design, diag) for key in _METHODS]
+    _check_question(methods, design, diag)
     order = {status: i for i, status in enumerate(STATUSES)}
-    scores.sort(key=lambda s: (order[s.status], -s.overall))
-    return scores
+    methods.sort(key=lambda m: (order[m.status], _rank(m.key, design)))
+    return methods
 
 
-def recommended(scores: list[MethodScore]) -> MethodScore | None:
+def recommended(methods: list[MethodAssessment]) -> MethodAssessment | None:
     """The recommended method, or None when no credible design is supported."""
-    return scores[0] if scores and scores[0].supported else None
+    return methods[0] if methods and methods[0].supported else None

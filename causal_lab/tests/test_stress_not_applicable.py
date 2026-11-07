@@ -1,10 +1,10 @@
-"""Checks that cannot be computed are N/A and do not count in the score
+"""Checks that cannot be computed are N/A and say nothing either way
 (hw6 review 3; decisions by the user in PLANNING_LOG.md, 2026-10-16).
 
 Before: on a two-period panel, Parallel Trends and Anticipation returned
 WARNING, Serial Correlation always returned WARNING (rho = 1 by
 construction), and Spillovers used store-id adjacency on real data, so
-the Card & Krueger score (40/100) measured the shape of the data, not
+the Card & Krueger score (40/100, since removed) measured the shape of the data, not
 the design.
 """
 import sys
@@ -23,9 +23,9 @@ def test_two_period_real_data_reports_na_instead_of_warnings():
         assert verdicts[name] == NOT_APPLICABLE, verdicts
     (only,) = [c for c in report.checks if c.verdict != NOT_APPLICABLE]
     assert report.n_computable == 1
-    # Constants, not the program's formula (instructor feedback on hw6): with a
-    # single computable check the score is 100 if it passes and 0 if it warns.
-    assert report.identification_strength == {"PASS": 100.0, "WARNING": 0.0}[only.verdict]
+    # The computable check concerns effect heterogeneity, not the identifying assumption:
+    # whatever its verdict, these data say nothing about parallel trends.
+    assert only.name == "Heterogeneous Effects" and report.summary == "insufficient"
 
 
 def test_spillovers_need_ids_that_encode_a_neighbourhood():
@@ -38,14 +38,14 @@ def test_spillovers_need_ids_that_encode_a_neighbourhood():
     assert without.n_computable == 4
 
 
-def test_no_computable_check_gives_no_score():
+def test_no_computable_check_says_nothing():
     df, _ = generate(VirtualWorldConfig(n_units=4, n_periods=2, treatment_period=1, seed=1))
     report = run_stress_test(df, treatment_period=1, ids_encode_neighbourhood=False)
     assert all(c.verdict == NOT_APPLICABLE for c in report.checks), [(c.name, c.verdict) for c in report.checks]
-    assert report.identification_strength is None and report.n_computable == 0
+    assert report.summary == "insufficient" and report.n_computable == 0
 
 
-def test_card_krueger_score_rests_on_heterogeneity_for_documented_reasons():
+def test_card_krueger_only_the_heterogeneity_check_can_run():
     # Post-hw6 review of "100/100 on 1 of 5 checks". Each N/A must be a genuine
     # impossibility or a documented rule, not a computation failure:
     #   - Parallel Trends: one pre-treatment wave; a pre-trend needs two pre periods;
@@ -74,13 +74,14 @@ def test_card_krueger_score_rests_on_heterogeneity_for_documented_reasons():
     assert abs(heterogeneity.statistic - ratio) < 1e-9
     assert abs(heterogeneity.p_value - stats.f.sf(ratio, len(nj) - 1, len(pa) - 1)) < 1e-9
     # Changes vary less in New Jersey than in Pennsylvania (ratio < 1), so this
-    # one-sided test cannot signal heterogeneity among the treated stores: PASS, score 100.
-    assert ratio < 1 and heterogeneity.verdict == "PASS" and report.identification_strength == 100.0
+    # one-sided test cannot signal heterogeneity among the treated stores: PASS, which says
+    # nothing about identification. (The removed score read 100/100 on this.)
+    assert ratio < 1 and heterogeneity.verdict == "PASS" and report.summary == "insufficient"
 
 
 if __name__ == "__main__":
-    test_card_krueger_score_rests_on_heterogeneity_for_documented_reasons()
+    test_card_krueger_only_the_heterogeneity_check_can_run()
     test_two_period_real_data_reports_na_instead_of_warnings()
     test_spillovers_need_ids_that_encode_a_neighbourhood()
-    test_no_computable_check_gives_no_score()
+    test_no_computable_check_says_nothing()
     print("test_stress_not_applicable: OK")

@@ -1,7 +1,7 @@
 # break-my-design-stress-test Specification
 
 ## Purpose
-Runs a fixed battery of five diagnostic checks against a fitted DiD design on actual (real or simulated) panel data, producing a PASS/WARNING verdict for each threat plus an overall "Identification Strength" score out of 100. This is a diagnostic heuristic, not a statistical proof of causal identification, and is presented as such.
+Runs a fixed battery of five diagnostic checks against a fitted DiD design on actual (real or simulated) panel data, producing a PASS/WARNING/N/A verdict for each threat and a qualitative summary of the checks aimed at the identifying assumption. It is a diagnostic aid and never calls a design valid.
 
 ## Requirements
 
@@ -95,17 +95,6 @@ The system SHALL compare the dispersion of unit-level pre/post outcome changes a
 - **WHEN** fewer than 3 treated or fewer than 3 control units have both pre- and post-treatment observations
 - **THEN** the check returns N/A with a message that there are too few units to assess heterogeneity
 
-### Requirement: Overall identification strength score
-The system SHALL summarize the checks that can be computed as a single 0-100 score. A check returning N/A SHALL be shown as N/A and SHALL NOT count in the score.
-
-#### Scenario: Computing the score
-- **WHEN** the five checks have run and k ≥ 1 of them are not N/A
-- **THEN** `identification_strength = 100 * (number of PASS checks) / k`, the app states that the score is based on k of 5 checks, and presents it as a diagnostic heuristic, not a formal proof of causal identification
-
-#### Scenario: No computable check
-- **WHEN** all five checks return N/A
-- **THEN** `identification_strength` is None and the app shows that no score is available
-
 ### Requirement: Checks are calibrated on the Virtual World
 Each check SHALL fire rarely on a threat-free Virtual World and reliably on a world where its own threat is set to "severe". Measured over 200 seeded replications of the default Virtual World:
 - each check's false-alarm rate in the clean world SHALL be at most 20%;
@@ -120,7 +109,7 @@ The threat for each check is:
 
 #### Scenario: Re-running the calibration spike
 - **WHEN** `spike/stress_test_calibration.py` is run
-- **THEN** every row of its table satisfies both bounds, and the clean-world mean Identification Strength is at least 85/100
+- **THEN** every row of its table satisfies both bounds, and at least 65% of clean worlds raise no warning on the checks aimed at the identifying assumption
 
 ### Requirement: Computation errors are not threats
 When the regression behind a check fails numerically on the data (singular design, a value error from the estimator), the check SHALL return N/A with the error message, and SHALL NOT return WARNING. Any other exception SHALL propagate rather than be hidden in a verdict.
@@ -151,3 +140,19 @@ The calibration spike SHALL write its table only to an output file named explici
 #### Scenario: Write failure
 - **WHEN** the table cannot be written
 - **THEN** it exits with an error stating that the results were not saved, and does not report success
+
+### Requirement: A qualitative summary of the checks
+The system SHALL summarize the checks aimed at the DiD's identifying assumption (parallel trends, anticipation, spillovers) in one of three categories, and SHALL NOT show a numerical score or call a design valid:
+- warning: at least one such check warned;
+- no warning: at least one was computed and none warned, stated as not being evidence of validity;
+- insufficient: none could be computed.
+
+Serial correlation and heterogeneous effects SHALL NOT enter the summary. A check returning N/A SHALL be shown as N/A.
+
+#### Scenario: No identifying check computed
+- **WHEN** the checks run on Card & Krueger, where only Heterogeneous Effects can be computed
+- **THEN** the summary is "insufficient"
+
+#### Scenario: A warning
+- **WHEN** Parallel Trends warns
+- **THEN** the summary is "warning"

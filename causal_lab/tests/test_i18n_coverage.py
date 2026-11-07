@@ -42,7 +42,7 @@ def test_every_static_key_in_code_exists():
 
 def test_dynamic_key_families_exist():
     from causal_engine.diagnosis import ResearchDesignInput, diagnose
-    from causal_engine.recommendation import component_slug, recommend
+    from causal_engine.recommendation import recommend
     from robustness_engine.stress_test import CHECK_SLUGS
     from simulation_engine.dgp import VirtualWorldConfig
     from theory_engine.calibration import STATISTICS
@@ -92,10 +92,13 @@ def test_dynamic_key_families_exist():
         expected |= {f"diagnosis.dim.{slug}" for slug, _ in diag.as_rows()}
         for score in recommend(design, diag):
             expected.add(f"method.{score.key}")
-            expected |= {f"rec.component.{component_slug(c)}" for c in score.components}
             expected |= {m.key for m in score.unmet + score.rationale + [score.main_assumption, score.main_concern]}
             expected |= {f"rec.{score.key}.{part}" for part in ("estimand", "identification", "assumptions",
-                                                                 "diagnostics", "when")}
+                                                                 "diagnostics", "when", "internal", "external", "rank")}
+            expected.add(f"recommendation.status.{score.status}")
+    # every intent and element status of the question analysis
+    expected |= {f"qa.intent.{i}" for i in ("causal", "predictive", "descriptive", "ambiguous")}
+    expected |= {f"qa.status.{s}" for s in ("stated", "inferred", "uncertain", "unknown")}
     assert VirtualWorldConfig  # imported for the threat field names above
     missing = sorted(k for k in expected if k not in EN)
     assert not missing, missing

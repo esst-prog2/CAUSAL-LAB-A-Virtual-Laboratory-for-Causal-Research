@@ -79,6 +79,39 @@ def test_no_credible_design_is_said_and_explained():
     assert all(r.unmet for r in recs if not r.supported)
 
 
+SCHOLARSHIP = ("What is the causal effect of receiving a scholarship on university enrollment among students "
+               "whose entrance exam scores are near the scholarship eligibility cutoff?")
+
+
+def test_a_question_about_a_cutoff_is_not_answered_by_did():
+    # User report 2026-11-01: with the form left at its defaults (policy, panel), this
+    # question got DiD. Its estimand is the effect at the cutoff: the engine must ask how
+    # treatment is assigned, not answer another question.
+    design = ResearchDesignInput(research_question=SCHOLARSHIP)
+    diag = diagnose(design)
+    recs = recommend(design, diag)
+    assert diag.cutoff_in_question and recommended(recs) is None
+    assert recs[0].key == "rdd" and recs[0].status == NEEDS_INFO
+    assert all(r.status != SUPPORTED for r in recs)
+    assert any(m.key == "diagnosis.note.cutoff_language" for m in diag.notes)
+
+
+def test_the_scholarship_question_gets_a_regression_discontinuity():
+    design = ResearchDesignInput(research_question=SCHOLARSHIP, assignment_mechanism="threshold",
+                                 data_structure="cross_section", outcome_type="binary", **NO_PRE)
+    best = recommended(recommend(design, diagnose(design)))
+    assert best.key == "rdd" and best.status == SUPPORTED
+    assert not diagnose(design).notes or all(m.key != "diagnosis.note.cutoff_language"
+                                             for m in diagnose(design).notes)
+
+
+def test_an_eligibility_expansion_over_time_is_not_mistaken_for_a_cutoff():
+    design = ResearchDesignInput(research_question="Did the 2014 Medicaid eligibility expansion raise coverage?",
+                                 n_pre_periods=3)
+    assert not diagnose(design).cutoff_in_question
+    assert recommended(recommend(design, diagnose(design))).key in ("did", "event_study")
+
+
 def test_ruled_out_methods_are_never_ranked_above_supported_ones():
     options = itertools.product(["random", "policy", "geographic", "self_selected", "threshold"],
                                 ["cross_section", "panel", "time_series", "spatio_temporal_panel"],
@@ -92,11 +125,57 @@ def test_ruled_out_methods_are_never_ranked_above_supported_ones():
         recs = recommend(design, diagnose(design))
         statuses = [r.status for r in recs]
         assert statuses == sorted(statuses, key=[SUPPORTED, NEEDS_INFO, NOT_SUPPORTED].index)
-        assert all(r.overall == 0 and r.unmet for r in recs if r.status == NOT_SUPPORTED)
-        if mech == "random":
+        assert all(r.unmet for r in recs if r.status == NOT_SUPPORTED)
+        comparable = control and treated != "one"       # these designs compare treated with untreated units
+        if mech == "random" and comparable:
             assert recommended(recs).key == "rct"
-        if mech == "threshold":
+        if mech == "threshold" and comparable:
             assert recommended(recs).key == "rdd"
+        if not comparable:
+            assert all(r.status == NOT_SUPPORTED for r in recs if r.key in ("rct", "rdd", "iv", "matching"))
+
+
+def test_no_numerical_credibility_is_attached_to_a_method():
+    # The order is argued, not measured: nothing in the engine or on the page suggests a
+    # precision that has not been established empirically.
+    design = ResearchDesignInput(assignment_mechanism="policy", n_pre_periods=4, instrument="available",
+                                 confounders_observed="measured")
+    for method in recommend(design, diagnose(design)):
+        assert not any(hasattr(method, name) for name in ("overall", "components", "confidence"))
+    for lang in ("en", "fr"):
+        texts = json.loads((LOCALES / f"{lang}.json").read_text(encoding="utf-8"))
+        assert not [k for k in texts if k.startswith("rec.component.") or k in ("recommendation.score",
+                                                                                 "recommendation.score_axis")]
+        assert not any("/100" in texts[f"rec.{key}.{part}"] for key in METHOD_KEYS
+                       for part in ("internal", "external", "rank"))
+
+
+def test_the_argued_order_of_the_supported_methods():
+    def order(**fields):
+        design = ResearchDesignInput(**fields)
+        return [r.key for r in recommend(design, diagnose(design)) if r.supported]
+    many = order(assignment_mechanism="policy", n_pre_periods=4, instrument="available", confounders_observed="measured")
+    assert many == ["did", "event_study", "iv", "its", "matching"]
+    # One treated unit: the counterfactual is built explicitly and its fit can be inspected.
+    one = order(assignment_mechanism="policy", n_pre_periods=12, n_treated_units="one", instrument="none",
+                confounders_observed="measured")
+    assert one.index("synthetic_control") < one.index("did")
+    few = order(assignment_mechanism="policy", n_pre_periods=12, n_treated_units="few", instrument="none",
+                confounders_observed="measured")
+    assert few.index("synthetic_control") < few.index("did")
+    short = order(assignment_mechanism="policy", n_pre_periods=6, n_treated_units="few", instrument="none",
+                  confounders_observed="measured")
+    assert short.index("did") < short.index("synthetic_control")
+
+
+def test_a_question_alone_never_yields_a_method():
+    # The form at its defaults says nothing about the data: no DiD by default, whatever the question.
+    question = "What is the effect of the minimum wage on employment?"
+    design = ResearchDesignInput(research_question=question)
+    assert recommended(recommend(design, diagnose(design))) is None
+    # The researcher confirms that these answers do describe the study: the conditions then decide.
+    confirmed = ResearchDesignInput(research_question=question, answers_confirmed=True)
+    assert recommended(recommend(confirmed, diagnose(confirmed))).key == "did"
 
 
 def test_every_method_has_the_structured_answer_in_both_languages():
@@ -104,7 +183,8 @@ def test_every_method_has_the_structured_answer_in_both_languages():
         texts = json.loads((LOCALES / f"{lang}.json").read_text(encoding="utf-8"))
         for key in METHOD_KEYS:
             assert f"method.{key}" in texts, (lang, key)
-            for part in ("intro", "estimand", "identification", "assumptions", "diagnostics", "when", "assumption"):
+            for part in ("intro", "estimand", "identification", "assumptions", "diagnostics", "when", "assumption",
+                         "internal", "external", "rank"):
                 assert f"rec.{key}.{part}" in texts, (lang, key, part)
 
 

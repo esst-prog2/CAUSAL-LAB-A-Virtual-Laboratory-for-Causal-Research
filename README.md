@@ -2,7 +2,9 @@
 
 **Author:** Thierry Z. BARHAME · MSc Statistics and Data Analytics, ELTE · Live demo: https://causal-lab-a-virtual-laboratory-for-causal-research-busavtyebb.streamlit.app
 
-A small tool that lets someone with a panel dataset and a treatment date find out — with real numbers, not a guess — whether a difference-in-differences design is even appropriate for their data, and if so, run it correctly.
+A small tool that lets someone with a panel dataset and a treatment date find out — with real numbers, not a guess — whether a difference-in-differences design is even appropriate for their data, and if so, run it correctly. It has since grown: it reads the research question first and considers eight designs. How that relates to the original one-method brief (issue #1) is set out in [the scope note](docs/SCOPE_CLARIFICATION.md), and is **pending the professor's written confirmation**.
+
+**For the December defense:** [the guide](docs/defense/DEFENSE_GUIDE.md) and [an oral simulation](docs/defense/ORAL_DEFENSE.md).
 
 ## 1. The demo
 
@@ -20,16 +22,18 @@ In every world, the page records:
 
 **Decision rule: how much bias is too much.** The DiD is acceptable in a scenario when |bias| ≤ 10% of the true effect **and** its 95% interval covers the truth in at least 90% of the worlds. The author fixed this rule on 2026-10-30, after seeing the pre-trends results and before simulating the three other threats; the planning log records it. It answers the question raised in review issue #1.
 
+**What this rule is not.** It evaluates this DiD simulation study. It does not control the application, determine recommendations, validate the question analyser, establish the validity of a real-world estimate, or apply to the eight methods. It is relative to the true effect, so it does not apply at a zero effect, where absolute bias and the rejection rate judge instead. Its verdicts hold for this design: a 10% bias gives coverage of about 92% at 100 units and 83% at 400 (`spike/bias_coverage_check_results.md`).
+
 **2. One world each way (seed 42), as an illustration.** With parallel trends, the DiD gives −0.49, 95% CI [−0.66, −0.33], and the pre-trend test passes (p = 0.991). With severe divergence, it gives +1.11 [0.94, 1.27] and the test warns (p = 0.003).
 
 **3. The simulation study, as evidence.** There are 4 threats × 5 levels × 1,000 worlds. Following Morris, White & Crowther (2019), each statistic comes with its Monte Carlo SE. The study was computed by `spike/demo_study.py`, and every replication is stored with its seed in `causal_lab/data/demo_study/results.json`. Under the decision rule:
 
 | Threat | Acceptable up to | First level beyond the rule | Pre-trend test warns there |
 |---|---|---|---|
-| Diverging pre-trends | none | low: bias +0.236 (47% of the effect), coverage 30.4% | 14.2% |
-| Confounding | medium | high: bias +0.106 (21%), coverage 81.9% | 11.5% |
-| Staggered adoption, growing effects | high | severe: bias +0.094 (7%), coverage 86.8% | 10.3% |
-| Anticipation | medium | high: bias +0.056 (11%), coverage 91.2% | 43.3% |
+| Diverging pre-trends | none | low: bias +0.236 (47% of the effect), coverage 31.3% | 14.2% |
+| Confounding | medium | high: bias +0.106 (21%), coverage 82.3% | 11.5% |
+| Staggered adoption, growing effects | high | severe: bias +0.094 (7%), coverage 87.6% | 10.3% |
+| Anticipation | medium | high: bias +0.056 (11%), coverage 91.5% | 43.3% |
 
 Without any threat, the pre-trend test warns in 9.2% of the worlds, or 10.3% in the staggered design, whose baseline already has staggered adoption.
 
@@ -37,18 +41,18 @@ For diverging pre-trends, the levels in detail:
 
 | Diverging pre-trends | Bias | Coverage of the 95% CI | Significant, wrong sign | Pre-trend test warns | Coverage when the test does not warn |
 |---|---|---|---|---|---|
-| none | −0.004 (0.003) | 94.5% (0.7) | 0.0% | 9.2% | 95.3% (n = 908) |
-| low | +0.236 | 30.4% (1.5) | 0.0% | 14.2% | 30.9% (n = 858) |
-| medium | +0.556 | 0.0% | 8.3% | 40.0% | 0.0% (n = 600) |
+| none | −0.004 (0.003) | 94.9% (0.7) | 0.0% | 9.2% | 95.7% (n = 908) |
+| low | +0.236 | 31.3% (1.5) | 0.0% | 14.2% | 31.6% (n = 858) |
+| medium | +0.556 | 0.0% | 8.1% | 40.0% | 0.0% (n = 600) |
 | high | +0.956 | 0.0% | 99.6% | 84.2% | 0.0% (n = 158) |
 | severe | +1.596 | 0.0% | 100.0% | 99.9% | 0.0% (n = 1) |
 
 The study supports five findings:
-- **When nothing is wrong, the method works and its uncertainty is honest.** Coverage is at its nominal level (94.5%, MCSE 0.7), there is no detectable bias, and the empirical and the reported standard errors are both 0.097. The pre-trend test raises false alarms at 9.2%, close to its nominal 10%.
+- **When nothing is wrong, the method works and its uncertainty is honest.** Coverage is at its nominal level (94.9%, MCSE 0.7), there is no detectable bias, and the empirical and the reported standard errors are both 0.097. The pre-trend test raises false alarms at 9.2%, close to its nominal 10%.
 - **Diverging pre-trends are the most damaging threat.** Even the *low* level breaks the rule. At *high* and *severe*, the DiD reports a significant effect of the wrong sign in almost every world.
 - **Confounding is nearly invisible to the pre-trend test.** At *severe*, the bias is 47% of the effect, yet the test warns in only 14.6% of the worlds, barely above its 9.2% false-alarm rate.
-- **Staggered adoption with growing effects fails on coverage, not on bias.** At *severe*, the bias stays at 7% of the effect, but the coverage falls to 86.8%.
-- **Passing the test does not make the estimate trustworthy.** With *low* diverging pre-trends, 858 of the 1,000 worlds pass the test, yet only 30.9% of their intervals cover the truth. Estimating only after a passed pretest changes the estimator's distribution (Roth, 2022).
+- **Staggered adoption with growing effects fails on coverage, not on bias.** At *severe*, the bias stays at 7% of the effect, but the coverage falls to 87.6%.
+- **Passing the test does not make the estimate trustworthy.** With *low* diverging pre-trends, 858 of the 1,000 worlds pass the test, yet only 31.6% of their intervals cover the truth. Estimating only after a passed pretest changes the estimator's distribution (Roth, 2022).
 
 **4. Reproducibility, live.** A button re-runs the first 20, 50 or 100 worlds of any threat and level and checks them, value by value, against the stored ones. It says "identical". Each world takes about a second on the free online server (20 worlds by default) and much less on a laptop.
 
@@ -66,7 +70,7 @@ The study supports five findings:
 - **Theoretical Model:** solves a game, predicts the treatment effect, and compares the prediction with the causal estimate.
 - **Report:** exports the analysis with its references and a reproducibility section, as PDF, Word, LaTeX or Markdown.
 
-Every page is available in English and in French. The numbers above are those of the stored study: diverging pre-trends computed on 2026-10-29, the three other threats on 2026-10-30, all with seeds 20261029 + r.
+Every page is available in English and in French. The numbers above are those of the stored study: diverging pre-trends computed on 2026-10-29, the three other threats on 2026-10-30, all with seeds 20261029 + r. On 2026-11-07 the intervals were recomputed with Student t (99 degrees of freedom) from the stored estimates and standard errors, without re-simulating (`spike/demo_study_student_t.py`); coverage moved by up to 1.2 points, and no verdict changed.
 
 > **Earlier plan (the brief, kept as history).** I open the app in the browser and upload a CSV: one row per unit per time period, a treatment date, and an outcome column. It shows a plot of average outcomes for treated and untreated units over time, with the treatment date marked. Below it, a diagnosis panel says "Parallel trends: questionable — pre-trend slope difference is 0.34, p = 0.02" and "Recommended: difference-in-differences, but check anticipation effects first." I click "Run DiD" and it shows a coefficient, a standard error, and a two-way fixed-effects regression table. I click "Break this design" and it re-runs the same estimator on a version of the data where I know the true effect is zero, so I can see whether the method still finds a false effect.
 >
@@ -90,6 +94,78 @@ on screen     upload or generate → see the pre/post trend plot and the
               the true effect if the data was synthetic
 ```
 
+### From the question to a method
+
+The app helps a researcher choose and understand a causal design. **It does not establish causal identification**, and it does not replace careful research design: identification rests on assumptions about the world, which data can sometimes refute and never prove.
+
+1. **Enter a research question** on the Research Question page.
+2. **Its intent is read**: causal, predictive, descriptive or ambiguous.
+3. **Variables and design clues are identified**: treatment, outcome, population, comparison, estimand, assignment, data, confounding.
+4. **The app decides whether it must ask first**, and shows its follow-up questions.
+5. **A framework is recommended**, once the form is answered and the question is causal, or none is if no design's conditions hold.
+6. **The assumptions are explained**, with the identification strategy, internal and external validity, and why each competing method is less appropriate.
+7. **Diagnostics and limits follow**: Break My Design, the robustness battery, and where available a Monte Carlo on a world with a known effect.
+
+### The question analyser
+
+**Why it exists.** A form alone answers the wrong question. On 2026-11-01 a question about students near a scholarship cutoff received DiD, because the form said "policy" and "panel". The analyser reads what is asked before any method is considered. The author presents it as the project's principal contribution; see [the scope note](docs/SCOPE_CLARIFICATION.md), since this is **pending the professor's written confirmation**.
+
+**How it reads a question** (`causal_engine/question_reading.py`, `question_analysis.py`). It is local and deterministic: regular expressions in reusable families (verbs with their inflections, auxiliaries, connectors), in English and French. Each conclusion keeps the words that produced it, and no data leave the machine.
+
+| Intent | When | What happens |
+|---|---|---|
+| Causal | The wording asks what a change does: "does X reduce Y", "effect of X on Y", "is X a cause of Y", "what happens to Y when X", "would Y differ without X" | The structure is laid out |
+| Predictive | Explicit: "predict", "forecast" | No causal method; it says why |
+| Descriptive | Explicit: "how many", "what share", "did Y rise in 2020" | No causal method; it says why |
+| Ambiguous | An association, a comparison of groups, "why", or a wording it does not recognise | It abstains and asks |
+
+Only explicit wording makes a question non-causal: a failed pattern is not a finding about the question. Causal *intent* is not causal *identifiability*: a plainly causal question can still be unanswerable.
+
+**Uncertainty.** Each element is labelled **stated** (clear, quoted), **inferred** (reasoning given), **to confirm** (words extracted, role doubtful) or **unknown**. Doubtful readings are not quoted back as facts. A researcher can tick "My aim is to estimate a causal effect" when the wording misleads the analyser; this changes how the words are read, never the conditions a method must meet.
+
+**Thresholds.** A number is not a regression discontinuity. The analyser separates:
+- an assignment rule, explicit or implied ("eligibility at age 65", "students scoring above 70 receive tutoring"): a threshold assignment is inferred, and it asks whether the rule is sharp and can be manipulated;
+- a number of unclear role ("a BMI over 30"): nothing is inferred, and it asks;
+- an ordinary threshold ("a debt threshold above which growth falls"): nothing about assignment.
+
+**When it asks.** No method is recommended if the question is not causal, if the treatment or outcome cannot be identified, if a threshold's role is unclear, if the question contradicts the form, or if the form is untouched. Without that last rule, any question would get DiD from defaults nobody gave. A box confirms that the defaults do describe the study.
+
+**How well it works.** Evaluated once, on 56 published titles it was not developed on: see section 4. Pattern matching has limits: it reads wording and misses much of it.
+
+### From the command line
+
+```bash
+cd causal_lab
+python -c "
+from causal_engine.diagnosis import ResearchDesignInput, diagnose
+from causal_engine.recommendation import recommend, recommended
+d = ResearchDesignInput(research_question='Does Medicare eligibility at age 65 change health care use?',
+                        assignment_mechanism='threshold', data_structure='cross_section',
+                        has_pre_treatment_periods=False, n_pre_periods=0)
+diagnosis = diagnose(d)
+print(diagnosis.analysis.intent, diagnosis.analysis.threshold, recommended(recommend(d, diagnosis)).method)"
+# causal assignment Regression Discontinuity
+```
+
+### The eight methods in the recommendation
+
+Derived from `METHOD_KEYS` in `causal_engine/recommendation.py`. A method is considered only if its conditions hold. Those that do are put in an argued order, with **no numerical score**: the hand-set credibility numbers used until 2026-11-05 suggested a precision nobody had established. The order holds under the stated conditions and concerns internal validity. No method is superior in every research context.
+
+| Method | Needs | Rests on | Main threats and limits | Estimator here |
+|---|---|---|---|---|
+| Randomised trial | Random assignment | Randomisation carried out as described | Attrition, non-compliance, interference; external validity | Yes |
+| Regression discontinuity | A real assignment cutoff | Continuity at the cutoff, no precise manipulation | Local to the cutoff | Yes (sharp, fuzzy) |
+| Difference-in-differences | Treated and untreated, before and after | Parallel trends, untestable | Anticipation, spillovers, staggered timing with changing effects | Yes, with the full simulation study |
+| Event study | As DiD, with at least 2 pre-periods | Parallel trends | A passed pre-test does not establish them | Yes |
+| Synthetic control | One or a few treated units, donors, at least 5 pre-periods | Fit carries over to the post-period; no shock at the same date | A case study | Yes |
+| Instrumental variables | An instrument the researcher can defend | Relevance, exclusion (untestable), monotonicity | Weak instruments; an effect for compliers only | Yes |
+| Interrupted time series | A long series before and after | Trend continues; nothing else changes at that date | No comparison group | **No: advice only** |
+| Matching | All important confounders measured | Selection on observables, unverifiable | Hidden bias; common support | Yes |
+
+RCT, RDD, IV and matching also need comparison units and more than one treated unit.
+
+Double machine learning is also estimated on the Causal Methods page. It is not a separate design, so the recommendation does not list it.
+
 ## 3. The size
 
 **Delivered:**
@@ -100,7 +176,7 @@ on screen     upload or generate → see the pre/post trend plot and the
 - Run a heterogeneity-robust DiD for staggered adoption (Callaway & Sant'Anna 2021), with an event study and analytic small-sample SEs (since 2026-10-31; a unit bootstrap before), shown next to TWFE and the true effect. On staggered worlds with growing effects, TWFE has a bias of +0.21 and 38% CI coverage, while Callaway & Sant'Anna has a bias of +0.006 and 93% coverage (60 Monte Carlo worlds).
 - Run a two-way fixed-effects DiD estimator and report the coefficient, standard error, and p-value. It is validated against `linearmodels.PanelOLS`: identical coefficient and clustered standard errors within 2% (`tests/test_did_reference.py`).
 - Run an Event Study (leads-and-lags) estimator and plot dynamic, period-by-period treatment effects around the treatment date.
-- Score seven candidate causal-identification methods (RCT, DiD, Event Study, Synthetic Control, RDD, IV, Matching) against the declared research design with a transparent, explainable Method Suitability Score, and recommend the best fit — the app shows its work rather than picking silently.
+- Check eight candidate causal-identification methods (RCT, RDD, DiD, Event Study, Synthetic Control, IV, Interrupted Time Series, Matching) against the conditions each one needs, after reading the research question, and recommend a design or say that none is credible yet. No numerical score is attached (see section 2).
 - Generate ready-to-run Python, R, and Stata scripts that reproduce the DiD analysis.
 - Run in English or French, switchable from the sidebar at any time.
 - When run on synthetic data, show the estimate next to the true effect that was used to generate it, including a Monte Carlo mode that reports bias, RMSE, and confidence-interval coverage across many replications.
@@ -210,6 +286,7 @@ A person with a messy panel CSV and a treatment date can use this version alone:
 - Given a synthetic dataset built with deliberately diverging pre-trends (violated parallel trends), the diagnosis panel flags it as "questionable" or "violated," not "plausible."
 - Given any panel run through the event-study estimator, its coefficient for the period immediately before treatment (k = -1, the reference period) is exactly zero by construction.
 - Given a research design declared with random assignment, the method recommendation ranks Randomized Controlled Trial above every other candidate method.
+- Given a question that is explicitly predictive or descriptive, no causal method is recommended; given an ambiguous one, the app asks; given an untouched form, no method is recommended (`tests/test_question_reading.py`).
 - Given panel data where control units adjacent to a treated unit shift after treatment (Virtual World with spillovers), the "Break My Design" Spillovers check reports WARNING with the number of adjacent controls, the estimated shift and its p-value, and the overall Identification Strength score is below 100. Adjacency alone, without a shift, does not trigger it (8% false alarms on threat-free worlds, see section 5).
 - Given the same column names, the generated Python, R, and Stata scripts all fit the same two-way fixed-effects model with standard errors clustered on the same column.
 - Switching the sidebar language toggle from EN to FR redraws every page's text in French, including messages produced by the engines (stress-test details, rationales, warnings, errors, model texts), falling back to English for any translation key that's missing. Checked by `tests/test_i18n_coverage.py`: 720 keys on 2026-10-25, identical in EN and FR. A scripted French render audit of every page also found no untranslated text outside code blocks. Generated scripts, the per-method technical log (labelled "English"), references, and the user's own column names stay as they are.
@@ -249,6 +326,25 @@ What changed because of it:
   - A one-unit cohort, which occurs in 15% of these worlds, borrows the variance of the same combination of outcome changes among the never-treated units.
   - On 1,000 worlds: coverage 95.0% (0.7), size 5.0% (0.7). It is also about 40 times faster than the bootstrap, which remains as a fallback only.
   - The result still reports its smallest cohort and its degrees of freedom; below 5 units, the page and the report say why the interval is wide.
+
+### Evaluation of the question analyser
+
+Each version was evaluated once, on its own set of published articles whose title is a question, selected from OpenAlex by a fixed rule and frozen by hash before the run. Protocols and full reports, failures included: [first](docs/evaluation/REPORT.md), [second](docs/evaluation/v2/REPORT.md). Criteria for review: [CRITERIA](docs/evaluation/CRITERIA.md).
+
+| Criterion | Bar | Version 1, 56 titles | Version 2, 58 titles |
+|---|---|---|---|
+| Recall of causal questions | ≥ 0.70 | **0.64, fails** | **0.60, fails** |
+| Precision of causal readings | ≥ 0.85 | 0.95 | 0.95 |
+| Causal questions read as non-causal | ≤ 5% | 0 of 33 | 1 of 30 |
+| Abstention on ambiguous questions | ≥ 0.70 | 0.92 | 0.87 |
+| Recommendation from an untouched form | 0 | 0 | 0 |
+| Wrong method given the form | ≤ 5% | 0 of 40 | 0 of 32 |
+| Threshold false positives | ≤ 2 | 0 | 1 |
+
+- **It is cautious, and it does not understand.** Its errors are mostly abstentions: about a third of causal questions are read as ambiguous, largely because the list of verbs is closed. Version 2 fixed the wordings seen in development without raising recall on new titles, so this is a structural limit of pattern matching.
+- **The form does the work.** A title gave a design clue in 5 of 72 cases. The "no wrong method" line shows that wording does not disturb a correct form; it cannot show that the app finds a design.
+- **The code is version 2.1.** A later correction of assignment inference and of two wordings was not evaluated on a fresh set. On the second set, its intent readings are identical to version 2's ([addendum](docs/evaluation/v2/REPORT.md)).
+- **Limits.** Labels by a single rater who also wrote the analyser; **no second rating yet, so no kappa**. Bars proposed by the agent, not yet reviewed by the author. English titles of highly cited papers only: **French is not evaluated**. No implicit threshold in either set: **that behaviour is covered by development tests only**. No question written by a student yet.
 
 ## 5. What could stop this
 
@@ -374,6 +470,29 @@ What changed because of it:
 
   The clean-world score is now 92.2/100 (90.8 after the cluster convention was aligned, then 92.8 with the Parallel Trends bootstrap, both on 2026-10-25; see above). A severe threat lowers it to 56–76. The remaining false alarms are the expected cost of testing at the 10% level; the score is still a diagnostic heuristic, not a proof.
 
+### Statistical review of 2026-11-07
+
+Every estimator and diagnostic was reread and probed. Corrected, with tests in `tests/test_statistical_corrections.py`:
+
+- The DiD crashed on an empty outcome cell.
+- The event study's standard errors bypassed the DiD's correction: 0.402 against 0.284 on the same two-period model.
+- Callaway & Sant'Anna failed on non-consecutive periods, accepted a treatment that switches off (it now refuses), and left out always-treated units in silence (it now counts them).
+- The normal DiD interval covered 87.8% with 10 units. The interval is now Student t with G − 1 degrees of freedom (91.2%), and few clusters raise a warning, since with 4 treated units of 40 it still covers only about 85%.
+- A non-binary treatment and a treatment that switches off now raise warnings on the DiD.
+- A passed pre-trend test read "plausible". It now reads "not rejected", and says why.
+- **Identification Strength was replaced by a qualitative summary**, after being measured against the true bias: 91.7 at a bias of 21%, 91.5 with no threat, 72.5 at 320% (`docs/IDENTIFICATION_STRENGTH.md`). Older passages of this README that quote that score are the record of what was done then.
+- A DiD under self-selection now says why parallel trends are doubtful.
+
+A second review on new examples (`tests/test_independent_examples.py`) then found and corrected:
+
+- Assignment was inferred from words in the outcome: "labour force participation" read as self-selection, "tax compliance" as a tax policy. It is now read from the treatment.
+- An RCT, RDD, IV or matching was recommended with no comparison units, or with one treated unit. They now need both.
+- With no question and an untouched form, DiD was still recommended. Nothing is now.
+- Diagnosis flags fired on ordinary words: "income" as an outcome raised heterogeneity, "region" raised spillovers, "demand" raised endogeneity.
+- A causal aim, once ticked, survived a change of question; the Recommendation page did not say when the form had changed since the diagnosis; a pre-test that did not reject appeared in green as "plausible".
+
+Checked by hand and left as they are: DiD on a 2 x 2 table, RCT against the Neyman variance, IV against the Wald ratio, RDD on an exact jump, matching on exact matches, synthetic control on an exact combination. Rejection under a null effect was 5.0% for an RCT with 40 units, 3.5% for IV with 100 and 3.5% for RDD with 300 (400 runs each). The formulas of matching, IV, RDD, synthetic control and DML were also read against the code and their reference tests. Known simplifications that remain: the RDD manipulation check is a binomial comparison of counts, not a density test; the event study is TWFE, so under staggered adoption the page points to Callaway & Sant'Anna.
+
 ## 6. Running it
 
 ```bash
@@ -390,6 +509,7 @@ streamlit run app.py             # opens http://localhost:8501
 - **Address:** https://causal-lab-a-virtual-laboratory-for-causal-research-busavtyebb.streamlit.app (deployed on 2026-10-28). It is deployed from the fork `thierryzbarhame/CAUSAL-LAB-A-Virtual-Laboratory-for-Causal-Research`, kept in sync with this repository (`gh repo sync thierryzbarhame/CAUSAL-LAB-A-Virtual-Laboratory-for-Causal-Research`).
 - **Why a fork:** the `esst-prog2` organization restricts OAuth App access, so Community Cloud may not read its repositories until an organization owner approves Streamlit.
 - **Checked online:** a browser crawl of every page in EN and FR found no console error, no exception and no cut label. The only requests to other hosts are Streamlit's own usage statistics (`data.streamlit.io`), which Community Cloud enables whatever the config says; the online Settings page says so.
+- **After a merge:** see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for the reboot and a checklist.
 - **Deploying:** at share.streamlit.io, sign in with GitHub and create an app with:
   - repository `esst-prog2/CAUSAL-LAB-A-Virtual-Laboratory-for-Causal-Research`;
   - branch `main`;

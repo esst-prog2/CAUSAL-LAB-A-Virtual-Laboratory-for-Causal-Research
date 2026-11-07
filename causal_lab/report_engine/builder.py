@@ -13,6 +13,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime
 
+from causal_engine.question_analysis import ELEMENTS
 from causal_engine.recommendation import NEEDS_INFO, recommended
 from code_generator.generator import CodeGenParams, generate_all
 from estimators.did import estimate_did
@@ -39,6 +40,8 @@ DESIGN_FIELDS = (            # (wizard label key, ResearchDesignInput field, opt
     ("wizard.n_treated", "n_treated_units", True),
     ("wizard.instrument", "instrument", True),
     ("wizard.confounders", "confounders_observed", True),
+    ("qa.confirm_causal", "causal_confirmed", False),
+    ("wizard.answers_confirmed", "answers_confirmed", False),
 )
 THREATS = ("confounding", "spillovers", "serial_correlation", "treatment_heterogeneity",
            "differential_trend", "anticipation", "dynamic_effects")
@@ -122,26 +125,36 @@ def build_report(state, lang: str, now: datetime | None = None) -> Report:
                   [[L(f"diagnosis.dim.{slug}"), L(f"level.{level.value}")] for slug, level in diagnosis.as_rows()]))
         for note in diagnosis.notes:
             add(Paragraph(R(note)))
+    analysis = diagnosis.analysis if diagnosis is not None else None
+    if analysis is not None:
+        add(Heading(L("qa.title"), 2))
+        add(Paragraph(" ".join(R(m) for m in analysis.intent_messages())))
+        add(Table([L("qa.col.element"), L("qa.col.status"), L("qa.col.analysis")],
+                  [[L(f"qa.element.{name}"), L(f"qa.status.{analysis.elements[name].status}"),
+                    R(analysis.elements[name].text) if analysis.elements[name].text else L("qa.unknown")]
+                   for name in ELEMENTS]))
+        for reason in analysis.blocking:
+            add(Paragraph(R(reason), emphasis=True))
+        for i, question in enumerate(analysis.follow_up, start=1):
+            add(Paragraph(f"{L('qa.follow_up')} {i}{colon}{R(question)}"))
     if recs:
         best = recommended(recs)
         add(Heading(L("recommendation.title"), 2))
         if best is None:
-            add(Paragraph(L("recommendation.none_title"), emphasis=True))
-            add(Paragraph(L("recommendation.none_body")))
+            asking = any(r.status == NEEDS_INFO for r in recs)
+            add(Paragraph(L("recommendation.ask_title" if asking else "recommendation.none_title"), emphasis=True))
+            add(Paragraph(L("recommendation.ask_body" if asking else "recommendation.none_body")))
         else:
-            add(Paragraph(f"{L('recommendation.recommended')}{colon}{L(f'method.{best.key}')} "
-                          f"({L('recommendation.confidence')}{colon}{L(f'level.{best.confidence}')})"))
+            add(Paragraph(f"{L('recommendation.recommended')}{colon}{L(f'method.{best.key}')}"))
             add(Paragraph(f"{L('recommendation.estimand')}{colon}{L(f'rec.{best.key}.estimand')}"))
             for note in best.rationale:
                 add(Paragraph("— " + R(note)))
-            for part in ("identification", "assumptions", "diagnostics"):
+            for part in ("identification", "assumptions", "diagnostics", "internal", "external"):
                 add(Paragraph(f"{L(f'recommendation.{part}')}{colon}{L(f'rec.{best.key}.{part}')}"))
-        add(Table([L("report.col.method"), L("recommendation.score"), L("recommendation.confidence")],
-                  [[L(f"method.{r.key}"),
-                    f"{r.overall:.0f}/100" if r.supported else " ".join(R(m) for m in r.unmet),
-                    L(f"level.{r.confidence}") if r.supported else
-                    (L("recommendation.needs_info") if r.status == NEEDS_INFO else "—")] for r in recs]))
-        add(Paragraph(L("recommendation.score_note"), emphasis=True))
+        add(Table([L("report.col.method"), L("recommendation.col.status"), L("recommendation.col.argument")],
+                  [[L(f"method.{r.key}"), L(f"recommendation.status.{r.status}"),
+                    L(f"rec.{r.key}.rank") if r.supported else " ".join(R(m) for m in r.unmet)] for r in recs]))
+        add(Paragraph(L("recommendation.order_note"), emphasis=True))
 
     # 3. Data
     df = session_data.active_data(state)
@@ -189,6 +202,8 @@ def build_report(state, lang: str, now: datetime | None = None) -> Report:
                          [L("common.bias"), f"{did.att - truth['true_att']:+.4f}"]]
             add(Heading(L("method.did"), 2))
             add(Table([L("report.col.item"), L("report.col.value")], rows))
+            for warning in did.warnings:
+                add(Paragraph(R(warning), emphasis=True))
             references(*METHOD_REFERENCES["did"])
             if staggered:
                 add(Paragraph(L("estimation.staggered_warning"), emphasis=True))
@@ -214,6 +229,8 @@ def build_report(state, lang: str, now: datetime | None = None) -> Report:
                           + ([[L("common.true_att"), _num(truth["true_att"]), ""]] if truth is not None else [])))
                 add(Paragraph(F("staggered.details", cohorts=cs.n_cohorts, units=cs.n_units,
                                 comparison=L(f"staggered.comparison.{cs.comparison}"))))
+                if cs.n_always_treated:
+                    add(Paragraph(F("staggered.always_treated", n=cs.n_always_treated)))
                 if cs.min_cohort_size < SMALL_COHORT:
                     add(Paragraph(F("staggered.small_cohorts", n=cs.min_cohort_size, minimum=SMALL_COHORT, df=cs.df),
                                   emphasis=True))
@@ -225,12 +242,8 @@ def build_report(state, lang: str, now: datetime | None = None) -> Report:
         add(Heading(L("break.title")))
         add(Table([L("report.col.check"), L("report.col.verdict"), L("report.col.detail")],
                   [[L(f"check.{c.slug}"), L(f"verdict.{c.verdict}"), R(c.message)] for c in stress.checks]))
-        if stress.identification_strength is None:
-            add(Paragraph(L("break.no_score")))
-        else:
-            add(Paragraph(f"{L('break.strength')}{colon}{stress.identification_strength:.0f} / 100 — "
-                          + F("break.score_basis", k=stress.n_computable, n=len(stress.checks))))
-        add(Paragraph(L("break.disclaimer"), emphasis=True))
+        add(Paragraph(f"{L('break.summary_title')}{colon}{L(f'break.summary.{stress.summary}')} "
+                      + F("break.summary_basis", k=stress.n_computable, n=len(stress.checks))))
         references(*METHOD_REFERENCES["stress_test"])
 
         battery = run_robustness_battery(df, treatment_period=treatment_period,

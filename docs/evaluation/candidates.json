@@ -1,0 +1,3085 @@
+{
+ "did": [
+  {
+   "openalex": "https://openalex.org/W4283387379",
+   "doi": "https://doi.org/10.1016/j.jfineco.2022.01.004",
+   "title": "How much should we trust staggered difference-in-differences estimates?",
+   "year": 2022,
+   "cited_by": 3268,
+   "authors": [
+    "Andrew C. Baker",
+    "David F. Larcker",
+    "Charles C. Y. Wang"
+   ],
+   "journal": "Journal of Financial Economics"
+  },
+  {
+   "openalex": "https://openalex.org/W3153219724",
+   "doi": "https://doi.org/10.2308/tar-2019-0506",
+   "title": "Why is Corporate Virtue in the Eye of The Beholder? The Case of ESG Ratings",
+   "year": 2021,
+   "cited_by": 1649,
+   "authors": [
+    "Dane M. Christensen",
+    "George Serafeim",
+    "Anywhere Sikochi"
+   ],
+   "journal": "The Accounting Review"
+  },
+  {
+   "openalex": "https://openalex.org/W2757815757",
+   "doi": "https://doi.org/10.1111/jofi.12187",
+   "title": "Does Stock Liquidity Enhance or Impede Firm Innovation?",
+   "year": 2014,
+   "cited_by": 1304,
+   "authors": [
+    "Vivian W. Fang",
+    "Xuan Tian",
+    "Sheri Tice"
+   ],
+   "journal": "The Journal of Finance"
+  },
+  {
+   "openalex": "https://openalex.org/W1945571368",
+   "doi": "https://doi.org/10.1002/smj.2307",
+   "title": "Does product market competition foster corporate social responsibility? Evidence from trade liberalization",
+   "year": 2014,
+   "cited_by": 797,
+   "authors": [
+    "Caroline Flammer"
+   ],
+   "journal": "Strategic Management Journal"
+  },
+  {
+   "openalex": "https://openalex.org/W3125262165",
+   "doi": "https://doi.org/10.1111/j.1542-4774.2010.tb00544.x",
+   "title": "How Important Is Selection? Experimental vs. Non-Experimental Measures of the Income Gains from Migration",
+   "year": 2010,
+   "cited_by": 552,
+   "authors": [
+    "David John McKenzie",
+    "Steven Stillman",
+    "John K. Gibson"
+   ],
+   "journal": "Journal of the European Economic Association"
+  },
+  {
+   "openalex": "https://openalex.org/W2121776806",
+   "doi": "https://doi.org/10.1002/hec.1501",
+   "title": "The New Cooperative Medical Scheme in rural China: does more coverage mean more service and better health?",
+   "year": 2009,
+   "cited_by": 478,
+   "authors": [
+    "Xiaoyan Lei",
+    "Wanchuan Lin"
+   ],
+   "journal": "Health Economics"
+  },
+  {
+   "openalex": "https://openalex.org/W3122293987",
+   "doi": "https://doi.org/10.1257/aer.20130570",
+   "title": "Do Higher Corporate Taxes Reduce Wages? Micro Evidence from Germany",
+   "year": 2017,
+   "cited_by": 420,
+   "authors": [
+    "Clemens Fuest",
+    "Andreas Peichl",
+    "Sebastian Siegloch"
+   ],
+   "journal": "American Economic Review"
+  },
+  {
+   "openalex": "https://openalex.org/W4213219850",
+   "doi": "https://doi.org/10.1002/bse.2975",
+   "title": "The emerging driving force of inclusive green growth: Does digital economy agglomeration work?",
+   "year": 2022,
+   "cited_by": 382,
+   "authors": [
+    "Shuming Ren",
+    "Lianqing Li",
+    "Yueqi Han"
+   ],
+   "journal": "Business Strategy and the Environment"
+  },
+  {
+   "openalex": "https://openalex.org/W3023399778",
+   "doi": "https://doi.org/10.1162/rest.91.4.682",
+   "title": "Does Pollution Increase School Absences?",
+   "year": 2009,
+   "cited_by": 341,
+   "authors": [
+    "Janet Currie",
+    "Eric Alan Hanushek",
+    "E. Megan Kahn"
+   ],
+   "journal": "The Review of Economics and Statistics"
+  },
+  {
+   "openalex": "https://openalex.org/W3015838809",
+   "doi": "https://doi.org/10.1111/ajps.12514",
+   "title": "To Repress or to Co‐opt? Authoritarian Control in the Age of Digital Surveillance",
+   "year": 2020,
+   "cited_by": 318,
+   "authors": [
+    "Xu Xu"
+   ],
+   "journal": "American Journal of Political Science"
+  },
+  {
+   "openalex": "https://openalex.org/W2342890373",
+   "doi": "https://doi.org/10.1086/701354",
+   "title": "Who Wants Affordable Housing in Their Backyard? An Equilibrium Analysis of Low-Income Property Development",
+   "year": 2016,
+   "cited_by": 295,
+   "authors": [
+    "Rebecca Diamond",
+    "Timothy J. McQuade"
+   ],
+   "journal": "Journal of Political Economy"
+  },
+  {
+   "openalex": "https://openalex.org/W2098222681",
+   "doi": "https://doi.org/10.3368/le.88.2.382",
+   "title": "Do Payments for Environmental Services Affect Forest Cover? A Farm-Level Evaluation from Costa Rica",
+   "year": 2012,
+   "cited_by": 289,
+   "authors": [
+    "Rodrigo Arriagada",
+    "Paul J. Ferraro",
+    "Erin O. Sills"
+   ],
+   "journal": "Land Economics"
+  },
+  {
+   "openalex": "https://openalex.org/W2603451829",
+   "doi": "https://doi.org/10.1111/1475-679x.12151",
+   "title": "Do PCAOB Inspections Improve the Quality of Internal Control Audits?",
+   "year": 2016,
+   "cited_by": 277,
+   "authors": [
+    "Mark L. DeFond",
+    "Clive S. Lennox"
+   ],
+   "journal": "Journal of Accounting Research"
+  },
+  {
+   "openalex": "https://openalex.org/W1859325443",
+   "doi": "https://doi.org/10.3368/le.89.4.577",
+   "title": "Forgetting the Flood? An Analysis of the Flood Risk Discount over Time",
+   "year": 2013,
+   "cited_by": 274,
+   "authors": [
+    "Ajita Atreya",
+    "Susana Ferreira",
+    "Warren Kriesel"
+   ],
+   "journal": "Land Economics"
+  },
+  {
+   "openalex": "https://openalex.org/W3123310207",
+   "doi": "https://doi.org/10.2139/ssrn.2428541",
+   "title": "Are Female CFOs Less Tax Aggressive? Evidence from Tax Aggressiveness",
+   "year": 2014,
+   "cited_by": 273,
+   "authors": [
+    "Bill B. Francis",
+    "Iftekhar Hasan",
+    "Qiang Wu"
+   ],
+   "journal": "Journal of the American Taxation Association"
+  },
+  {
+   "openalex": "https://openalex.org/W2600660569",
+   "doi": "https://doi.org/10.1287/mnsc.2015.2369",
+   "title": "Does Lean Improve Labor Standards? Management and Social Performance in the Nike Supply Chain",
+   "year": 2016,
+   "cited_by": 242,
+   "authors": [
+    "Greg Distelhorst",
+    "Jens Hainmueller",
+    "Richard M. Locke"
+   ],
+   "journal": "Management Science"
+  },
+  {
+   "openalex": "https://openalex.org/W2977429097",
+   "doi": "https://doi.org/10.2139/ssrn.2970311",
+   "title": "Does Litigation Deter or Encourage Real Earnings Management?",
+   "year": 2017,
+   "cited_by": 236,
+   "authors": [
+    "Sterling Zhenrui Huang",
+    "Sugata Roychowdhury",
+    "Ewa Sletten"
+   ],
+   "journal": "The Accounting Review"
+  },
+  {
+   "openalex": "https://openalex.org/W2951812779",
+   "doi": "https://doi.org/10.1016/j.jeem.2019.05.005",
+   "title": "Does subway expansion improve air quality?",
+   "year": 2019,
+   "cited_by": 233,
+   "authors": [
+    "Shanjun Li",
+    "Yanyan Liu",
+    "Avralt-Od Purevjav"
+   ],
+   "journal": "Journal of Environmental Economics and Management"
+  },
+  {
+   "openalex": "https://openalex.org/W2154115533",
+   "doi": "https://doi.org/10.2308/accr-50871",
+   "title": "Does Internal Audit Function Quality Deter Management Misconduct?",
+   "year": 2014,
+   "cited_by": 222,
+   "authors": [
+    "Matthew S. Ege"
+   ],
+   "journal": "The Accounting Review"
+  },
+  {
+   "openalex": "https://openalex.org/W4220957332",
+   "doi": "https://doi.org/10.1016/j.respol.2022.104516",
+   "title": "Does Green Public Procurement Trigger Environmental Innovations?",
+   "year": 2021,
+   "cited_by": 210,
+   "authors": [
+    "Bastian Krieger",
+    "Vera Zipperer"
+   ],
+   "journal": "Research Policy"
+  },
+  {
+   "openalex": "https://openalex.org/W4284880165",
+   "doi": "https://doi.org/10.1016/j.jik.2022.100219",
+   "title": "Does the bank’s FinTech innovation reduce its risk-taking? Evidence from China’s banking industry",
+   "year": 2022,
+   "cited_by": 209,
+   "authors": [
+    "Chengming Li",
+    "Si He",
+    "Yuan Tian"
+   ],
+   "journal": "Journal of Innovation & Knowledge"
+  },
+  {
+   "openalex": "https://openalex.org/W3044280356",
+   "doi": "https://doi.org/10.1080/1540496x.2020.1789455",
+   "title": "How Do Firms Respond to COVID-19? First Evidence from Suzhou, China",
+   "year": 2020,
+   "cited_by": 208,
+   "authors": [
+    "Xin Gu",
+    "Shan Ying",
+    "Weiqiang Zhang"
+   ],
+   "journal": "Emerging Markets Finance and Trade"
+  },
+  {
+   "openalex": "https://openalex.org/W3158887818",
+   "doi": "https://doi.org/10.1021/acs.est.1c00248",
+   "title": "Has Carbon Emissions Trading Reduced PM 2.5 in China?",
+   "year": 2021,
+   "cited_by": 207,
+   "authors": [
+    "Jing‐Yue Liu",
+    "Richard T. Woodward",
+    "Yue‐Jun Zhang"
+   ],
+   "journal": "Environmental Science & Technology"
+  },
+  {
+   "openalex": "https://openalex.org/W2923906984",
+   "doi": "https://doi.org/10.5547/01956574.40.4.ssha",
+   "title": "Can China’s Energy Intensity Constraint Policy Promote Total Factor Energy Efficiency? Evidence from the Industrial Sector",
+   "year": 2019,
+   "cited_by": 200,
+   "authors": [
+    "Shuai Shao",
+    "Zhenbing Yang",
+    "Lili Yang"
+   ],
+   "journal": "The Energy Journal"
+  },
+  {
+   "openalex": "https://openalex.org/W2051113535",
+   "doi": "https://doi.org/10.1136/bmj.b3047",
+   "title": "Has payment by results affected the way that English hospitals provide care? Difference-in-differences analysis",
+   "year": 2009,
+   "cited_by": 200,
+   "authors": [
+    "Sharon Farrar",
+    "Deokhee Yi",
+    "Matt Sutton"
+   ],
+   "journal": "BMJ"
+  }
+ ],
+ "rdd": [
+  {
+   "openalex": "https://openalex.org/W3121797308",
+   "doi": "https://doi.org/10.1111/j.1540-6261.2008.01391.x",
+   "title": "How Does Financing Impact Investment? The Role of Debt Covenants",
+   "year": 2008,
+   "cited_by": 1964,
+   "authors": [
+    "Sudheer Chava",
+    "Michael R. Roberts"
+   ],
+   "journal": "The Journal of Finance"
+  },
+  {
+   "openalex": "https://openalex.org/W3124971833",
+   "doi": "https://doi.org/10.1093/rfs/hhr096",
+   "title": "How Does Venture Capital Financing Improve Efficiency in Private Firms? A Look Beneath the Surface",
+   "year": 2011,
+   "cited_by": 579,
+   "authors": [
+    "Thomas J. Chemmanur",
+    "Karthik Krishnan",
+    "Debarshi K. Nandy"
+   ],
+   "journal": "Review of Financial Studies"
+  },
+  {
+   "openalex": "https://openalex.org/W2126034896",
+   "doi": "https://doi.org/10.1162/qjec.2008.123.3.951",
+   "title": "Does Hazardous Waste Matter? Evidence from the Housing Market and the Superfund Program *",
+   "year": 2008,
+   "cited_by": 430,
+   "authors": [
+    "Michael Greenstone",
+    "Justin F. Gallagher"
+   ],
+   "journal": "The Quarterly Journal of Economics"
+  },
+  {
+   "openalex": "https://openalex.org/W2135146089",
+   "doi": "https://doi.org/10.1162/qjec.2009.124.1.399",
+   "title": "Do Political Parties Matter? Evidence from U.S. Cities*",
+   "year": 2009,
+   "cited_by": 413,
+   "authors": [
+    "Fernando V. Ferreira",
+    "Joseph Gyourko"
+   ],
+   "journal": "The Quarterly Journal of Economics"
+  },
+  {
+   "openalex": "https://openalex.org/W3122341345",
+   "doi": "https://doi.org/10.1287/mnsc.2015.2414",
+   "title": "Do Unions Affect Innovation?",
+   "year": 2016,
+   "cited_by": 409,
+   "authors": [
+    "Daniel Bradley",
+    "Incheol Kim",
+    "Xuan Tian"
+   ],
+   "journal": "Management Science"
+  },
+  {
+   "openalex": "https://openalex.org/W3023192715",
+   "doi": "https://doi.org/10.1257/pol.6.4.100",
+   "title": "Are Incentives for R&D Effective? Evidence from a Regression Discontinuity Approach",
+   "year": 2014,
+   "cited_by": 395,
+   "authors": [
+    "Raffaello Bronzini",
+    "Eleonora Iachini"
+   ],
+   "journal": "American Economic Journal Economic Policy"
+  },
+  {
+   "openalex": "https://openalex.org/W3121149816",
+   "doi": "https://doi.org/10.1162/jeea.2008.6.5.1037",
+   "title": "Do Parties Matter for Economic Outcomes? A Regression-Discontinuity Approach",
+   "year": 2008,
+   "cited_by": 371,
+   "authors": [
+    "Per Pettersson‐Lidbom"
+   ],
+   "journal": "Journal of the European Economic Association"
+  },
+  {
+   "openalex": "https://openalex.org/W3121505074",
+   "doi": "https://doi.org/10.1111/jeea.12002",
+   "title": "DO BETTER PAID POLITICIANS PERFORM BETTER? DISENTANGLING INCENTIVES FROM SELECTION",
+   "year": 2013,
+   "cited_by": 344,
+   "authors": [
+    "Stefano Gagliarducci",
+    "Tommaso Nannicini"
+   ],
+   "journal": "Journal of the European Economic Association"
+  },
+  {
+   "openalex": "https://openalex.org/W3123529734",
+   "doi": "https://doi.org/10.1017/s0022109018000029",
+   "title": "Do Antitakeover Provisions Spur Corporate Innovation? A Regression Discontinuity Analysis",
+   "year": 2018,
+   "cited_by": 339,
+   "authors": [
+    "Thomas J. Chemmanur",
+    "Xuan Tian"
+   ],
+   "journal": "Journal of Financial and Quantitative Analysis"
+  },
+  {
+   "openalex": "https://openalex.org/W2113982033",
+   "doi": "https://doi.org/10.1017/s0003055409990190",
+   "title": "MPs for Sale? Returns to Office in Postwar British Politics",
+   "year": 2009,
+   "cited_by": 316,
+   "authors": [
+    "Andrew C. Eggers",
+    "Jens Hainmueller"
+   ],
+   "journal": "American Political Science Review"
+  },
+  {
+   "openalex": "https://openalex.org/W2145527989",
+   "doi": "https://doi.org/10.1162/rest_a_00098",
+   "title": "Help or Hindrance? The Effects of College Remediation on Academic and Labor Market Outcomes",
+   "year": 2010,
+   "cited_by": 298,
+   "authors": [
+    "Paco Martorell",
+    "Isaac McFarlin"
+   ],
+   "journal": "The Review of Economics and Statistics"
+  },
+  {
+   "openalex": "https://openalex.org/W1494950661",
+   "doi": "https://doi.org/10.1257/aer.99.2.184",
+   "title": "Winter Heating or Clean Air? Unintended Impacts of China's Huai River Policy",
+   "year": 2009,
+   "cited_by": 292,
+   "authors": [
+    "Douglas Vincent Almond",
+    "Yuyu Chen",
+    "Michael Greenstone"
+   ],
+   "journal": "American Economic Review"
+  },
+  {
+   "openalex": "https://openalex.org/W3138555112",
+   "doi": "https://doi.org/10.1257/aeri.20200373",
+   "title": "Can Technology Solve the Principal-Agent Problem? Evidence from Chinaâ's War on Air Pollution",
+   "year": 2020,
+   "cited_by": 288,
+   "authors": [
+    "Michael Greenstone",
+    "Guojun He",
+    "Ruixue Jia"
+   ],
+   "journal": "American Economic Review Insights"
+  },
+  {
+   "openalex": "https://openalex.org/W3124965863",
+   "doi": "https://doi.org/10.1093/rfs/hhu087",
+   "title": "Does Financing Spur Small Business Productivity? Evidence from a Natural Experiment",
+   "year": 2014,
+   "cited_by": 267,
+   "authors": [
+    "Karthik Krishnan",
+    "Debarshi K. Nandy",
+    "Manju Puri"
+   ],
+   "journal": "Review of Financial Studies"
+  },
+  {
+   "openalex": "https://openalex.org/W3123077723",
+   "doi": "https://doi.org/10.1257/aer.20150528",
+   "title": "Does Extending Unemployment Benefits Improve Job Quality?",
+   "year": 2017,
+   "cited_by": 259,
+   "authors": [
+    "Arash Nekoei",
+    "Andrea Michaela Weber"
+   ],
+   "journal": "American Economic Review"
+  },
+  {
+   "openalex": "https://openalex.org/W2064275282",
+   "doi": "https://doi.org/10.1086/648666",
+   "title": "Preschoolers Enrolled and Mothers at Work? The Effects of Universal Prekindergarten",
+   "year": 2010,
+   "cited_by": 249,
+   "authors": [
+    "Maria Fitzpatrick"
+   ],
+   "journal": "Journal of Labor Economics"
+  },
+  {
+   "openalex": "https://openalex.org/W1540878127",
+   "doi": "https://doi.org/10.1111/jofi.12435",
+   "title": "Do Creditor Rights Increase Employment Risk? Evidence from Loan Covenants",
+   "year": 2016,
+   "cited_by": 243,
+   "authors": [
+    "Antonio Falato",
+    "Nellie Liang"
+   ],
+   "journal": "The Journal of Finance"
+  },
+  {
+   "openalex": "https://openalex.org/W2971874865",
+   "doi": "https://doi.org/10.1080/00343404.2019.1665174",
+   "title": "One or many Cohesion Policies of the European Union? On the differential economic impacts of Cohesion Policy across member states",
+   "year": 2019,
+   "cited_by": 234,
+   "authors": [
+    "Riccardo Crescenzi",
+    "Mara Giua"
+   ],
+   "journal": "Regional Studies"
+  },
+  {
+   "openalex": "https://openalex.org/W2122383336",
+   "doi": "https://doi.org/10.1353/jhr.2009.0021",
+   "title": "Do School Lunches Contribute to Childhood Obesity?",
+   "year": 2009,
+   "cited_by": 228,
+   "authors": [
+    "Diane Whitmore Schanzenbach"
+   ],
+   "journal": "The Journal of Human Resources"
+  },
+  {
+   "openalex": "https://openalex.org/W2138174666",
+   "doi": "https://doi.org/10.1017/s0003055414000641",
+   "title": "What Happens When Extremists Win Primaries?",
+   "year": 2015,
+   "cited_by": 227,
+   "authors": [
+    "Andrew B. Hall"
+   ],
+   "journal": "American Political Science Review"
+  },
+  {
+   "openalex": "https://openalex.org/W3122933656",
+   "doi": "https://doi.org/10.1086/706201",
+   "title": "Do Payday Loans Cause Bankruptcy?",
+   "year": 2019,
+   "cited_by": 224,
+   "authors": [
+    "Paige Marta Skiba",
+    "Jeremy Tobacman"
+   ],
+   "journal": "The Journal of Law and Economics"
+  },
+  {
+   "openalex": "https://openalex.org/W2765091483",
+   "doi": "https://doi.org/10.3102/0162373717715708",
+   "title": "Does Remediation Work for All Students? How the Effects of Postsecondary Remedial and Developmental Courses Vary by Level of Academic Preparation",
+   "year": 2017,
+   "cited_by": 214,
+   "authors": [
+    "Angela Boatman",
+    "Bridget Terry Long"
+   ],
+   "journal": "Educational Evaluation and Policy Analysis"
+  },
+  {
+   "openalex": "https://openalex.org/W2052160362",
+   "doi": "https://doi.org/10.1080/01621459.2015.1012259",
+   "title": "Wanna Get Away? Regression Discontinuity Estimation of Exam School Effects Away From the Cutoff",
+   "year": 2015,
+   "cited_by": 211,
+   "authors": [
+    "Joshua D. Angrist",
+    "Miikka Rokkanen"
+   ],
+   "journal": "Journal of the American Statistical Association"
+  },
+  {
+   "openalex": "https://openalex.org/W2781639784",
+   "doi": "https://doi.org/10.1257/app.20160278",
+   "title": "For Better or for Worse?: Education and the Prevalence of Domestic Violence in Turkey",
+   "year": 2018,
+   "cited_by": 208,
+   "authors": [
+    "Bilge Erten",
+    "Pinar Keskin"
+   ],
+   "journal": "American Economic Journal Applied Economics"
+  },
+  {
+   "openalex": "https://openalex.org/W3124043582",
+   "doi": "https://doi.org/10.1093/qje/qjx027",
+   "title": "Do Banks Pass through Credit Expansions to Consumers Who want to Borrow?*",
+   "year": 2017,
+   "cited_by": 192,
+   "authors": [
+    "Sumit D. Agarwal",
+    "Souphala Chomsisengphet B",
+    "Neale Mahoney"
+   ],
+   "journal": "The Quarterly Journal of Economics"
+  }
+ ],
+ "iv": [
+  {
+   "openalex": "https://openalex.org/W2011474190",
+   "doi": "https://doi.org/10.1257/aer.89.3.379",
+   "title": "Does Trade Cause Growth?",
+   "year": 1999,
+   "cited_by": 5562,
+   "authors": [
+    "Jeffrey A. Frankel",
+    "David Romer"
+   ],
+   "journal": "American Economic Review"
+  },
+  {
+   "openalex": "https://openalex.org/W2890314743",
+   "doi": "https://doi.org/10.1023/b:joeg.0000038933.16398.ed",
+   "title": "Do Institutions Cause Growth?",
+   "year": 2004,
+   "cited_by": 3881,
+   "authors": [
+    "Edward L. Glaeser",
+    "Rafael La Porta",
+    "Florencio López‐de‐Silanes"
+   ],
+   "journal": "Journal of Economic Growth"
+  },
+  {
+   "openalex": "https://openalex.org/W1989535774",
+   "doi": "https://doi.org/10.2307/2937954",
+   "title": "Does Compulsory School Attendance Affect Schooling and Earnings?",
+   "year": 1991,
+   "cited_by": 2525,
+   "authors": [
+    "Joshua D. Angrist",
+    "Alan B. Krueger"
+   ],
+   "journal": "The Quarterly Journal of Economics"
+  },
+  {
+   "openalex": "https://openalex.org/W2063914592",
+   "doi": "https://doi.org/10.1111/1468-0297.00293",
+   "title": "Openness, Productivity and Growth: What Do We Really Know?",
+   "year": 1997,
+   "cited_by": 2372,
+   "authors": [
+    "Sebastián Edwards"
+   ],
+   "journal": "The Economic Journal"
+  },
+  {
+   "openalex": "https://openalex.org/W2896568111",
+   "doi": "https://doi.org/10.1086/427462",
+   "title": "Does Air Quality Matter? Evidence from the Housing Market",
+   "year": 2005,
+   "cited_by": 1080,
+   "authors": [
+    "Kenneth Y. Chay",
+    "Michael Greenstone"
+   ],
+   "journal": "Journal of Political Economy"
+  },
+  {
+   "openalex": "https://openalex.org/W3022408888",
+   "doi": "https://doi.org/10.1162/0034653053327577",
+   "title": "Is Trade Good or Bad for the Environment? Sorting Out the Causality",
+   "year": 2005,
+   "cited_by": 1069,
+   "authors": [
+    "Jeffrey A. Frankel",
+    "Andrew Kenan Rose"
+   ],
+   "journal": "The Review of Economics and Statistics"
+  },
+  {
+   "openalex": "https://openalex.org/W2161553400",
+   "doi": "https://doi.org/10.1093/jleo/ewj018",
+   "title": "Does Corporate Governance Predict Firms' Market Values? Evidence from Korea",
+   "year": 2006,
+   "cited_by": 1055,
+   "authors": [
+    "Bernard S. Black",
+    "H. Jang",
+    "Woochan Kim"
+   ],
+   "journal": "The Journal of Law Economics and Organization"
+  },
+  {
+   "openalex": "https://openalex.org/W1989190276",
+   "doi": "https://doi.org/10.1001/jama.1994.03520110039026",
+   "title": "Does More Intensive Treatment of Acute Myocardial Infarction in the Elderly Reduce Mortality?",
+   "year": 1994,
+   "cited_by": 869,
+   "authors": [
+    "Mark McClellan"
+   ],
+   "journal": "JAMA"
+  },
+  {
+   "openalex": "https://openalex.org/W3121226439",
+   "doi": "https://doi.org/10.1093/wber/lhm003",
+   "title": "Are Remittances Insurance? Evidence from Rainfall Shocks in the Philippines",
+   "year": 2007,
+   "cited_by": 789,
+   "authors": [
+    "Dean Yang",
+    "HwaJung Choi"
+   ],
+   "journal": "The World Bank Economic Review"
+  },
+  {
+   "openalex": "https://openalex.org/W2043096264",
+   "doi": "https://doi.org/10.1257/0002828043052169",
+   "title": "Does School Integration Generate Peer Effects? Evidence from Boston's Metco Program",
+   "year": 2004,
+   "cited_by": 738,
+   "authors": [
+    "Joshua D. Angrist",
+    "Kevin Lang"
+   ],
+   "journal": "American Economic Review"
+  },
+  {
+   "openalex": "https://openalex.org/W2011350192",
+   "doi": "https://doi.org/10.2307/2118329",
+   "title": "Exporting Jobs?: The Impact of Import Competition on Employment and Wages in U. S. Manufacturing",
+   "year": 1992,
+   "cited_by": 620,
+   "authors": [
+    "Ana L. Revenga"
+   ],
+   "journal": "The Quarterly Journal of Economics"
+  },
+  {
+   "openalex": "https://openalex.org/W2032426226",
+   "doi": "https://doi.org/10.1111/j.1467-937x.2008.00492.x",
+   "title": "Make Trade Not War?",
+   "year": 2008,
+   "cited_by": 579,
+   "authors": [
+    "Philippe J. Martin",
+    "Thierry Mayer B",
+    "Mathias Thoenig"
+   ],
+   "journal": "The Review of Economic Studies"
+  },
+  {
+   "openalex": "https://openalex.org/W3123966045",
+   "doi": "https://doi.org/10.1086/683668",
+   "title": "When Do Covariates Matter? And Which Ones, and How Much?",
+   "year": 2016,
+   "cited_by": 578,
+   "authors": [
+    "Jonah B. Gelbach"
+   ],
+   "journal": "Journal of Labor Economics"
+  },
+  {
+   "openalex": "https://openalex.org/W3123872135",
+   "doi": "https://doi.org/10.2308/accr-50187",
+   "title": "Do IRS Audits Deter Corporate Tax Avoidance?",
+   "year": 2012,
+   "cited_by": 557,
+   "authors": [
+    "Jeffrey L. Hoopes",
+    "Devan Mescall",
+    "JEFFREY A. PITTMAN"
+   ],
+   "journal": "The Accounting Review"
+  },
+  {
+   "openalex": "https://openalex.org/W1998191912",
+   "doi": "https://doi.org/10.1257/app.3.3.158",
+   "title": "Are High-Quality Schools Enough to Increase Achievement Among the Poor? Evidence from the Harlem Children's Zone",
+   "year": 2011,
+   "cited_by": 537,
+   "authors": [
+    "Will Dobbie",
+    "Roland G. Fryer"
+   ],
+   "journal": "American Economic Journal Applied Economics"
+  },
+  {
+   "openalex": "https://openalex.org/W2169632801",
+   "doi": "https://doi.org/10.1037/a0023875",
+   "title": "Does money really matter? Estimating impacts of family income on young children's achievement with data from random-assignment experiments.",
+   "year": 2011,
+   "cited_by": 517,
+   "authors": [
+    "Greg J. Duncan",
+    "Pamela Morris",
+    "C. A. G. Rodrigues"
+   ],
+   "journal": "Developmental Psychology"
+  },
+  {
+   "openalex": "https://openalex.org/W2070986373",
+   "doi": "https://doi.org/10.2307/2297568",
+   "title": "Do Wages Rise with Job Seniority?",
+   "year": 1987,
+   "cited_by": 512,
+   "authors": [
+    "Joseph G. Altonji",
+    "Robert A. Shakotko"
+   ],
+   "journal": "The Review of Economic Studies"
+  },
+  {
+   "openalex": "https://openalex.org/W3124669357",
+   "doi": "https://doi.org/10.1162/003465300558678",
+   "title": "What Drives Private Saving Across the World?",
+   "year": 2000,
+   "cited_by": 479,
+   "authors": [
+    "Norman Loayza",
+    "Klaus Schmidt‐Hebbel",
+    "Luis Servén"
+   ],
+   "journal": "The Review of Economics and Statistics"
+  },
+  {
+   "openalex": "https://openalex.org/W2157040305",
+   "doi": "https://doi.org/10.1093/jeg/lbp049",
+   "title": "Does decentralization matter for regional disparities? A cross-country analysis",
+   "year": 2009,
+   "cited_by": 468,
+   "authors": [
+    "Andrés Rodríguez‐Pose",
+    "Roberto Ezcurra"
+   ],
+   "journal": "Journal of Economic Geography"
+  },
+  {
+   "openalex": "https://openalex.org/W2097701143",
+   "doi": "https://doi.org/10.1093/ajae/aar026",
+   "title": "How Much Does the Supplemental Nutrition Assistance Program Reduce Food Insecurity?",
+   "year": 2011,
+   "cited_by": 441,
+   "authors": [
+    "Caroline E. Ratcliffe",
+    "Signe‐Mary McKernan",
+    "Sisi Zhang"
+   ],
+   "journal": "American Journal of Agricultural Economics"
+  },
+  {
+   "openalex": "https://openalex.org/W3125921912",
+   "doi": "https://doi.org/10.1162/rest_a_00155",
+   "title": "Enjoying the Quiet Life under Deregulation? Evidence from Adjusted Lerner Indices for U.S. Banks",
+   "year": 2010,
+   "cited_by": 414,
+   "authors": [
+    "Michael Koetter",
+    "James W. Kolari",
+    "Laura Spierdijk"
+   ],
+   "journal": "The Review of Economics and Statistics"
+  },
+  {
+   "openalex": "https://openalex.org/W2087675119",
+   "doi": "https://doi.org/10.1002/hec.1011",
+   "title": "Socioeconomic status, depression disparities, and financial strain: what lies behind the income‐depression relationship?",
+   "year": 2005,
+   "cited_by": 410,
+   "authors": [
+    "Frederick J. Zimmerman",
+    "Wayne J. Katon"
+   ],
+   "journal": "Health Economics"
+  },
+  {
+   "openalex": "https://openalex.org/W3121933185",
+   "doi": "https://doi.org/10.1257/aer.90.2.360",
+   "title": "Do Immigrant Inflows Lead to Native Outflows?",
+   "year": 2000,
+   "cited_by": 391,
+   "authors": [
+    "David Card",
+    "John DiNardo"
+   ],
+   "journal": "American Economic Review"
+  },
+  {
+   "openalex": "https://openalex.org/W2966515482",
+   "doi": "https://doi.org/10.1016/j.jue.2020.103278",
+   "title": "Do short-term rental platforms affect housing markets? Evidence from Airbnb in Barcelona",
+   "year": 2020,
+   "cited_by": 384,
+   "authors": [
+    "Miquel-Àngel Garcia–López",
+    "Jordi Jofre‐Monseny",
+    "Rodrigo Martínez-Mazza"
+   ],
+   "journal": "Journal of Urban Economics"
+  },
+  {
+   "openalex": "https://openalex.org/W2028181338",
+   "doi": "https://doi.org/10.1080/07350015.1995.10524596",
+   "title": "Democratization or Diversion? The Effect of Community Colleges on Educational Attainment",
+   "year": 1995,
+   "cited_by": 364,
+   "authors": [
+    "Cecilia Elena Rouse"
+   ],
+   "journal": "Journal of Business and Economic Statistics"
+  }
+ ],
+ "rct": [
+  {
+   "openalex": "https://openalex.org/W2107150897",
+   "doi": "https://doi.org/10.1037/a0028228",
+   "title": "Is working memory training effective? A meta-analytic review.",
+   "year": 2012,
+   "cited_by": 1798,
+   "authors": [
+    "Monica Melby‐Lervåg",
+    "Charles Hulme"
+   ],
+   "journal": "Developmental Psychology"
+  },
+  {
+   "openalex": "https://openalex.org/W3123751968",
+   "doi": "https://doi.org/10.1257/jep.26.1.3",
+   "title": "Is There an Energy Efficiency Gap?",
+   "year": 2012,
+   "cited_by": 964,
+   "authors": [
+    "Hunt Allcott",
+    "Michael Greenstone"
+   ],
+   "journal": "The Journal of Economic Perspectives"
+  },
+  {
+   "openalex": "https://openalex.org/W2330069695",
+   "doi": "https://doi.org/10.1056/nejm199605303342206",
+   "title": "Does Increased Access to Primary Care Reduce Hospital Readmissions?",
+   "year": 1996,
+   "cited_by": 790,
+   "authors": [
+    "Morris Weinberger",
+    "Eugene Ž. Oddone",
+    "William G. Henderson"
+   ],
+   "journal": "New England Journal of Medicine"
+  },
+  {
+   "openalex": "https://openalex.org/W2586813559",
+   "doi": "https://doi.org/10.1159/000455130",
+   "title": "In the Wake of Systolic Blood Pressure Intervention Trial: New Targets for Improving Hypertension Management in Chronic Kidney Disease?",
+   "year": 2017,
+   "cited_by": 715,
+   "authors": [
+    "Crystal C. Tyson",
+    "Thomas M. Coffman"
+   ],
+   "journal": "The Nephron journals/Nephron journals"
+  },
+  {
+   "openalex": "https://openalex.org/W1983370454",
+   "doi": "https://doi.org/10.7326/0003-4819-121-4-199408150-00011",
+   "title": "Do Nonsteroidal Anti-inflammatory Drugs Affect Blood Pressure? A Meta-Analysis",
+   "year": 1994,
+   "cited_by": 712,
+   "authors": [
+    "Anthony G. Johnson",
+    "Tuan V. Nguyen",
+    "Richard O. Day"
+   ],
+   "journal": "Annals of Internal Medicine"
+  },
+  {
+   "openalex": "https://openalex.org/W2004474087",
+   "doi": "https://doi.org/10.1186/1741-7015-11-159",
+   "title": "Is network meta-analysis as valid as standard pairwise meta-analysis? It all depends on the distribution of effect modifiers",
+   "year": 2013,
+   "cited_by": 656,
+   "authors": [
+    "Jeroen Paul Jansen",
+    "Huseyin Naci"
+   ],
+   "journal": "BMC Medicine"
+  }
+ ],
+ "synthetic_control": [
+  {
+   "openalex": "https://openalex.org/W2162572525",
+   "doi": "https://doi.org/10.1162/rest_a_00429",
+   "title": "Did the 2007 Legal Arizona Workers Act Reduce the State's Unauthorized Immigrant Population?",
+   "year": 2013,
+   "cited_by": 336,
+   "authors": [
+    "Sarah Bohn",
+    "Magnus Lofstrom",
+    "Steven P. Raphael"
+   ],
+   "journal": "The Review of Economics and Statistics"
+  },
+  {
+   "openalex": "https://openalex.org/W2003516221",
+   "doi": "https://doi.org/10.1002/1616-3028(20020618)12:6/7<425::aid-adfm425>3.0.co;2-u",
+   "title": "Opal Circuits of Light??-??Planarized Microphotonic Crystal Chips",
+   "year": 2002,
+   "cited_by": 234,
+   "authors": [
+    "S.M. Yang",
+    "Hernán Míguez",
+    "Geoffrey A. Ozin"
+   ],
+   "journal": "Advanced Functional Materials"
+  },
+  {
+   "openalex": "https://openalex.org/W2580821850",
+   "doi": "https://doi.org/10.5465/amj.2015.0765",
+   "title": "Masters of Disasters? An Empirical Analysis of How Societies Benefit from Corporate Disaster Aid",
+   "year": 2017,
+   "cited_by": 180,
+   "authors": [
+    "Luis Ballesteros",
+    "Michael Useem",
+    "Tyler Wry"
+   ],
+   "journal": "Academy of Management Journal"
+  },
+  {
+   "openalex": "https://openalex.org/W4226200120",
+   "doi": "https://doi.org/10.1007/s10640-022-00679-w",
+   "title": "Does a Carbon Tax Reduce CO 2 Emissions? Evidence From British Columbia",
+   "year": 2019,
+   "cited_by": 170,
+   "authors": [
+    "Felix Pretis"
+   ],
+   "journal": "Environmental and Resource Economics"
+  },
+  {
+   "openalex": "https://openalex.org/W3168073920",
+   "doi": "https://doi.org/10.1017/s0003055421000423",
+   "title": "Can Exposure to Celebrities Reduce Prejudice? The Effect of Mohamed Salah on Islamophobic Behaviors and Attitudes",
+   "year": 2021,
+   "cited_by": 147,
+   "authors": [
+    "Ala’ Alrababa’h",
+    "William Marble",
+    "Salma Mousa"
+   ],
+   "journal": "American Political Science Review"
+  },
+  {
+   "openalex": "https://openalex.org/W1748186225",
+   "doi": "https://doi.org/10.1177/001979391206500207",
+   "title": "Are the Effects of Minimum Wage Increases Always Small? New Evidence from a Case Study of New York State",
+   "year": 2012,
+   "cited_by": 132,
+   "authors": [
+    "Joseph J. Sabia",
+    "Richard V. Burkhauser",
+    "Benjamin Hansen"
+   ],
+   "journal": "Industrial and Labor Relations Review"
+  },
+  {
+   "openalex": "https://openalex.org/W1519518072",
+   "doi": "https://doi.org/10.1257/pol.20160039",
+   "title": "How Much Can Expanding Access to Long-Acting Reversible Contraceptives Reduce Teen Birth Rates?",
+   "year": 2015,
+   "cited_by": 101,
+   "authors": [
+    "Jason M. Lindo",
+    "Analisa Packham"
+   ],
+   "journal": "American Economic Journal Economic Policy"
+  },
+  {
+   "openalex": "https://openalex.org/W1523354581",
+   "doi": "https://doi.org/10.1086/681129",
+   "title": "What Happened to Kobe? A Reassessment of the Impact of the 1995 Earthquake in Japan",
+   "year": 2015,
+   "cited_by": 99,
+   "authors": [
+    "William D. Dupont",
+    "Ilan Noy"
+   ],
+   "journal": "Economic Development and Cultural Change"
+  },
+  {
+   "openalex": "https://openalex.org/W2134025068",
+   "doi": "https://doi.org/10.1111/j.1468-0084.2010.00626.x",
+   "title": "Economies in Transition: How Important Is Trade Openness for Growth?*",
+   "year": 2011,
+   "cited_by": 99,
+   "authors": [
+    "Tommaso Nannicini",
+    "Andreas Billmeier"
+   ],
+   "journal": "Oxford Bulletin of Economics and Statistics"
+  },
+  {
+   "openalex": "https://openalex.org/W2617232565",
+   "doi": "https://doi.org/10.3390/su9060872",
+   "title": "Does Environmental Policy Reduce Enterprise Innovation?—Evidence from China",
+   "year": 2017,
+   "cited_by": 83,
+   "authors": [
+    "Chen Feng",
+    "Beibei Shi",
+    "Rong Kang"
+   ],
+   "journal": "Sustainability"
+  },
+  {
+   "openalex": "https://openalex.org/W3122014014",
+   "doi": "https://doi.org/10.1111/jems.12218",
+   "title": "Do retail mergers affect competition? Evidence from grocery retailing",
+   "year": 2017,
+   "cited_by": 69,
+   "authors": [
+    "Daniel Hosken",
+    "Luke M. Olson",
+    "Loren K. Smith"
+   ],
+   "journal": "Journal of Economics & Management Strategy"
+  },
+  {
+   "openalex": "https://openalex.org/W2560427876",
+   "doi": "https://doi.org/10.1086/688699",
+   "title": "Do Good Borders Make Good Rebels? Territorial Control and Civilian Casualties",
+   "year": 2016,
+   "cited_by": 64,
+   "authors": [
+    "Megan A Stewart",
+    "Yu-Ming Liou"
+   ],
+   "journal": "The Journal of Politics"
+  },
+  {
+   "openalex": "https://openalex.org/W3194759173",
+   "doi": "https://doi.org/10.1002/pol.20210550",
+   "title": "How rigid are conjugated non‐ladder and ladder polymers?",
+   "year": 2021,
+   "cited_by": 57,
+   "authors": [
+    "Zhiqiang Cao",
+    "Mingwan Leng",
+    "Yirui Cao"
+   ],
+   "journal": "Journal of Polymer Science"
+  },
+  {
+   "openalex": "https://openalex.org/W4200118823",
+   "doi": "https://doi.org/10.1111/ecpo.12203",
+   "title": "Who is afraid of sanctions? The macroeconomic and distributional effects of the sanctions against Iran",
+   "year": 2021,
+   "cited_by": 56,
+   "authors": [
+    "Morteza Ghomi"
+   ],
+   "journal": "Economics and Politics"
+  },
+  {
+   "openalex": "https://openalex.org/W2766048625",
+   "doi": "https://doi.org/10.1002/hec.3589",
+   "title": "How effective and fair is user fee removal? Evidence from Zambia using a pooled synthetic control",
+   "year": 2017,
+   "cited_by": 56,
+   "authors": [
+    "Aurélia Lépine",
+    "Mylène Lagarde",
+    "Alexis Le Nestour"
+   ],
+   "journal": "Health Economics"
+  },
+  {
+   "openalex": "https://openalex.org/W4308705709",
+   "doi": "https://doi.org/10.1371/journal.pone.0277569",
+   "title": "Does green credit promote green sustainable development in regional economies?—Empirical evidence from 280 cities in China",
+   "year": 2022,
+   "cited_by": 55,
+   "authors": [
+    "Jian Bao",
+    "Meiling He"
+   ],
+   "journal": "PLoS ONE"
+  },
+  {
+   "openalex": "https://openalex.org/W2886621373",
+   "doi": "https://doi.org/10.1111/1745-9133.12378",
+   "title": "Can We Downsize Our Prisons and Jails Without Compromising Public Safety?",
+   "year": 2018,
+   "cited_by": 53,
+   "authors": [
+    "Bradley J. Bartos",
+    "Charis E. Kubrin"
+   ],
+   "journal": "Criminology & Public Policy"
+  },
+  {
+   "openalex": "https://openalex.org/W4281734621",
+   "doi": "https://doi.org/10.1007/s11356-022-21291-x",
+   "title": "Does green financial reform pilot policy promote green technology innovation? Empirical evidence from China",
+   "year": 2022,
+   "cited_by": 50,
+   "authors": [
+    "Xueyang Wang",
+    "Xiumei Sun",
+    "Haotian Zhang"
+   ],
+   "journal": "Environmental Science and Pollution Research"
+  },
+  {
+   "openalex": "https://openalex.org/W2137958714",
+   "doi": "https://doi.org/10.1017/psrm.2014.26",
+   "title": "Fiscal Governance in the Eurozone: How Effectively Does the Stability and Growth Pact Limit Governmental Debt in the Euro Countries?",
+   "year": 2014,
+   "cited_by": 50,
+   "authors": [
+    "Sebastian Koehler",
+    "Thomas König"
+   ],
+   "journal": "Political Science Research and Methods"
+  },
+  {
+   "openalex": "https://openalex.org/W3091744499",
+   "doi": "https://doi.org/10.1093/ije/dyaa152",
+   "title": "Can synthetic controls improve causal inference in interrupted time series evaluations of public health interventions?",
+   "year": 2020,
+   "cited_by": 49,
+   "authors": [
+    "Michelle Degli Esposti",
+    "Thees F. Spreckelsen",
+    "Antonio Gasparrini"
+   ],
+   "journal": "International Journal of Epidemiology"
+  },
+  {
+   "openalex": "https://openalex.org/W2795966843",
+   "doi": "https://doi.org/10.1016/j.socscimed.2018.04.001",
+   "title": "Does trade liberalization reduce child mortality in low- and middle-income countries? A synthetic control analysis of 36 policy experiments, 1963-2005",
+   "year": 2018,
+   "cited_by": 48,
+   "authors": [
+    "Pepita Labonte Barlow"
+   ],
+   "journal": "Social Science & Medicine"
+  },
+  {
+   "openalex": "https://openalex.org/W1891983158",
+   "doi": "https://doi.org/10.1002/soej.12019",
+   "title": "Do E ‐verify mandates improve labor market outcomes of low‐skilled native and legal immigrant workers?",
+   "year": 2015,
+   "cited_by": 47,
+   "authors": [
+    "Sarah Bohn",
+    "Magnus Lofstrom",
+    "Steven P. Raphael"
+   ],
+   "journal": "Southern Economic Journal"
+  },
+  {
+   "openalex": "https://openalex.org/W3118852172",
+   "doi": "https://doi.org/10.1016/j.socscimed.2021.113685",
+   "title": "How effective was England's teenage pregnancy strategy? A comparative analysis of high-income countries",
+   "year": 2021,
+   "cited_by": 43,
+   "authors": [
+    "Andrew James Baxter",
+    "Ruth Dundas",
+    "Frank Popham"
+   ],
+   "journal": "Social Science & Medicine"
+  },
+  {
+   "openalex": "https://openalex.org/W2775989612",
+   "doi": "https://doi.org/10.3390/f9030098",
+   "title": "Does Certification Change the Trajectory of Tree Cover in Working Forests in The Tropics? An Application of the Synthetic Control Method of Impact Evaluation",
+   "year": 2018,
+   "cited_by": 43,
+   "authors": [
+    "Pushpendra Rana",
+    "Erin O. Sills"
+   ],
+   "journal": "Forests"
+  },
+  {
+   "openalex": "https://openalex.org/W2979456590",
+   "doi": "https://doi.org/10.1111/ecin.12847",
+   "title": "DOES A VALUE‐ADDED TAX INCREASE ECONOMIC EFFICIENCY?",
+   "year": 2019,
+   "cited_by": 42,
+   "authors": [
+    "Bibek Adhikari"
+   ],
+   "journal": "Economic Inquiry"
+  }
+ ],
+ "its": [
+  {
+   "openalex": "https://openalex.org/W3024557722",
+   "doi": "https://doi.org/10.1111/1475-6765.12401",
+   "title": "The effect of COVID‐19 lockdowns on political support: Some good news for democracy?",
+   "year": 2020,
+   "cited_by": 718,
+   "authors": [
+    "Damien Bol",
+    "Marco Giani",
+    "André Blais"
+   ],
+   "journal": "European Journal of Political Research"
+  },
+  {
+   "openalex": "https://openalex.org/W2129573808",
+   "doi": "https://doi.org/10.1136/bmj.329.7473.999",
+   "title": "What's the evidence that NICE guidance has been implemented? Results from a national evaluation using time series analysis, audit of patients' notes, and interviews",
+   "year": 2004,
+   "cited_by": 429,
+   "authors": [
+    "T. Sheldon",
+    "Nicky A Cullum",
+    "Diane Dawson"
+   ],
+   "journal": "BMJ"
+  },
+  {
+   "openalex": "https://openalex.org/W1606175573",
+   "doi": "https://doi.org/10.2307/1954319",
+   "title": "Urban Policy: Does Political Structure Matter?",
+   "year": 1980,
+   "cited_by": 163,
+   "authors": [
+    "David R. Morgan",
+    "John P. Pelissero"
+   ],
+   "journal": "American Political Science Review"
+  },
+  {
+   "openalex": "https://openalex.org/W2042789566",
+   "doi": "https://doi.org/10.2307/1958155",
+   "title": "Can Government Regulate Safety? The Coal Mine Example",
+   "year": 1980,
+   "cited_by": 160,
+   "authors": [
+    "Michael S. Lewis‐Beck",
+    "John R. Alford"
+   ],
+   "journal": "American Political Science Review"
+  },
+  {
+   "openalex": "https://openalex.org/W1530533878",
+   "doi": "https://doi.org/10.1080/02796015.2005.12086279",
+   "title": "Effect Sizes in Single Case Research: How Large is Large?",
+   "year": 2005,
+   "cited_by": 122,
+   "authors": [
+    "Richard I. Parker",
+    "Daniel F. Brossart",
+    "Kimberly J. Vannest"
+   ],
+   "journal": "School Psychology Review"
+  },
+  {
+   "openalex": "https://openalex.org/W3121928260",
+   "doi": "https://doi.org/10.1136/bmj.n83",
+   "title": "Are overwhelmed health systems an inevitable consequence of covid-19? Experiences from China, Thailand, and New York State",
+   "year": 2021,
+   "cited_by": 121,
+   "authors": [
+    "Viroj Tangcharoensathien",
+    "Mary Travis Bassett",
+    "Qingyue Meng"
+   ],
+   "journal": "BMJ"
+  },
+  {
+   "openalex": "https://openalex.org/W2074794904",
+   "doi": "https://doi.org/10.1111/j.1745-9125.1994.tb01148.x",
+   "title": "DETERRENCE OR BRUTALIZATION? AN IMPACT ASSESSMENT OF OKLAHOMA'S RETURN TO CAPITAL PUNISHMENT*",
+   "year": 1994,
+   "cited_by": 118,
+   "authors": [
+    "John K. Cochran",
+    "Mitchell B. Chamlin",
+    "MARK SETH"
+   ],
+   "journal": "Criminology"
+  },
+  {
+   "openalex": "https://openalex.org/W2086175394",
+   "doi": "https://doi.org/10.1080/13694670500138866",
+   "title": "God, where are you?: Evaluating a spiritually-integrated intervention for sexual abuse",
+   "year": 2005,
+   "cited_by": 116,
+   "authors": [
+    "Nichole A. Murray‐Swank",
+    "Kenneth I. Pargäment"
+   ],
+   "journal": "Mental Health Religion & Culture"
+  },
+  {
+   "openalex": "https://openalex.org/W2044493679",
+   "doi": "https://doi.org/10.1353/dem.2005.0034",
+   "title": "Did fertility go up after the oklahoma city bombing? An analysis of births in metropolitan counties in Oklahoma, 1990–1999",
+   "year": 2005,
+   "cited_by": 112,
+   "authors": [
+    "Joseph Lee Rodgers",
+    "Craig St. John",
+    "Ronnie Coleman"
+   ],
+   "journal": "Demography"
+  },
+  {
+   "openalex": "https://openalex.org/W3197407366",
+   "doi": "https://doi.org/10.1186/s12889-021-11630-x",
+   "title": "The impact of the COVID-19 pandemic on Sexually Transmitted Infections surveillance data: incidence drop or artefact?",
+   "year": 2021,
+   "cited_by": 106,
+   "authors": [
+    "Alexis Sentís",
+    "Albert Prats‐Uribe",
+    "Evelin López-Corbeto"
+   ],
+   "journal": "BMC Public Health"
+  },
+  {
+   "openalex": "https://openalex.org/W2792018293",
+   "doi": "https://doi.org/10.1080/0161956x.2018.1435040",
+   "title": "Justice for All? Suspension Bans and Restorative Justice Programs in the Los Angeles Unified School District",
+   "year": 2018,
+   "cited_by": 93,
+   "authors": [
+    "Ayesha K. Hashim",
+    "Katharine O. Strunk",
+    "Tasminda K. Dhaliwal"
+   ],
+   "journal": "Peabody Journal of Education"
+  },
+  {
+   "openalex": "https://openalex.org/W2334999502",
+   "doi": "https://doi.org/10.1093/esr/jcu056",
+   "title": "Do Women Respond to Changes in Family Policy? A Quasi-Experimental Study of the Duration of Mothers' Employment Interruptions in Germany",
+   "year": 2014,
+   "cited_by": 91,
+   "authors": [
+    "Andrea Ziefle",
+    "Markus Gangl"
+   ],
+   "journal": "European Sociological Review"
+  },
+  {
+   "openalex": "https://openalex.org/W1979263921",
+   "doi": "https://doi.org/10.1186/1472-6947-8-35",
+   "title": "Improving antibiotic prescribing for adults with community acquired pneumonia: Does a computerised decision support system achieve more than academic detailing alone? – a time series analysis",
+   "year": 2008,
+   "cited_by": 82,
+   "authors": [
+    "Kirsty L. Buising",
+    "Karin Thursky",
+    "Jim Black"
+   ],
+   "journal": "BMC Medical Informatics and Decision Making"
+  },
+  {
+   "openalex": "https://openalex.org/W2104384149",
+   "doi": "https://doi.org/10.1186/1748-5908-9-40",
+   "title": "Did a quality improvement collaborative make stroke care better? A cluster randomized trial",
+   "year": 2014,
+   "cited_by": 81,
+   "authors": [
+    "Maxine Power",
+    "Pippa J. Tyrrell",
+    "Anthony George Rudd"
+   ],
+   "journal": "Implementation Science"
+  },
+  {
+   "openalex": "https://openalex.org/W2321805460",
+   "doi": "https://doi.org/10.2307/2111411",
+   "title": "Issues, Values, and Critical Moments: Did \"Magic\" Johnson Transform Public Opinion on AIDS?",
+   "year": 1994,
+   "cited_by": 76,
+   "authors": [
+    "Philip H. Pollock"
+   ],
+   "journal": "American Journal of Political Science"
+  },
+  {
+   "openalex": "https://openalex.org/W2171487913",
+   "doi": "https://doi.org/10.1136/emermed-2012-202280",
+   "title": "Can a media campaign change health service use in a population with stroke symptoms? Examination of the first Irish stroke awareness campaign",
+   "year": 2013,
+   "cited_by": 74,
+   "authors": [
+    "Lisa Mellon",
+    "Anne Hickey",
+    "Frank Doyle"
+   ],
+   "journal": "Emergency Medicine Journal"
+  },
+  {
+   "openalex": "https://openalex.org/W2152371950",
+   "doi": "https://doi.org/10.1093/jac/dkr088",
+   "title": "Does laboratory antibiotic susceptibility reporting influence primary care prescribing in urinary tract infection and other infections?",
+   "year": 2011,
+   "cited_by": 72,
+   "authors": [
+    "Cliodna A. M. McNulty",
+    "Gemma Lasseter",
+    "André Charlett"
+   ],
+   "journal": "Journal of Antimicrobial Chemotherapy"
+  },
+  {
+   "openalex": "https://openalex.org/W3010952037",
+   "doi": "https://doi.org/10.1371/journal.pone.0230361",
+   "title": "Does having children increase environmental concern? Testing parenthood effects with longitudinal data from the New Zealand Attitudes and Values Study",
+   "year": 2020,
+   "cited_by": 71,
+   "authors": [
+    "Taciano L. Milfont",
+    "Wouter Poortinga",
+    "Chris G. Sibley"
+   ],
+   "journal": "PLoS ONE"
+  },
+  {
+   "openalex": "https://openalex.org/W2568398613",
+   "doi": "https://doi.org/10.1177/0011128716686343",
+   "title": "Is the Number of Citizens Fatally Shot by Police Increasing in the Post-Ferguson Era?",
+   "year": 2017,
+   "cited_by": 70,
+   "authors": [
+    "Bradley A. Campbell",
+    "Justin Nix",
+    "Edward R. Maguire"
+   ],
+   "journal": "Crime & Delinquency"
+  },
+  {
+   "openalex": "https://openalex.org/W2160544378",
+   "doi": "https://doi.org/10.5694/mja15.00103",
+   "title": "The crux of the matter: Did the ABC's Catalyst program change statin use in Australia?",
+   "year": 2015,
+   "cited_by": 64,
+   "authors": [
+    "Andrea L. Schaffer",
+    "Nicholas Allan Buckley",
+    "Timothy Dobbins"
+   ],
+   "journal": "The Medical Journal of Australia"
+  },
+  {
+   "openalex": "https://openalex.org/W2910576923",
+   "doi": "https://doi.org/10.1136/tobaccocontrol-2018-054584",
+   "title": "Have e-cigarettes renormalised or displaced youth smoking? Results of a segmented regression analysis of repeated cross sectional survey data in England, Scotland and Wales",
+   "year": 2019,
+   "cited_by": 57,
+   "authors": [
+    "Britt Hallingberg",
+    "Olivia Maynard",
+    "Linda Bauld"
+   ],
+   "journal": "Tobacco Control"
+  },
+  {
+   "openalex": "https://openalex.org/W2429657280",
+   "doi": "https://doi.org/10.1186/s12961-016-0115-2",
+   "title": "Can a quality improvement project impact maternal and child health outcomes at scale in northern Ghana?",
+   "year": 2016,
+   "cited_by": 56,
+   "authors": [
+    "Kavita Singh",
+    "Paul Brodish",
+    "Ilene S. Speizer"
+   ],
+   "journal": "Health Research Policy and Systems"
+  }
+ ],
+ "matching": [
+  {
+   "openalex": "https://openalex.org/W2119506287",
+   "doi": "https://doi.org/10.1302/0301-620x.70b1.3276697",
+   "title": "Pelvic ring fractures: should they be fixed?",
+   "year": 1988,
+   "cited_by": 1009,
+   "authors": [
+    "M. Tile"
+   ],
+   "journal": "Journal of Bone and Joint Surgery - British Volume"
+  },
+  {
+   "openalex": "https://openalex.org/W3122080363",
+   "doi": "https://doi.org/10.25300/misq/2013/37.2.12",
+   "title": "Content or Community? A Digital Business Strategy for Content Providers in the Social Age1",
+   "year": 2013,
+   "cited_by": 421,
+   "authors": [
+    "Gal Oestreicher-Singer",
+    "Lior Zalmanson"
+   ],
+   "journal": "MIS Quarterly"
+  },
+  {
+   "openalex": "https://openalex.org/W2514513978",
+   "doi": "https://doi.org/10.1287/mnsc.2016.2528",
+   "title": "Do Client Characteristics Really Drive the Big N Audit Quality Effect? New Evidence from Propensity Score Matching",
+   "year": 2016,
+   "cited_by": 389,
+   "authors": [
+    "Mark L. DeFond",
+    "David H. Erkens",
+    "Jieying Zhang"
+   ],
+   "journal": "Management Science"
+  },
+  {
+   "openalex": "https://openalex.org/W2132049747",
+   "doi": "https://doi.org/10.1111/j.1467-9280.2008.02196.x",
+   "title": "Is It Important to Prevent Early Exposure to Drugs and Alcohol Among Adolescents?",
+   "year": 2008,
+   "cited_by": 338,
+   "authors": [
+    "Candice L. Odgers",
+    "Avshalom Caspi",
+    "Daniel S. Nagin"
+   ],
+   "journal": "Psychological Science"
+  },
+  {
+   "openalex": "https://openalex.org/W2891783191",
+   "doi": "https://doi.org/10.3102/0162373708327756",
+   "title": "Do Community Colleges Provide a Viable Pathway to a Baccalaureate Degree?",
+   "year": 2009,
+   "cited_by": 312,
+   "authors": [
+    "Bridget Terry Long",
+    "Michal Kurlaender"
+   ],
+   "journal": "Educational Evaluation and Policy Analysis"
+  },
+  {
+   "openalex": "https://openalex.org/W1890658399",
+   "doi": "https://doi.org/10.1016/j.respol.2015.06.002",
+   "title": "Retaining winners: Can policy boost high-growth entrepreneurship?",
+   "year": 2015,
+   "cited_by": 303,
+   "authors": [
+    "Erkko Autio",
+    "Heikki Rannikko"
+   ],
+   "journal": "Research Policy"
+  },
+  {
+   "openalex": "https://openalex.org/W2069428810",
+   "doi": "https://doi.org/10.2308/ajpt-50792",
+   "title": "Do Big 4 Auditors Provide Higher Audit Quality after Controlling for the Endogenous Choice of Auditor?",
+   "year": 2014,
+   "cited_by": 294,
+   "authors": [
+    "John Daniel Eshleman",
+    "Peng Wei Guo"
+   ],
+   "journal": "Auditing A Journal of Practice & Theory"
+  },
+  {
+   "openalex": "https://openalex.org/W2029588355",
+   "doi": "https://doi.org/10.1093/aepp/ppu021",
+   "title": "Can Agricultural Cooperatives Reduce Poverty? Heterogeneous Impact of Cooperative Membership on Farmers' Welfare in Rwanda",
+   "year": 2014,
+   "cited_by": 276,
+   "authors": [
+    "Ellen Verhofstadt",
+    "Miet Maertens"
+   ],
+   "journal": "Applied Economic Perspectives and Policy"
+  },
+  {
+   "openalex": "https://openalex.org/W3114233075",
+   "doi": "https://doi.org/10.1016/j.ecolind.2020.107238",
+   "title": "Does the low-carbon city policy make a difference? Empirical evidence of the pilot scheme in China with DEA and PSM-DID",
+   "year": 2020,
+   "cited_by": 247,
+   "authors": [
+    "Yang Fu",
+    "Chenyang He",
+    "Ling Luo"
+   ],
+   "journal": "Ecological Indicators"
+  },
+  {
+   "openalex": "https://openalex.org/W1990694252",
+   "doi": "https://doi.org/10.1162/003465306775565738",
+   "title": "Do Firms Learn from International Trade?",
+   "year": 2006,
+   "cited_by": 246,
+   "authors": [
+    "Megan J. MacGarvie"
+   ],
+   "journal": "The Review of Economics and Statistics"
+  },
+  {
+   "openalex": "https://openalex.org/W2153298826",
+   "doi": "https://doi.org/10.3102/00028312042002269",
+   "title": "Double Disadvantage or Signs of Resilience? The Elementary School Contexts of Children From Mexican Immigrant Families",
+   "year": 2005,
+   "cited_by": 236,
+   "authors": [
+    "Robert L. Crosnoe"
+   ],
+   "journal": "American Educational Research Journal"
+  },
+  {
+   "openalex": "https://openalex.org/W2070425222",
+   "doi": "https://doi.org/10.1111/agec.12128",
+   "title": "Smallholder cooperatives and agricultural performance in Rwanda: do organizational differences matter?",
+   "year": 2014,
+   "cited_by": 228,
+   "authors": [
+    "Ellen Verhofstadt",
+    "Miet Maertens"
+   ],
+   "journal": "Agricultural Economics"
+  },
+  {
+   "openalex": "https://openalex.org/W1631450662",
+   "doi": "https://doi.org/10.1002/pam.21836",
+   "title": "Does Collaboration Make Any Difference? Linking Collaborative Governance to Environmental Outcomes",
+   "year": 2015,
+   "cited_by": 225,
+   "authors": [
+    "Tyler A. Scott"
+   ],
+   "journal": "Journal of Policy Analysis and Management"
+  },
+  {
+   "openalex": "https://openalex.org/W2129252535",
+   "doi": "https://doi.org/10.1200/jco.2014.59.9092",
+   "title": "Salvage Surgery After Chemoradiotherapy in the Management of Esophageal Cancer: Is It a Viable Therapeutic Option?",
+   "year": 2015,
+   "cited_by": 220,
+   "authors": [
+    "Sheraz Rehan Markar",
+    "Caroline Gronnier",
+    "Alain Duhamel"
+   ],
+   "journal": "Journal of Clinical Oncology"
+  },
+  {
+   "openalex": "https://openalex.org/W2028885718",
+   "doi": "https://doi.org/10.1086/677753",
+   "title": "Can Social Protection Work in Africa? The Impact of Ethiopia’s Productive Safety Net Programme",
+   "year": 2014,
+   "cited_by": 220,
+   "authors": [
+    "Guush Berhane"
+   ],
+   "journal": "Economic Development and Cultural Change"
+  },
+  {
+   "openalex": "https://openalex.org/W2990394754",
+   "doi": "https://doi.org/10.1002/bse.2404",
+   "title": "Does China's carbon emissions trading policy improve the technology innovation of relevant enterprises?",
+   "year": 2019,
+   "cited_by": 208,
+   "authors": [
+    "Yue‐Jun Zhang",
+    "Wei Shi",
+    "Jiang Lin"
+   ],
+   "journal": "Business Strategy and the Environment"
+  },
+  {
+   "openalex": "https://openalex.org/W2894655824",
+   "doi": "https://doi.org/10.1016/j.jrurstud.2018.09.017",
+   "title": "Shining a spotlight on small rural businesses: How does their performance compare with urban?",
+   "year": 2018,
+   "cited_by": 199,
+   "authors": [
+    "Jeremy Phillipson",
+    "Pattanapong Tiwasing",
+    "Matthew Gorton"
+   ],
+   "journal": "Journal of Rural Studies"
+  },
+  {
+   "openalex": "https://openalex.org/W1682275336",
+   "doi": "https://doi.org/10.1002/smj.2289",
+   "title": "When does transitioning from family to professional management improve firm performance?",
+   "year": 2014,
+   "cited_by": 199,
+   "authors": [
+    "Sea‐Jin Chang",
+    "Jungwook Shim"
+   ],
+   "journal": "Strategic Management Journal"
+  },
+  {
+   "openalex": "https://openalex.org/W1591184202",
+   "doi": "https://doi.org/10.1002/smj.2016",
+   "title": "When do wholly owned subsidiaries perform better than joint ventures?",
+   "year": 2012,
+   "cited_by": 199,
+   "authors": [
+    "Sea‐Jin Chang",
+    "Jaiho Chung",
+    "Jon Jungbien Moon"
+   ],
+   "journal": "Strategic Management Journal"
+  },
+  {
+   "openalex": "https://openalex.org/W2105607200",
+   "doi": "https://doi.org/10.1177/0038040714547086",
+   "title": "Falling Behind? Children’s Early Grade Retention after Paternal Incarceration",
+   "year": 2014,
+   "cited_by": 195,
+   "authors": [
+    "Kristin Turney",
+    "Anna R. Haskins"
+   ],
+   "journal": "Sociology of Education"
+  },
+  {
+   "openalex": "https://openalex.org/W2957523495",
+   "doi": "https://doi.org/10.1111/jbfa.12397",
+   "title": "Does board gender diversity affect corporate cash holdings?",
+   "year": 2019,
+   "cited_by": 184,
+   "authors": [
+    "Muhammad Atif",
+    "Benjamín Liu",
+    "Allen Huang"
+   ],
+   "journal": "Journal of Business Finance &amp Accounting"
+  },
+  {
+   "openalex": "https://openalex.org/W1988097551",
+   "doi": "https://doi.org/10.1093/jae/ejq036",
+   "title": "Ethiopian Agricultural Cooperatives in an Era of Global Commodity Exchange: Does Organisational Form Matter?",
+   "year": 2010,
+   "cited_by": 180,
+   "authors": [
+    "Gian Nicola Francesconi",
+    "Nico Heerink"
+   ],
+   "journal": "Journal of African Economies"
+  },
+  {
+   "openalex": "https://openalex.org/W3084019133",
+   "doi": "https://doi.org/10.1111/corg.12345",
+   "title": "The ESG–financial performance relationship: Does the type of employee board representation matter?",
+   "year": 2020,
+   "cited_by": 176,
+   "authors": [
+    "Mehdi Nekhili",
+    "Amal Boukadhaba",
+    "Haithem Nagati"
+   ],
+   "journal": "Corporate Governance An International Review"
+  },
+  {
+   "openalex": "https://openalex.org/W4291824906",
+   "doi": "https://doi.org/10.1080/00036846.2022.2107991",
+   "title": "Can ESG Performance Mitigate Information Asymmetry? Moderating Effect of Assurance Services",
+   "year": 2022,
+   "cited_by": 175,
+   "authors": [
+    "Jin Wook Kim",
+    "Cheong Kyu Park"
+   ],
+   "journal": "Applied Economics"
+  },
+  {
+   "openalex": "https://openalex.org/W2741739864",
+   "doi": "https://doi.org/10.1108/cg-09-2016-0183",
+   "title": "Can board gender diversity promote corporate social performance?",
+   "year": 2017,
+   "cited_by": 170,
+   "authors": [
+    "Khine Kyaw",
+    "Mojisola Olugbode",
+    "Barbara Petracci"
+   ],
+   "journal": "Corporate Governance"
+  }
+ ],
+ "predictive": [
+  {
+   "openalex": "https://openalex.org/W2163816695",
+   "doi": "https://doi.org/10.1046/j.1466-822x.2003.00042.x",
+   "title": "Predicting the impacts of climate change on the distribution of species: are bioclimate envelope models useful?",
+   "year": 2003,
+   "cited_by": 4230,
+   "authors": [
+    "Richard G. Pearson",
+    "Terence P. Dawson"
+   ],
+   "journal": "Global Ecology and Biogeography"
+  },
+  {
+   "openalex": "https://openalex.org/W2951936974",
+   "doi": "https://doi.org/10.1214/10-sts330",
+   "title": "To Explain or to Predict?",
+   "year": 2010,
+   "cited_by": 3121,
+   "authors": [
+    "Galit Shmueli A"
+   ],
+   "journal": "Statistical Science"
+  },
+  {
+   "openalex": "https://openalex.org/W1789808336",
+   "doi": "https://doi.org/10.1093/rfs/hhm055",
+   "title": "Predicting Excess Stock Returns Out of Sample: Can Anything Beat the Historical Average?",
+   "year": 2007,
+   "cited_by": 2822,
+   "authors": [
+    "John Y. Campbell",
+    "Samuel Brodsky Thompson"
+   ],
+   "journal": "Review of Financial Studies"
+  },
+  {
+   "openalex": "https://openalex.org/W2169108863",
+   "doi": "https://doi.org/10.1037/0021-9010.93.1.48",
+   "title": "Does intrinsic motivation fuel the prosocial fire? Motivational synergy in predicting persistence, performance, and productivity.",
+   "year": 2008,
+   "cited_by": 1878,
+   "authors": [
+    "Adam M. Grant"
+   ],
+   "journal": "Journal of Applied Psychology"
+  },
+  {
+   "openalex": "https://openalex.org/W2103418109",
+   "doi": "https://doi.org/10.1161/01.cir.100.4.354",
+   "title": "Is Pulse Pressure Useful in Predicting Risk for Coronary Heart Disease?",
+   "year": 1999,
+   "cited_by": 1743,
+   "authors": [
+    "Stanley S. Franklin",
+    "Shehzad Akbar Khan",
+    "Nathan D. Wong"
+   ],
+   "journal": "Circulation"
+  },
+  {
+   "openalex": "https://openalex.org/W1964970459",
+   "doi": "https://doi.org/10.1111/j.1532-5415.1997.tb00946.x",
+   "title": "Gait Changes in Older Adults: Predictors of Falls or Indicators of Fear?",
+   "year": 1997,
+   "cited_by": 1719,
+   "authors": [
+    "Brian E. Maki"
+   ],
+   "journal": "Journal of the American Geriatrics Society"
+  },
+  {
+   "openalex": "https://openalex.org/W3123700708",
+   "doi": "https://doi.org/10.1093/rfs/hhp057",
+   "title": "How Active Is Your Fund Manager? A New Measure That Predicts Performance",
+   "year": 2009,
+   "cited_by": 1574,
+   "authors": [
+    "Martijn Cremers",
+    "Antti Petäjistö"
+   ],
+   "journal": "Review of Financial Studies"
+  },
+  {
+   "openalex": "https://openalex.org/W2169167560",
+   "doi": "https://doi.org/10.1161/01.cir.78.5.1157",
+   "title": "Can coronary angiography predict the site of a subsequent myocardial infarction in patients with mild-to-moderate coronary artery disease?",
+   "year": 1988,
+   "cited_by": 1458,
+   "authors": [
+    "William C. Little",
+    "M Constantinescu",
+    "Robert J. Applegate"
+   ],
+   "journal": "Circulation"
+  },
+  {
+   "openalex": "https://openalex.org/W2114836768",
+   "doi": "https://doi.org/10.1037/0022-006x.75.5.671",
+   "title": "What predicts psychological resilience after disaster? The role of demographics, resources, and life stress.",
+   "year": 2007,
+   "cited_by": 1371,
+   "authors": [
+    "George A. Bonanno",
+    "Sandro Galea",
+    "Angela Bucciarelli"
+   ],
+   "journal": "Journal of Consulting and Clinical Psychology"
+  },
+  {
+   "openalex": "https://openalex.org/W2062841522",
+   "doi": "https://doi.org/10.1093/esr/jci022",
+   "title": "Predicting Cross-National Levels of Social Trust: Global Pattern or Nordic Exceptionalism?",
+   "year": 2005,
+   "cited_by": 1267,
+   "authors": [
+    "Jan Delhey",
+    "Kenneth Newton"
+   ],
+   "journal": "European Sociological Review"
+  },
+  {
+   "openalex": "https://openalex.org/W2337505739",
+   "doi": "https://doi.org/10.1056/nejm198403293101304",
+   "title": "Does Visual Interpretation of the Coronary Arteriogram Predict the Physiologic Importance of a Coronary Stenosis?",
+   "year": 1984,
+   "cited_by": 1215,
+   "authors": [
+    "Carl W. White",
+    "Creighton B. Wright",
+    "Donald B. Doty"
+   ],
+   "journal": "New England Journal of Medicine"
+  },
+  {
+   "openalex": "https://openalex.org/W2089685485",
+   "doi": "https://doi.org/10.1207/s15374424jccp3401_5",
+   "title": "Adolescent Peer Relations, Friendships, and Romantic Relationships: Do They Predict Social Anxiety and Depression?",
+   "year": 2005,
+   "cited_by": 1158,
+   "authors": [
+    "Annette Marie La Greca",
+    "Hannah Moore Harrison"
+   ],
+   "journal": "Journal of Clinical Child & Adolescent Psychology"
+  },
+  {
+   "openalex": "https://openalex.org/W1908686216",
+   "doi": "https://doi.org/10.1111/jcom.12084",
+   "title": "Echo Chamber or Public Sphere? Predicting Political Orientation and Measuring Political Homophily in Twitter Using Big Data",
+   "year": 2014,
+   "cited_by": 1156,
+   "authors": [
+    "Elanor Colleoni",
+    "Alessandro Rozza",
+    "Adam Arvidsson"
+   ],
+   "journal": "Journal of Communication"
+  },
+  {
+   "openalex": "https://openalex.org/W1965964177",
+   "doi": "https://doi.org/10.2196/jmir.2012",
+   "title": "Can Tweets Predict Citations? Metrics of Social Impact Based on Twitter and Correlation with Traditional Metrics of Scientific Impact",
+   "year": 2011,
+   "cited_by": 1099,
+   "authors": [
+    "Günther Eysenbach"
+   ],
+   "journal": "Journal of Medical Internet Research"
+  },
+  {
+   "openalex": "https://openalex.org/W2105209710",
+   "doi": "https://doi.org/10.1080/00222895.1993.9942050",
+   "title": "Is the Cerebellum a Smith Predictor?",
+   "year": 1993,
+   "cited_by": 1063,
+   "authors": [
+    "R. Chris Miall",
+    "David James Weir",
+    "Daniel M. Wolpert"
+   ],
+   "journal": "Journal of Motor Behavior"
+  },
+  {
+   "openalex": "https://openalex.org/W2097417469",
+   "doi": "https://doi.org/10.3389/fpsyg.2014.00772",
+   "title": "What do verbal fluency tasks measure? Predictors of verbal fluency performance in older adults",
+   "year": 2014,
+   "cited_by": 1044,
+   "authors": [
+    "Zeshu Shao",
+    "Esther Janse",
+    "Karina Visser"
+   ],
+   "journal": "Frontiers in Psychology"
+  },
+  {
+   "openalex": "https://openalex.org/W2036969276",
+   "doi": "https://doi.org/10.1111/j.1559-1816.1998.tb01679.x",
+   "title": "Predicting and Explaining Intentions and Behavior: How Well Are We Doing?",
+   "year": 1998,
+   "cited_by": 1032,
+   "authors": [
+    "Stephen R. Sutton"
+   ],
+   "journal": "Journal of Applied Social Psychology"
+  },
+  {
+   "openalex": "https://openalex.org/W2083030076",
+   "doi": "https://doi.org/10.1177/0013916502250134",
+   "title": "Incentives, Morality, Or Habit? Predicting Students’ Car Use for University Routes With the Models of Ajzen, Schwartz, and Triandis",
+   "year": 2003,
+   "cited_by": 1031,
+   "authors": [
+    "Sebastian Bamberg",
+    "Peter Schmidt"
+   ],
+   "journal": "Environment and Behavior"
+  },
+  {
+   "openalex": "https://openalex.org/W2102418721",
+   "doi": "https://doi.org/10.1093/geronj/46.2.s55",
+   "title": "Health Perceptions and Survival: Do Global Evaluations of Health Status Really Predict Mortality?",
+   "year": 1991,
+   "cited_by": 981,
+   "authors": [
+    "Ellen L. Idler",
+    "S. V. Kasl"
+   ],
+   "journal": "Journal of Gerontology"
+  },
+  {
+   "openalex": "https://openalex.org/W2020810795",
+   "doi": "https://doi.org/10.1111/j.1467-8624.1990.tb02843.x",
+   "title": "Having Friends, Keeping Friends, Making Friends, and Being Liked by Peers in the Classroom: Predictors of Children's Early School Adjustment?",
+   "year": 1990,
+   "cited_by": 979,
+   "authors": [
+    "Gary W. Ladd"
+   ],
+   "journal": "Child Development"
+  },
+  {
+   "openalex": "https://openalex.org/W1982218215",
+   "doi": "https://doi.org/10.1073/pnas.0707962104",
+   "title": "Does the h index have predictive power?",
+   "year": 2007,
+   "cited_by": 968,
+   "authors": [
+    "J. E. Hirsch"
+   ],
+   "journal": "Proceedings of the National Academy of Sciences"
+  }
+ ],
+ "descriptive": [
+  {
+   "openalex": "https://openalex.org/W2129660502",
+   "doi": "https://doi.org/10.1177/1525822x05279903",
+   "title": "How Many Interviews Are Enough?",
+   "year": 2005,
+   "cited_by": 21934,
+   "authors": [
+    "Greg Guest",
+    "Arwen Bunce",
+    "Laura Johnson"
+   ],
+   "journal": "Field Methods"
+  },
+  {
+   "openalex": "https://openalex.org/W2109158012",
+   "doi": "https://doi.org/10.1111/j.1600-0706.2010.18644.x",
+   "title": "How many flowering plants are pollinated by animals?",
+   "year": 2011,
+   "cited_by": 3885,
+   "authors": [
+    "Jeff Ollerton",
+    "Rachael Winfree",
+    "Sam Tarrant"
+   ],
+   "journal": "Oikos"
+  },
+  {
+   "openalex": "https://openalex.org/W1996816368",
+   "doi": "https://doi.org/10.1371/journal.pbio.1001127",
+   "title": "How Many Species Are There on Earth and in the Ocean?",
+   "year": 2011,
+   "cited_by": 3064,
+   "authors": [
+    "Camilo Mora",
+    "Derek P. Tittensor",
+    "Sina M. Adl"
+   ],
+   "journal": "PLoS Biology"
+  },
+  {
+   "openalex": "https://openalex.org/W1526319989",
+   "doi": "https://doi.org/10.1111/j.2041-210x.2011.00172.x",
+   "title": "Selecting pseudo‐absences for species distribution models: how, where and how many?",
+   "year": 2012,
+   "cited_by": 2974,
+   "authors": [
+    "Morgane Barbet‐Massin",
+    "Frédéric Jiguet",
+    "Cécile Hélène Albert"
+   ],
+   "journal": "Methods in Ecology and Evolution"
+  },
+  {
+   "openalex": "https://openalex.org/W2047555270",
+   "doi": "https://doi.org/10.1093/comjnl/41.8.578",
+   "title": "How Many Clusters? Which Clustering Method? Answers Via Model-Based Cluster Analysis",
+   "year": 1998,
+   "cited_by": 2532,
+   "authors": [
+    "Chris Fraley"
+   ],
+   "journal": "The Computer Journal"
+  },
+  {
+   "openalex": "https://openalex.org/W2084304524",
+   "doi": "https://doi.org/10.1109/jsac.2013.130205",
+   "title": "Massive MIMO in the UL/DL of Cellular Networks: How Many Antennas Do We Need?",
+   "year": 2013,
+   "cited_by": 2298,
+   "authors": [
+    "Jakob Hoydis",
+    "Stephan ten Brink",
+    "Merouane Abdelkader Debbah"
+   ],
+   "journal": "IEEE Journal on Selected Areas in Communications"
+  },
+  {
+   "openalex": "https://openalex.org/W1964906652",
+   "doi": "https://doi.org/10.1001/archneur.1970.00480280083010",
+   "title": "Muscle Fiber Types: How Many and What Kind?",
+   "year": 1970,
+   "cited_by": 2152,
+   "authors": [
+    "Michael H. Brooke",
+    "Kenneth K. Kaiser"
+   ],
+   "journal": "Archives of Neurology"
+  },
+  {
+   "openalex": "https://openalex.org/W2168033482",
+   "doi": "https://doi.org/10.1177/1466138108099586",
+   "title": "`How many cases do I need?'",
+   "year": 2009,
+   "cited_by": 2037,
+   "authors": [
+    "Mario Luis Small"
+   ],
+   "journal": "Ethnography"
+  },
+  {
+   "openalex": "https://openalex.org/W2073667556",
+   "doi": "https://doi.org/10.1037//0003-066x.40.4.385",
+   "title": "How many memory systems are there?",
+   "year": 1985,
+   "cited_by": 1903,
+   "authors": [
+    "Endel Tulving"
+   ],
+   "journal": "American Psychologist"
+  },
+  {
+   "openalex": "https://openalex.org/W2344333698",
+   "doi": "https://doi.org/10.1177/1525822x16639015",
+   "title": "How Many Focus Groups Are Enough? Building an Evidence Base for Nonprobability Sample Sizes",
+   "year": 2016,
+   "cited_by": 1792,
+   "authors": [
+    "Greg Guest",
+    "Emily Namey",
+    "Kevin McKenna"
+   ],
+   "journal": "Field Methods"
+  },
+  {
+   "openalex": "https://openalex.org/W2134928141",
+   "doi": "https://doi.org/10.1046/j.1464-410x.2001.02228.x",
+   "title": "How widespread are the symptoms of an overactive bladder and how are they managed? A population‐based prevalence study",
+   "year": 2001,
+   "cited_by": 1741,
+   "authors": [
+    "Ian Milsom",
+    "Paul Abrams",
+    "L. Cardozo"
+   ],
+   "journal": "British Journal of Urology"
+  },
+  {
+   "openalex": "https://openalex.org/W2171853361",
+   "doi": "https://doi.org/10.3102/1076998609346961",
+   "title": "How Many Studies Do You Need?",
+   "year": 2009,
+   "cited_by": 1298,
+   "authors": [
+    "Jeffrey C. Valentine",
+    "Terri Pigott",
+    "Hannah R. Rothstein"
+   ],
+   "journal": "Journal of Educational and Behavioral Statistics"
+  },
+  {
+   "openalex": "https://openalex.org/W2031982155",
+   "doi": "https://doi.org/10.2307/747823",
+   "title": "How Many Words Are There in Printed School English?",
+   "year": 1984,
+   "cited_by": 1249,
+   "authors": [
+    "William E. Nagy",
+    "Richard C. Anderson"
+   ],
+   "journal": "Reading Research Quarterly"
+  },
+  {
+   "openalex": "https://openalex.org/W1596953637",
+   "doi": "https://doi.org/10.1177/001872089203400407",
+   "title": "Refining the Test Phase of Usability Evaluation: How Many Subjects Is Enough?",
+   "year": 1992,
+   "cited_by": 1208,
+   "authors": [
+    "Robert A. Virzi"
+   ],
+   "journal": "Human Factors The Journal of the Human Factors and Ergonomics Society"
+  },
+  {
+   "openalex": "https://openalex.org/W2029174977",
+   "doi": "https://doi.org/10.1126/science.241.4872.1441",
+   "title": "How Many Species Are There on Earth?",
+   "year": 1988,
+   "cited_by": 1178,
+   "authors": [
+    "Robert Mccredie May"
+   ],
+   "journal": "Science"
+  },
+  {
+   "openalex": "https://openalex.org/W2021032538",
+   "doi": "https://doi.org/10.1080/026432997381664",
+   "title": "How Many Levels of Processing Are There in Lexical Access?",
+   "year": 1997,
+   "cited_by": 1165,
+   "authors": [
+    "Alfonso Caramazza"
+   ],
+   "journal": "Cognitive Neuropsychology"
+  },
+  {
+   "openalex": "https://openalex.org/W2788008213",
+   "doi": "https://doi.org/10.1093/jmammal/gyx147",
+   "title": "How many species of mammals are there?",
+   "year": 2017,
+   "cited_by": 1128,
+   "authors": [
+    "Connor Burgin",
+    "Jocelyn P. Colella",
+    "Philip L Kahn"
+   ],
+   "journal": "Journal of Mammalogy"
+  },
+  {
+   "openalex": "https://openalex.org/W2050178102",
+   "doi": "https://doi.org/10.1097/00005768-200002000-00025",
+   "title": "Using objective physical activity measures with youth: How many days of monitoring are needed?",
+   "year": 2000,
+   "cited_by": 1127,
+   "authors": [
+    "Stewart Graeme Trost",
+    "Russell R. Pate",
+    "Patty S. Freedson"
+   ],
+   "journal": "Medicine & Science in Sports & Exercise"
+  },
+  {
+   "openalex": "https://openalex.org/W2138831913",
+   "doi": "https://doi.org/10.1186/1479-5868-8-79",
+   "title": "How many steps/day are enough? for adults",
+   "year": 2011,
+   "cited_by": 1099,
+   "authors": [
+    "Catrine E Tudor-Locke",
+    "Cora L. Craig",
+    "Wendy J. Brown"
+   ],
+   "journal": "International Journal of Behavioral Nutrition and Physical Activity"
+  },
+  {
+   "openalex": "https://openalex.org/W2963913216",
+   "doi": "https://doi.org/10.5334/joc.72",
+   "title": "How Many Participants Do We Have to Include in Properly Powered Experiments? A Tutorial of Power Analysis with Reference Tables",
+   "year": 2019,
+   "cited_by": 1022,
+   "authors": [
+    "Marc Brysbaert"
+   ],
+   "journal": "Journal of Cognition"
+  },
+  {
+   "openalex": "https://openalex.org/W2035446895",
+   "doi": "https://doi.org/10.1111/j.1529-8817.2012.01222.x",
+   "title": "HOW MANY SPECIES OF ALGAE ARE THERE?",
+   "year": 2012,
+   "cited_by": 1012,
+   "authors": [
+    "Michael Dominic Guiry"
+   ],
+   "journal": "Journal of Phycology"
+  },
+  {
+   "openalex": "https://openalex.org/W2151736966",
+   "doi": "https://doi.org/10.1089/cmb.2009.0179",
+   "title": "How Many Bootstrap Replicates Are Necessary?",
+   "year": 2010,
+   "cited_by": 962,
+   "authors": [
+    "Nicholas D. Pattengale",
+    "Masoud Alipour",
+    "Olaf R. P. Bininda‐Emonds"
+   ],
+   "journal": "Journal of Computational Biology"
+  },
+  {
+   "openalex": "https://openalex.org/W2321872593",
+   "doi": "https://doi.org/10.1261/rna.053959.115",
+   "title": "How many biological replicates are needed in an RNA-seq experiment and which differential expression tool should you use?",
+   "year": 2016,
+   "cited_by": 948,
+   "authors": [
+    "Nick Schurch",
+    "Pietá Schofield",
+    "Marek Gierliński"
+   ],
+   "journal": "RNA"
+  },
+  {
+   "openalex": "https://openalex.org/W2148760296",
+   "doi": "https://doi.org/10.1017/s0033291709991036",
+   "title": "How common are common mental disorders? Evidence that lifetime prevalence rates are doubled by prospective versus retrospective ascertainment",
+   "year": 2009,
+   "cited_by": 932,
+   "authors": [
+    "Terrie E. Moffitt",
+    "Avshalom Caspi",
+    "A. Taylor"
+   ],
+   "journal": "Psychological Medicine"
+  },
+  {
+   "openalex": "https://openalex.org/W2126818791",
+   "doi": "https://doi.org/10.1080/089856200283063",
+   "title": "Where do they come from? Prevalence and characteristics of nascent entrepreneurs",
+   "year": 2000,
+   "cited_by": 873,
+   "authors": [
+    "Frédéric Delmar",
+    "Per Davidsson"
+   ],
+   "journal": "Entrepreneurship and Regional Development"
+  }
+ ],
+ "ambiguous": [
+  {
+   "openalex": "https://openalex.org/W1976089762",
+   "doi": "https://doi.org/10.1037//0021-9010.76.6.845",
+   "title": "Relationship between organizational justice and organizational citizenship behaviors: Do fairness perceptions influence employee citizenship?",
+   "year": 1991,
+   "cited_by": 3439,
+   "authors": [
+    "Robert H. Moorman"
+   ],
+   "journal": "Journal of Applied Psychology"
+  },
+  {
+   "openalex": "https://openalex.org/W1989766991",
+   "doi": "https://doi.org/10.2307/256972",
+   "title": "DOES STAKEHOLDER ORIENTATION MATTER? THE RELATIONSHIP BETWEEN STAKEHOLDER MANAGEMENT MODELS AND FIRM FINANCIAL PERFORMANCE.",
+   "year": 1999,
+   "cited_by": 2474,
+   "authors": [
+    "Shawn L. Berman",
+    "Andrew C. Wicks",
+    "Suresh B Kotha"
+   ],
+   "journal": "Academy of Management Journal"
+  },
+  {
+   "openalex": "https://openalex.org/W4245512005",
+   "doi": "https://doi.org/10.1001/jama.1986.03380200061022",
+   "title": "Is Relationship Between Serum Cholesterol and Risk of Premature Death From Coronary Heart Disease Continuous and Graded?",
+   "year": 1986,
+   "cited_by": 2177,
+   "authors": [
+    "Jeremiah Stamler"
+   ],
+   "journal": "JAMA"
+  },
+  {
+   "openalex": "https://openalex.org/W2322872268",
+   "doi": "https://doi.org/10.2308/accr-10209",
+   "title": "Is Earnings Quality Associated with Corporate Social Responsibility?",
+   "year": 2012,
+   "cited_by": 2013,
+   "authors": [
+    "Yongtae Kim",
+    "Myung Seok Park",
+    "Benson Wier"
+   ],
+   "journal": "The Accounting Review"
+  },
+  {
+   "openalex": "https://openalex.org/W1998218014",
+   "doi": "https://doi.org/10.1002/(sici)1099-0836(199603)5:1<30::aid-bse38>3.0.co;2-q",
+   "title": "DOES IT PAY TO BE GREEN? AN EMPIRICAL EXAMINATION OF THE RELATIONSHIP BETWEEN EMISSION REDUCTION AND FIRM PERFORMANCE",
+   "year": 1996,
+   "cited_by": 1936,
+   "authors": [
+    "Stuart L. Hart",
+    "Gautam Ahuja"
+   ],
+   "journal": "Business Strategy and the Environment"
+  },
+  {
+   "openalex": "https://openalex.org/W2008811990",
+   "doi": "https://doi.org/10.1890/0012-9658(2001)082[2381:witorb]2.0.co;2",
+   "title": "WHAT IS THE OBSERVED RELATIONSHIP BETWEEN SPECIES RICHNESS AND PRODUCTIVITY?",
+   "year": 2001,
+   "cited_by": 1694,
+   "authors": [
+    "Gary G. Mittelbach",
+    "Christopher F. Steiner",
+    "Samuel M. Scheiner"
+   ],
+   "journal": "Ecology"
+  },
+  {
+   "openalex": "https://openalex.org/W2146316233",
+   "doi": "https://doi.org/10.1186/1471-2458-11-109",
+   "title": "What factors are associated with recent intimate partner violence? findings from the WHO multi-country study on women's health and domestic violence",
+   "year": 2011,
+   "cited_by": 1435,
+   "authors": [
+    "Tanya Abramsky",
+    "Charlotte H. Watts",
+    "Claudia García‐Moreno"
+   ],
+   "journal": "BMC Public Health"
+  },
+  {
+   "openalex": "https://openalex.org/W2037689620",
+   "doi": "https://doi.org/10.1002/smj.714",
+   "title": "Does it pay to be different? An analysis of the relationship between corporate social and financial performance",
+   "year": 2008,
+   "cited_by": 1382,
+   "authors": [
+    "Stephen J. Brammer",
+    "Andrew Millington"
+   ],
+   "journal": "Strategic Management Journal"
+  },
+  {
+   "openalex": "https://openalex.org/W2003058747",
+   "doi": "https://doi.org/10.1002/smj.1980",
+   "title": "Does it pay to be really good? addressing the shape of the relationship between social and financial performance",
+   "year": 2012,
+   "cited_by": 1260,
+   "authors": [
+    "Michael L. Barnett",
+    "ROBERT M. SALOMON"
+   ],
+   "journal": "Strategic Management Journal"
+  },
+  {
+   "openalex": "https://openalex.org/W2109477969",
+   "doi": "https://doi.org/10.1068/a35111",
+   "title": "Natural Environments—Healthy Environments? An Exploratory Analysis of the Relationship between Greenspace and Health",
+   "year": 2003,
+   "cited_by": 1253,
+   "authors": [
+    "Sjerp de Vries",
+    "Robert A. Verheij",
+    "Peter Groenewegen"
+   ],
+   "journal": "Environment and Planning A Economy and Space"
+  },
+  {
+   "openalex": "https://openalex.org/W2134325158",
+   "doi": "https://doi.org/10.1509/jmkg.69.2.84.60760",
+   "title": "Do Satisfied Customers Really Pay More? A Study of the Relationship between Customer Satisfaction and Willingness to Pay",
+   "year": 2005,
+   "cited_by": 1221,
+   "authors": [
+    "Christian Homburg",
+    "Nicole Koschate",
+    "Wayne D. Hoyer"
+   ],
+   "journal": "Journal of Marketing"
+  },
+  {
+   "openalex": "https://openalex.org/W2097978649",
+   "doi": "https://doi.org/10.1002/1520-6793(200101)18:1<43::aid-mar3>3.0.co;2-i",
+   "title": "Personal characteristics as moderators of the relationship between customer satisfaction and loyalty?an empirical analysis",
+   "year": 2000,
+   "cited_by": 1174,
+   "authors": [
+    "Christian Homburg",
+    "Annette Giering"
+   ],
+   "journal": "Psychology and Marketing"
+  },
+  {
+   "openalex": "https://openalex.org/W2807472376",
+   "doi": "https://doi.org/10.1108/meq-12-2017-0149",
+   "title": "Is sustainability reporting (ESG) associated with performance? Evidence from the European banking sector",
+   "year": 2018,
+   "cited_by": 1118,
+   "authors": [
+    "Amina Mohammed Buallay"
+   ],
+   "journal": "Management of Environmental Quality An International Journal"
+  },
+  {
+   "openalex": "https://openalex.org/W1965152196",
+   "doi": "https://doi.org/10.2307/256913",
+   "title": "DOES PERCEIVED ORGANIZATIONAL SUPPORT MEDIATE THE RELATIONSHIP BETWEEN PROCEDURAL JUSTICE AND ORGANIZATIONAL CITIZENSHIP BEHAVIOR?",
+   "year": 1998,
+   "cited_by": 1073,
+   "authors": [
+    "Robert H. Moorman",
+    "Gerald L. Blakely",
+    "Brian P. Niehoff"
+   ],
+   "journal": "Academy of Management Journal"
+  },
+  {
+   "openalex": "https://openalex.org/W2068424042",
+   "doi": "https://doi.org/10.1002/smj.197",
+   "title": "Does market orientation matter?: a test of the relationship between positional advantage and performance",
+   "year": 2001,
+   "cited_by": 1061,
+   "authors": [
+    "G. Tomas M. Hult",
+    "David J. Ketchen"
+   ],
+   "journal": "Strategic Management Journal"
+  },
+  {
+   "openalex": "https://openalex.org/W2147363709",
+   "doi": "https://doi.org/10.1111/j.1467-8683.2008.00678.x",
+   "title": "Are Socially Responsible Managers Really Ethical? Exploring the Relationship Between Earnings Management and Corporate Social Responsibility",
+   "year": 2008,
+   "cited_by": 1013,
+   "authors": [
+    "Diego Prior",
+    "Jordi A. Surroca",
+    "Josep A. Tribó"
+   ],
+   "journal": "Corporate Governance An International Review"
+  },
+  {
+   "openalex": "https://openalex.org/W2036417937",
+   "doi": "https://doi.org/10.1111/j.1937-5956.2001.tb00373.x",
+   "title": "LEAN AND GREEN? AN EMPIRICAL EXAMINATION OF THE RELATIONSHIP BETWEEN LEAN PRODUCTION AND ENVIRONMENTAL PERFORMANCE",
+   "year": 2001,
+   "cited_by": 999,
+   "authors": [
+    "Andrew A. King",
+    "Michael James Lenox"
+   ],
+   "journal": "Production and Operations Management"
+  },
+  {
+   "openalex": "https://openalex.org/W2117698664",
+   "doi": "https://doi.org/10.2308/accr-50544",
+   "title": "Is Corporate Social Responsibility (CSR) Associated with Tax Avoidance? Evidence from Irresponsible CSR Activities",
+   "year": 2013,
+   "cited_by": 964,
+   "authors": [
+    "Chun Keung Hoi",
+    "Qiang Wu",
+    "Hao Zhang"
+   ],
+   "journal": "The Accounting Review"
+  },
+  {
+   "openalex": "https://openalex.org/W2164410862",
+   "doi": "https://doi.org/10.1017/s0038038599000371",
+   "title": "SUBCULTURES OR NEO‐TRIBES? RETHINKING THE RELATIONSHIP BETWEEN YOUTH, STYLE AND MUSICAL TASTE",
+   "year": 1999,
+   "cited_by": 962,
+   "authors": [
+    "Andy Bennett"
+   ],
+   "journal": "Sociology"
+  },
+  {
+   "openalex": "https://openalex.org/W2089437140",
+   "doi": "https://doi.org/10.1172/jci119388",
+   "title": "Preeclampsia is associated with failure of human cytotrophoblasts to mimic a vascular adhesion phenotype. One cause of defective endovascular invasion in this syndrome?",
+   "year": 1997,
+   "cited_by": 920,
+   "authors": [
+    "Yan Zhou",
+    "C H Damsky",
+    "Susan J. Fisher"
+   ],
+   "journal": "Journal of Clinical Investigation"
+  },
+  {
+   "openalex": "https://openalex.org/W2171009698",
+   "doi": "https://doi.org/10.1037/0012-1649.42.4.698",
+   "title": "Is extracurricular participation associated with beneficial outcomes? Concurrent and longitudinal relations.",
+   "year": 2006,
+   "cited_by": 913,
+   "authors": [
+    "Jennifer A. Fredricks",
+    "Jacquelynne S. Eccles"
+   ],
+   "journal": "Developmental Psychology"
+  },
+  {
+   "openalex": "https://openalex.org/W2041902086",
+   "doi": "https://doi.org/10.1111/j.1365-2745.2006.01150.x",
+   "title": "How general are positive relationships between plant population size, fitness and genetic variation?",
+   "year": 2006,
+   "cited_by": 900,
+   "authors": [
+    "Roosa Leimu",
+    "Pia Mutikäinen",
+    "Julia Koricheva"
+   ],
+   "journal": "Journal of Ecology"
+  },
+  {
+   "openalex": "https://openalex.org/W2096782637",
+   "doi": "https://doi.org/10.1093/aje/kwg275",
+   "title": "Is Obesity Associated with Major Depression? Results from the Third National Health and Nutrition Examination Survey",
+   "year": 2003,
+   "cited_by": 822,
+   "authors": [
+    "Chiadi U. Onyike"
+   ],
+   "journal": "American Journal of Epidemiology"
+  },
+  {
+   "openalex": "https://openalex.org/W2037884136",
+   "doi": "https://doi.org/10.2307/3090205",
+   "title": "Is Doctor-Patient Race Concordance Associated with Greater Satisfaction with Care?",
+   "year": 2002,
+   "cited_by": 796,
+   "authors": [
+    "Thomas A. LaVeist",
+    "Amani Nuru‐Jeter"
+   ],
+   "journal": "Journal of Health and Social Behavior"
+  },
+  {
+   "openalex": "https://openalex.org/W1987066934",
+   "doi": "https://doi.org/10.2307/256699",
+   "title": "ASSESSING THE RELATIONSHIP BETWEEN INDUSTRY CHARACTERISTICS AND ORGANIZATIONAL CULTURE: HOW DIFFERENT CAN YOU BE?",
+   "year": 1994,
+   "cited_by": 785,
+   "authors": [
+    "J. A. Chatman",
+    "Karen A. Jehn"
+   ],
+   "journal": "Academy of Management Journal"
+  }
+ ],
+ "rct_topup": [
+  {
+   "openalex": "https://openalex.org/W3123223998",
+   "doi": "https://doi.org/10.1257/0002828042002561",
+   "title": "Are Emily and Greg More Employable Than Lakisha and Jamal? A Field Experiment on Labor Market Discrimination",
+   "year": 2004,
+   "cited_by": 5024,
+   "authors": [
+    "Marianne Bertrand",
+    "Sendhil Mullainathan"
+   ],
+   "journal": "American Economic Review"
+  },
+  {
+   "openalex": "https://openalex.org/W2161708711",
+   "doi": "https://doi.org/10.1093/qje/qju032",
+   "title": "Does Working from Home Work? Evidence from a Chinese Experiment *",
+   "year": 2014,
+   "cited_by": 2105,
+   "authors": [
+    "Nicholas Bloom",
+    "James Liang",
+    "John Roberts"
+   ],
+   "journal": "The Quarterly Journal of Economics"
+  },
+  {
+   "openalex": "https://openalex.org/W3123111016",
+   "doi": "https://doi.org/10.1162/jeea.2007.5.6.1203",
+   "title": "Do Subsidies Increase Charitable Giving in the Long Run? Matching Donations in a Field Experiment",
+   "year": 2007,
+   "cited_by": 314,
+   "authors": [
+    "Stephan Meier"
+   ],
+   "journal": "Journal of the European Economic Association"
+  },
+  {
+   "openalex": "https://openalex.org/W2148141426",
+   "doi": "https://doi.org/10.1561/100.00011019",
+   "title": "Can Learning Constituency Opinion Affect How Legislators Vote? Results from a Field Experiment",
+   "year": 2011,
+   "cited_by": 306,
+   "authors": [
+    "Daniel Mark Butler",
+    "David W. Nickerson"
+   ],
+   "journal": "Quarterly Journal of Political Science"
+  },
+  {
+   "openalex": "https://openalex.org/W2795668280",
+   "doi": "https://doi.org/10.1017/s0003055418000151",
+   "title": "Can Social Contact Reduce Prejudice and Discrimination? Evidence from a Field Experiment in Nigeria",
+   "year": 2018,
+   "cited_by": 293,
+   "authors": [
+    "Alexandra Scacco",
+    "Shana S. Warren"
+   ],
+   "journal": "American Political Science Review"
+  },
+  {
+   "openalex": "https://openalex.org/W2050850506",
+   "doi": "https://doi.org/10.1097/00006199-199505000-00007",
+   "title": "The Effects of a Special Computer Network on Caregivers of Persons with Alzheimer??s Disease",
+   "year": 1995,
+   "cited_by": 241,
+   "authors": [
+    "PATRICIA FLATLEY BRENNAN",
+    "Shirley M. Moore",
+    "Kathleen A. Smyth"
+   ],
+   "journal": "Nursing Research"
+  },
+  {
+   "openalex": "https://openalex.org/W2613229639",
+   "doi": "https://doi.org/10.1002/smj.2987",
+   "title": "When does advice impact startup performance?",
+   "year": 2018,
+   "cited_by": 229,
+   "authors": [
+    "Aaron Chatterji",
+    "Solène Delecourt",
+    "Sharique Hasan"
+   ],
+   "journal": "Strategic Management Journal"
+  },
+  {
+   "openalex": "https://openalex.org/W2148914920",
+   "doi": "https://doi.org/10.1017/s0022381611001368",
+   "title": "Deterring or Displacing Electoral Irregularities? Spillover Effects of Observers in a Randomized Field Experiment in Ghana",
+   "year": 2012,
+   "cited_by": 221,
+   "authors": [
+    "Nahomi Ichino",
+    "Matthias Schündeln"
+   ],
+   "journal": "The Journal of Politics"
+  },
+  {
+   "openalex": "https://openalex.org/W2113022405",
+   "doi": "https://doi.org/10.1007/bf00941773",
+   "title": "How did it work? An examination of the mechanisms through which an intervention for the unemployed promoted job‐search behavior",
+   "year": 1992,
+   "cited_by": 219,
+   "authors": [
+    "Michelle van Ryn",
+    "Amiram D. Vinokur"
+   ],
+   "journal": "American Journal of Community Psychology"
+  },
+  {
+   "openalex": "https://openalex.org/W1972705612",
+   "doi": "https://doi.org/10.1093/jopart/mus036",
+   "title": "Can Government Initiatives Increase Citizen Coproduction? Results of a Randomized Field Experiment",
+   "year": 2012,
+   "cited_by": 216,
+   "authors": [
+    "Morten Jakobsen"
+   ],
+   "journal": "Journal of Public Administration Research and Theory"
+  },
+  {
+   "openalex": "https://openalex.org/W2341386271",
+   "doi": "https://doi.org/10.1111/ajps.12252",
+   "title": "Does Race Affect Access to Government Services? An Experiment Exploring Street‐Level Bureaucrats and Access to Public Housing",
+   "year": 2016,
+   "cited_by": 207,
+   "authors": [
+    "Katherine Levine Einstein",
+    "David M. Glick"
+   ],
+   "journal": "American Journal of Political Science"
+  },
+  {
+   "openalex": "https://openalex.org/W2017741229",
+   "doi": "https://doi.org/10.1257/pol.20120081",
+   "title": "Would People Behave Differently If They Better Understood Social Security? Evidence from a Field Experiment",
+   "year": 2015,
+   "cited_by": 176,
+   "authors": [
+    "Jeffrey B. Liebman",
+    "Erzo F.P. Luttmer"
+   ],
+   "journal": "American Economic Journal Economic Policy"
+  },
+  {
+   "openalex": "https://openalex.org/W2237343089",
+   "doi": "https://doi.org/10.1177/0019793915625213",
+   "title": "Do Employer Preferences Contribute to Sticky Floors?",
+   "year": 2016,
+   "cited_by": 168,
+   "authors": [
+    "Stijn Baert",
+    "Ann‐Sophie De Pauw",
+    "Nick Deschacht"
+   ],
+   "journal": "Industrial and Labor Relations Review"
+  },
+  {
+   "openalex": "https://openalex.org/W2615995276",
+   "doi": "https://doi.org/10.1126/sciadv.1602153",
+   "title": "Does basic energy access generate socioeconomic benefits? A field experiment with off-grid solar power in India",
+   "year": 2017,
+   "cited_by": 165,
+   "authors": [
+    "Michaël Aklin",
+    "Patrick J. Bayer",
+    "S. P. Harish"
+   ],
+   "journal": "Science Advances"
+  },
+  {
+   "openalex": "https://openalex.org/W3171410278",
+   "doi": "https://doi.org/10.1287/mnsc.2021.4040",
+   "title": "How Do Peer Awards Motivate Creative Content? Experimental Evidence from Reddit",
+   "year": 2021,
+   "cited_by": 153,
+   "authors": [
+    "Gordon Burtch",
+    "Qinglai He",
+    "Yili Hong"
+   ],
+   "journal": "Management Science"
+  },
+  {
+   "openalex": "https://openalex.org/W2969559638",
+   "doi": "https://doi.org/10.1287/mnsc.2019.3546",
+   "title": "How Do Product Attributes and Reviews Moderate the Impact of Recommender Systems Through Purchase Stages?",
+   "year": 2020,
+   "cited_by": 118,
+   "authors": [
+    "Dokyun Lee",
+    "Kartik Hosanagar"
+   ],
+   "journal": "Management Science"
+  },
+  {
+   "openalex": "https://openalex.org/W2034304255",
+   "doi": "https://doi.org/10.1111/j.1542-4774.2010.tb00527.x",
+   "title": "WHEN IS COMMUNITY-BASED MONITORING EFFECTIVE? EVIDENCE FROM A RANDOMIZED EXPERIMENT IN PRIMARY HEALTH IN UGANDA",
+   "year": 2010,
+   "cited_by": 102,
+   "authors": [
+    "Martina Björkman",
+    "Jakob Svensson"
+   ],
+   "journal": "Journal of the European Economic Association"
+  },
+  {
+   "openalex": "https://openalex.org/W3091637843",
+   "doi": "https://doi.org/10.1287/mksc.2015.0923",
+   "title": "Can Marketing Campaigns Induce Multichannel Buying and More Profitable Customers? A Field Experiment",
+   "year": 2015,
+   "cited_by": 93,
+   "authors": [
+    "Elisa Montaguti",
+    "Scott A. Neslin",
+    "Sara Valentini"
+   ],
+   "journal": "Marketing Science"
+  },
+  {
+   "openalex": "https://openalex.org/W2474732589",
+   "doi": "https://doi.org/10.1093/esr/jcw030",
+   "title": "Additive or Multiplicative Disadvantage? The Scarring Effects of Unemployment for Ethnic Minorities",
+   "year": 2016,
+   "cited_by": 85,
+   "authors": [
+    "Gunn Elisabeth Birkelund",
+    "Kristian Heggebø",
+    "Jon Rogstad"
+   ],
+   "journal": "European Sociological Review"
+  },
+  {
+   "openalex": "https://openalex.org/W4283730228",
+   "doi": "https://doi.org/10.1111/poms.13785",
+   "title": "Rationally trust, but emotionally? The roles of cognitive and affective trust in laypeople's acceptance of AI for preventive care operations",
+   "year": 2022,
+   "cited_by": 82,
+   "authors": [
+    "Nakyung Kyung",
+    "Hyeokkoo Eric Kwon"
+   ],
+   "journal": "Production and Operations Management"
+  },
+  {
+   "openalex": "https://openalex.org/W2566325628",
+   "doi": "https://doi.org/10.1093/socpro/spw033",
+   "title": "Can a Flexibility/Support Initiative Reduce Turnover Intentions and Exits? Results from the Work, Family, and Health Network",
+   "year": 2016,
+   "cited_by": 71,
+   "authors": [
+    "Phyllis Moen",
+    "Erin L. Kelly",
+    "Shi-Rong Lee"
+   ],
+   "journal": "Social Problems"
+  },
+  {
+   "openalex": "https://openalex.org/W4378978845",
+   "doi": "https://doi.org/10.1162/rest_a_01333",
+   "title": "Is Mobile Money Changing Rural Africa? Evidence from a Field Experiment",
+   "year": 2023,
+   "cited_by": 70,
+   "authors": [
+    "Cátia Batista",
+    "Pedro C. Vicente"
+   ],
+   "journal": "The Review of Economics and Statistics"
+  },
+  {
+   "openalex": "https://openalex.org/W3155500105",
+   "doi": "https://doi.org/10.1016/j.chb.2021.106819",
+   "title": "Does an individualized learning design improve university student online learning? A randomized field experiment",
+   "year": 2021,
+   "cited_by": 63,
+   "authors": [
+    "Julia Dietrich",
+    "Franziska Greiner",
+    "Dorit Weber-Liel"
+   ],
+   "journal": "Computers in Human Behavior"
+  },
+  {
+   "openalex": "https://openalex.org/W3081572767",
+   "doi": "https://doi.org/10.1287/isre.2020.0922",
+   "title": "Different but Equal? A Field Experiment on the Impact of Recommendation Systems on Mobile and Personal Computer Channels in Retail",
+   "year": 2020,
+   "cited_by": 63,
+   "authors": [
+    "Dongwon Lee",
+    "Anandasivam Gopal",
+    "Sung-Hyuk Park"
+   ],
+   "journal": "Information Systems Research"
+  },
+  {
+   "openalex": "https://openalex.org/W2022146331",
+   "doi": "https://doi.org/10.1111/j.1460-2466.2012.01632.x",
+   "title": "A Field Experiment on the Internet's Effect in an African Election: Savvier Citizens, Disaffected Voters, or Both?",
+   "year": 2012,
+   "cited_by": 63,
+   "authors": [
+    "Catie Snow Bailard"
+   ],
+   "journal": "Journal of Communication"
+  }
+ ]
+}

@@ -26,6 +26,8 @@ import re
 from dataclasses import dataclass, field
 from enum import Enum
 
+from causal_engine.question_analysis import QuestionAnalysis, analyze
+from causal_engine.question_reading import THRESHOLD_ASSIGNMENT, THRESHOLD_UNCLEAR
 from utils.i18n import Msg
 
 
@@ -58,6 +60,9 @@ class ResearchDesignInput:
     n_treated_units: str = "many"              # one | few | many
     instrument: str = "unsure"                 # available | none | unsure
     confounders_observed: str = "unsure"       # measured | not_measured | unsure
+    # The researcher's own statements, which the wording of a question cannot give.
+    causal_confirmed: bool = False             # the aim is a causal effect, whatever the wording suggests
+    answers_confirmed: bool = False            # these answers, defaults included, describe the study
 
 
 @dataclass
@@ -70,7 +75,13 @@ class DiagnosisResult:
     potential_confounding: Level = Level.UNKNOWN
     treatment_heterogeneity: Level = Level.UNKNOWN
     potential_spillovers: Level = Level.UNKNOWN
+    question_signals: frozenset = frozenset()   # design features the question's wording describes
+    analysis: QuestionAnalysis | None = None     # the research question's causal structure
     notes: list[Msg] = field(default_factory=list)
+
+    @property
+    def cutoff_in_question(self) -> bool:
+        return "cutoff" in self.question_signals
 
     def as_rows(self) -> list[tuple[str, Level]]:
         """(locale key suffix diagnosis.dim.<slug>, level) per dimension."""
@@ -88,17 +99,41 @@ class DiagnosisResult:
 
 _SPILLOVER_KEYWORDS = (
     "neighbor", "neighbour", "nearby", "spatial", "adjacent",
-    "surrounding", "diffusion", "spread", "region", "territories",
+    "surrounding", "diffusion", "spread",
 )
 _ENDOGENEITY_KEYWORDS = (
-    "self-select", "chose", "choice", "endogenous", "reverse", "demand",
+    "self-select", "chose", "choice", "endogenous", "reverse causal", "reverse causation",
 )
 _HETEROGENEITY_KEYWORDS = (
-    "gender", "income", "age", "heterogene", "differ by", "vary by",
+    "heterogene", "differ by", "vary by", "varies by", "by gender", "by income", "by age",
+    "across groups", "subgroup", "for whom",
 )
+# Design features the wording of the question describes (English and French),
+# checked against the form by the recommendation engine. Each pattern is narrow on
+# purpose: "eligibility" alone is not a cutoff (an eligibility expansion over time
+# is a DiD design), "natural experiment" is not randomisation, and "National" in a
+# programme's name is not a nationwide treatment.
+QUESTION_SIGNALS = {
+    "random": r"randomi[sz]|random(ly)?\s+assign|\blotter(y|ies)\b|\brcts?\b|tirage au sort|al[ée]atoire|loterie",
+    "instrument": r"\binstrument|exogenous (shock|variation)|variable instrumentale|choc exog",
+    "staggered": r"stagger|roll-?out|phased[ -]in|[ée]chelonn|d[ée]ploiement progressif",
+    "single_unit": r"nationwide|country-?wide|at the national level|[àa] l'[ée]chelle nationale|"
+                   r"\b(one|single) (country|state|region|province|city)\b|\bun seul (pays|[ée]tat)\b",
+    "border": r"\bborders?\b|boundar|fronti[èe]re",
+    "heterogeneity": r"for whom|subgroup|heterogene|differ by|vary by|sous-groupe|pour qui|h[ée]t[ée]rog[ée]n",
+    "mechanism": r"mechanism|through which|mediat|channel|m[ée]canisme|\bcanal\b|m[ée]diat",
+    "dose": r"\bdoses?\b|each additional|how much|per (euro|dollar)|suppl[ée]mentaire",
+    "dynamic": r"long[- ]run|long[- ]term|over time|years after|dynamic|[àa] long terme|dans le temps|dynamique",
+}
+
+
+def question_signals(text: str) -> frozenset:
+    """The design features the question's wording describes."""
+    low = text.lower()
+    return frozenset(name for name, pattern in QUESTION_SIGNALS.items() if re.search(pattern, low))
 # Keywords that must match as whole words rather than word prefixes
 # (otherwise "age" would match "average", "agency", ...).
-_WHOLE_WORD_KEYWORDS = {"age", "chose", "choice", "demand", "spread"}
+_WHOLE_WORD_KEYWORDS = {"by age", "chose", "choice", "spread"}
 
 
 def _keyword_flag(text: str, keywords: tuple[str, ...]) -> bool:
@@ -169,6 +204,17 @@ def diagnose(design: ResearchDesignInput) -> DiagnosisResult:
         or design.treatment_timing == "staggered"
         else Level.MEDIUM
     )
+
+    # --- Assignment cutoff described in the question ---------------------------
+    # Whether a threshold assigns treatment is decided by the analysis of the question,
+    # which tells an assignment rule from an ordinary number.
+    result.analysis = analyze(design)
+    threshold = result.analysis.threshold if result.analysis is not None else None
+    result.question_signals = question_signals(design.research_question) | {
+        signal for kind, signal in ((THRESHOLD_ASSIGNMENT, "cutoff"), (THRESHOLD_UNCLEAR, "threshold_unclear"))
+        if threshold == kind}
+    if result.cutoff_in_question and design.assignment_mechanism != "threshold":
+        result.notes.append(Msg("diagnosis.note.cutoff_language"))
 
     # --- Potential spillovers ------------------------------------------------
     if design.has_spatial_component or _keyword_flag(design.research_question, _SPILLOVER_KEYWORDS):

@@ -3,11 +3,10 @@
 
 Each method gets checks aimed at the threat its identification rests on,
 each returning PASS, WARNING or N/A with a translatable message, and the same
-Identification Strength score as the DiD stress test (100 * PASS / checks
-that are not N/A). Tests use the 10% level, as the DiD checks do; the other
-thresholds are rules of thumb, stated in each message. False-alarm and
-detection rates on the method worlds are in spike/method_calibration_results.md.
-The score is a diagnostic heuristic, not a proof.
+qualitative summary as the DiD stress test. Tests use the 10% level, as the DiD
+checks do; the other thresholds are rules of thumb, stated in each message.
+False-alarm and detection rates on the method worlds are in
+spike/method_calibration_results.md.
 """
 from __future__ import annotations
 
@@ -22,7 +21,7 @@ from estimators.common import MethodResult
 from estimators.rdd import estimate_rdd
 from estimators.registry import run_method
 from estimators.synthetic_control import estimate_synthetic_control
-from robustness_engine.stress_test import NOT_APPLICABLE, PASS, WARNING, identification_strength
+from robustness_engine.stress_test import INSUFFICIENT, NOT_APPLICABLE, PASS, WARNING, summary_of_checks
 from utils.i18n import LocalizedError, Msg
 
 LEVEL = 0.10
@@ -45,6 +44,16 @@ CHECKS = {
     "synthetic_control": ("sc_pre_fit", "sc_leave_one_out", "sc_in_time_placebo"),
     "dml": ("dml_overlap", "dml_seed_stability"),
 }
+# The checks aimed at each method's identifying assumption. The others concern precision
+# or stability: arm size, extreme scores, agreement of two estimators, the choice of folds.
+IDENTIFYING_CHECKS = {
+    "rct": ("rct_balance",),
+    "matching": ("matching_overlap", "matching_balance"),
+    "iv": ("iv_weak_instrument", "iv_overidentification"),
+    "rdd": ("rdd_manipulation", "rdd_placebo_cutoffs"),
+    "synthetic_control": ("sc_pre_fit", "sc_in_time_placebo"),
+    "dml": ("dml_overlap",),
+}
 
 
 @dataclass
@@ -60,7 +69,7 @@ class MethodCheck:
 class MethodStressReport:
     method: str
     checks: list[MethodCheck] = field(default_factory=list)
-    identification_strength: float | None = None
+    summary: str = INSUFFICIENT                    # warning | no_warning | insufficient
     n_computable: int = 0
 
 
@@ -269,5 +278,6 @@ def run_method_stress_test(method: str, df: pd.DataFrame, mapping: dict, options
         checks = _dml(df, mapping, options, result)
     else:
         raise KeyError(method)
-    return MethodStressReport(method=method, checks=checks, identification_strength=identification_strength(checks),
+    summary = summary_of_checks([c.verdict for c in checks if c.slug in IDENTIFYING_CHECKS[method]])
+    return MethodStressReport(method=method, checks=checks, summary=summary,
                               n_computable=sum(c.verdict != NOT_APPLICABLE for c in checks))

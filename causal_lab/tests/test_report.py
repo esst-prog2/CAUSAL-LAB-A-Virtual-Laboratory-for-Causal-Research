@@ -16,6 +16,7 @@ from report_engine.render import latex_escape, pdf_safe, render_report, to_latex
 from robustness_engine.stress_test import run_stress_test
 from simulation_engine.dgp import VirtualWorldConfig, generate
 from simulation_engine.method_worlds import MatchingWorldConfig, matching_world
+from utils.i18n import t
 from utils.real_data import load_card_krueger
 
 APP = str(Path(__file__).resolve().parent.parent / "app.py")
@@ -62,8 +63,8 @@ def test_report_has_every_section_and_the_engines_numbers():
     assert _value(REPORT_EN, "True ATT") == f"{STATE['virtual_truth']['true_att']:.4f}"
     stress = run_stress_test(STATE["virtual_df"], treatment_period=STATE["virtual_cfg"].treatment_period,
                              ids_encode_neighbourhood=True)
-    strength = next(b.text for b in REPORT_EN.blocks if isinstance(b, Paragraph) and b.text.startswith("Identification Strength"))
-    assert f"{stress.identification_strength:.0f} / 100" in strength
+    summary = next(b.text for b in REPORT_EN.blocks if isinstance(b, Paragraph) and b.text.startswith(t("break.summary_title", "en")))
+    assert t(f"break.summary.{stress.summary}", "en") in summary and "/ 100" not in summary
     assert any("Callaway" in h or "Staggered" in h or "robust" in h.lower() for h in heads)   # staggered world
     matching = STATE["method_data"]["matching"]["result"]
     assert f"{matching.estimate:.4f}" in [row[1] for b in REPORT_EN.blocks if isinstance(b, Table) for row in b.rows]
@@ -74,6 +75,10 @@ def test_report_follows_the_interface_language():
     fr = build_report(STATE, "fr")
     assert fr.title == "Rapport Causal Lab" and "Données" in _headings(fr)
     assert any(isinstance(b, Paragraph) and b.text.startswith("Méthode recommandée : ") for b in fr.blocks)
+    # The argued order of the methods, with no numerical credibility anywhere in the report.
+    assert any(isinstance(b, Paragraph) and b.text == t("recommendation.order_note", "fr") for b in fr.blocks)
+    assert not any("/100" in cell for b in fr.blocks if isinstance(b, Table) and "Statut" in b.columns
+                   for row in b.rows for cell in row)
     assert len(fr.blocks) == len(REPORT_EN.blocks)
 
 
