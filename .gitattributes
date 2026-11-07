@@ -1,2 +1,4 @@
 docs/evaluation/question_set.json -text
 docs/evaluation/question_set.sha256 -text
+docs/evaluation/v2/question_set.json -text
+docs/evaluation/v2/question_set.sha256 -text
