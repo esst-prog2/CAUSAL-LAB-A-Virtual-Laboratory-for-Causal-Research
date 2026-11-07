@@ -109,7 +109,7 @@ def test_the_claims_made_in_words_hold_in_the_stored_study():
 
 
 def test_the_answers_per_threat_stated_in_the_readme():
-    # README section 1: how far each threat can go under the author's rule, and what the pretest sees.
+    # docs/DEMO_DETAILS.md: how far each threat can go under the author's rule, and what the pretest sees.
     _, study = load_study()
     s = {t: {lv: summarize(lv, reps) for lv, reps in levels.items()} for t, levels in study.items()}
     assert {t: largest_acceptable(by_level) for t, by_level in s.items()} == {
