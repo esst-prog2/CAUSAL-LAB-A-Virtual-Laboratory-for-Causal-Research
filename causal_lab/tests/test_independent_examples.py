@@ -158,6 +158,39 @@ def _goto(at, page):
     at.run()
 
 
+def test_form_widgets_keep_their_identity_when_their_value_changes():
+    # A widget whose default follows the value gets a new identity at each change, and the
+    # browser's next edit goes to the old one and is lost: every second edit did nothing.
+    # AppTest re-reads the widgets, so it cannot see the lost edit; it can see the identity.
+    at = AppTest.from_file(str(APP), default_timeout=120).run()
+    _goto(at, "research_question")
+    before = at.text_area[0].id
+    at.text_area[0].set_value("Is smoking associated with lung cancer?").run()
+    at.text_area[0].set_value("Does smoking cause lung cancer?").run()
+    assert at.text_area[0].id == before
+    assert at.session_state.design.research_question == "Does smoking cause lung cancer?"
+    number = at.number_input[0]
+    number_id = number.id
+    number.set_value(3).run()
+    at.number_input[0].set_value(7).run()
+    assert at.number_input[0].id == number_id and at.session_state.design.n_pre_periods == 7
+    _goto(at, "virtual_lab")
+    world = at.number_input[0].id
+    at.number_input[0].set_value(150).run()
+    at.number_input[0].set_value(220).run()
+    assert at.number_input[0].id == world and at.session_state.vw_config.n_units == 220
+
+
+def test_the_button_that_applies_the_question_reaches_the_form():
+    # A value changed from outside the widget still shows in it.
+    at = AppTest.from_file(str(APP), default_timeout=120).run()
+    _goto(at, "research_question")
+    at.text_area[0].set_value("What is the effect of a scholarship for students near the eligibility cutoff?").run()
+    _button(at, "qa.apply").click().run()
+    assert at.session_state.design.assignment_mechanism == "threshold"
+    assert at.session_state["form_wizard.assignment_mechanism"] == "threshold"
+
+
 def test_a_stated_causal_aim_belongs_to_its_question():
     at = AppTest.from_file(str(APP), default_timeout=120).run()
     _goto(at, "research_question")
