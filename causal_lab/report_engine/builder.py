@@ -238,12 +238,8 @@ def build_report(state, lang: str, now: datetime | None = None) -> Report:
         add(Heading(L("break.title")))
         add(Table([L("report.col.check"), L("report.col.verdict"), L("report.col.detail")],
                   [[L(f"check.{c.slug}"), L(f"verdict.{c.verdict}"), R(c.message)] for c in stress.checks]))
-        if stress.identification_strength is None:
-            add(Paragraph(L("break.no_score")))
-        else:
-            add(Paragraph(f"{L('break.strength')}{colon}{stress.identification_strength:.0f} / 100 — "
-                          + F("break.score_basis", k=stress.n_computable, n=len(stress.checks))))
-        add(Paragraph(L("break.disclaimer"), emphasis=True))
+        add(Paragraph(f"{L('break.summary_title')}{colon}{L(f'break.summary.{stress.summary}')} "
+                      + F("break.summary_basis", k=stress.n_computable, n=len(stress.checks))))
         references(*METHOD_REFERENCES["stress_test"])
 
         battery = run_robustness_battery(df, treatment_period=treatment_period,

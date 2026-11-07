@@ -444,13 +444,8 @@ def _stress_section(method: str, state: dict, result: MethodResult, L) -> None:
     for check in report.checks:
         icon, show = STRESS_STYLE[check.verdict]
         show(f"**{L(f'mcheck.{check.slug}')}** {icon} {L(f'verdict.{check.verdict}')} — {R(check.message)}")
-    if report.identification_strength is None:
-        st.info(L("break.no_score"))
-    else:
-        st.progress(report.identification_strength / 100)
-        st.markdown(f"### {report.identification_strength:.0f} / 100")
-        st.caption(F("break.score_basis", k=report.n_computable, n=len(report.checks)))
-    st.caption(L("break.disclaimer"))
+    (st.warning if report.summary == "warning" else st.info)(L(f"break.summary.{report.summary}"))
+    st.caption(F("break.summary_basis", k=report.n_computable, n=len(report.checks)))
 
 
 def _size_factor(method: str, config) -> float:

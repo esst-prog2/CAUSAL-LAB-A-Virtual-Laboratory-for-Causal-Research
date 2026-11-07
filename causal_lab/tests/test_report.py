@@ -63,8 +63,8 @@ def test_report_has_every_section_and_the_engines_numbers():
     assert _value(REPORT_EN, "True ATT") == f"{STATE['virtual_truth']['true_att']:.4f}"
     stress = run_stress_test(STATE["virtual_df"], treatment_period=STATE["virtual_cfg"].treatment_period,
                              ids_encode_neighbourhood=True)
-    strength = next(b.text for b in REPORT_EN.blocks if isinstance(b, Paragraph) and b.text.startswith("Identification Strength"))
-    assert f"{stress.identification_strength:.0f} / 100" in strength
+    summary = next(b.text for b in REPORT_EN.blocks if isinstance(b, Paragraph) and b.text.startswith(t("break.summary_title", "en")))
+    assert t(f"break.summary.{stress.summary}", "en") in summary and "/ 100" not in summary
     assert any("Callaway" in h or "Staggered" in h or "robust" in h.lower() for h in heads)   # staggered world
     matching = STATE["method_data"]["matching"]["result"]
     assert f"{matching.estimate:.4f}" in [row[1] for b in REPORT_EN.blocks if isinstance(b, Table) for row in b.rows]

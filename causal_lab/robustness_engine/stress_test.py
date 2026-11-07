@@ -3,14 +3,21 @@
 
 Runs a battery of diagnostic checks against a fitted DiD design on
 actual (real or simulated) panel data, and produces a PASS / WARNING /
-N/A verdict for each threat, plus an overall "Identification Strength"
-score out of 100. This score is a diagnostic heuristic, not a
-statistical proof — this is stated explicitly in every rendering.
+N/A verdict for each threat, plus a qualitative summary of the checks aimed
+at the identifying assumption (`summary_of_checks`).
+
+There is no overall score. The "Identification Strength" of earlier versions
+(100 x passes / computable checks) was removed on 2026-11-07, because it did not
+measure identification: spike/identification_score_check_results.md shows it at
+91.7 where the DiD is biased by 21%, against 91.5 with no threat at all, and at
+72.5 where the bias is 320% of the effect. It also counted serial correlation,
+which clustering already handles, and effect heterogeneity, under which the DiD
+still estimates an ATT. `identification_strength` remains only because the
+calibration spikes and their stored results use it.
 
 A check that cannot be computed on the data (too few periods or units,
-no neighbourhood structure) returns N/A. N/A is shown as such and is
-excluded from the score: a lack of evidence is not evidence of failure
-(user decision, hw6 review 3).
+no neighbourhood structure) returns N/A. N/A is shown as such: a lack of
+evidence is not evidence of failure (user decision, hw6 review 3).
 """
 from __future__ import annotations
 
@@ -26,6 +33,11 @@ from robustness_engine.neighbourhood import adjacent_control_ids
 from utils.i18n import Msg
 
 PASS, WARNING, NOT_APPLICABLE = "PASS", "WARNING", "N/A"
+# What the checks say about the identifying assumption, taken together.
+WARNING_RAISED, NO_WARNING, INSUFFICIENT = "warning", "no_warning", "insufficient"
+# The checks aimed at the DiD's identifying assumption. Serial Correlation concerns
+# the standard errors, and Heterogeneous Effects what a single ATT summarises.
+IDENTIFYING_CHECKS = ("Parallel Trends", "Anticipation", "Spillovers")
 
 # Failures of the regression itself on degenerate data (singular design,
 # no residual degrees of freedom). The check is then not computable: N/A,
@@ -65,7 +77,7 @@ def parallel_trends_assessment(p_value: float) -> str:
 @dataclass
 class StressTestReport:
     checks: list[CheckResult] = field(default_factory=list)
-    identification_strength: float | None = None   # None when no check could be computed
+    summary: str = INSUFFICIENT                    # warning | no_warning | insufficient
     n_computable: int = 0
 
 
@@ -291,8 +303,17 @@ def _check_heterogeneous_effects(df: pd.DataFrame, outcome_col, unit_col, time_c
                        statistic=var_ratio, p_value=p_value)
 
 
+def summary_of_checks(verdicts: list[str]) -> str:
+    """From the verdicts of the checks aimed at the identifying assumption. "no_warning"
+    is not evidence of validity: such checks can miss serious violations."""
+    if WARNING in verdicts:
+        return WARNING_RAISED
+    return NO_WARNING if PASS in verdicts else INSUFFICIENT
+
+
 def identification_strength(checks: list[CheckResult]) -> float | None:
-    """Score = 100 * PASS / (checks that are not N/A); None when every check is N/A."""
+    """Removed from the app (see the module docstring); kept for the calibration spikes.
+    100 * PASS / (checks that are not N/A); None when every check is N/A."""
     computable = [c for c in checks if c.verdict != NOT_APPLICABLE]
     if not computable:
         return None
@@ -314,5 +335,5 @@ def run_stress_test(df: pd.DataFrame, treatment_period: int, *, ids_encode_neigh
         _check_heterogeneous_effects(df, outcome_col, unit_col, time_col, treated_unit_col, treatment_period),
     ]
     n_computable = sum(c.verdict != NOT_APPLICABLE for c in checks)
-    return StressTestReport(checks=checks, identification_strength=identification_strength(checks),
-                            n_computable=n_computable)
+    summary = summary_of_checks([c.verdict for c in checks if c.name in IDENTIFYING_CHECKS])
+    return StressTestReport(checks=checks, summary=summary, n_computable=n_computable)

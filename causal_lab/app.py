@@ -742,14 +742,9 @@ elif page == "break_my_design":
             show(f"**{L(f'check.{check.slug}')}** {icon} {L(f'verdict.{check.verdict}')} — {R(check.message)}")
 
         st.divider()
-        st.subheader(L("break.strength"))
-        if report.identification_strength is None:
-            st.info(L("break.no_score"))
-        else:
-            st.progress(report.identification_strength / 100)
-            st.markdown(f"### {report.identification_strength:.0f} / 100")
-            st.caption(F("break.score_basis", k=report.n_computable, n=len(report.checks)))
-        st.caption(L("break.disclaimer"))
+        st.subheader(L("break.summary_title"))
+        (st.warning if report.summary == "warning" else st.info)(L(f"break.summary.{report.summary}"))
+        st.caption(F("break.summary_basis", k=report.n_computable, n=len(report.checks)))
         references_caption("stress_test")
 
 # --------------------------------------------------------------------------
