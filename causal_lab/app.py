@@ -115,10 +115,27 @@ def treatment_setup(df: pd.DataFrame) -> tuple[int, bool]:
     return session_data.treatment_setup(st.session_state, df)
 
 
+def bound(widget, key: str, current, *args, **kwargs):
+    """A form widget showing a value held in an object (the design, the world's settings).
+
+    Passing that value as the widget's default would change the widget's identity
+    whenever the value changes: the next edit is then sent to the old widget and lost,
+    so every second change of a field did nothing. A key keeps the identity; the value
+    is written to the widget only when it changed from outside (a button, an opened
+    project)."""
+    state = st.session_state
+    if key not in state or state.get(f"_seen_{key}") != current:
+        state[key] = current
+    value = widget(*args, key=key, **kwargs)
+    state[f"_seen_{key}"] = value
+    return value
+
+
 def option_select(container, label_key: str, options: list[str], current: str) -> str:
     """Selectbox over option codes, displayed through the opt.* keys."""
-    index = options.index(current) if current in options else 0
-    return container.selectbox(L(label_key), options, index=index, format_func=lambda o: L(f"opt.{o}"))
+    current = current if current in options else options[0]
+    return bound(container.selectbox, f"form_{label_key}", current, L(label_key), options,
+                 format_func=lambda o: L(f"opt.{o}"))
 
 
 # Results are cached by the data's content. Bounded, so that a server used by
@@ -281,10 +298,8 @@ elif page == "research_question":
 
     st.subheader(L("step1.title"))
     previous_question = d.research_question
-    d.research_question = st.text_area(
-        L("step1.question"), value=d.research_question, height=100,
-        placeholder=L("step1.placeholder"),
-    )
+    d.research_question = bound(st.text_area, "form_question", d.research_question, L("step1.question"), height=100,
+                                placeholder=L("step1.placeholder"))
     if d.research_question != previous_question:
         # A stated causal aim belongs to the question it was stated for.
         d.causal_confirmed = False
@@ -320,26 +335,26 @@ elif page == "research_question":
                                      ["cross_section", "panel", "repeated_cross_section", "time_series",
                                       "spatial", "spatio_temporal_panel", "experimental", "survey",
                                       "administrative"], d.data_structure)
-    d.has_spatial_component = c2.checkbox(L("wizard.spatial"), value=d.has_spatial_component)
+    d.has_spatial_component = bound(c2.checkbox, "form_spatial", d.has_spatial_component, L("wizard.spatial"))
 
     c1, c2, c3 = st.columns(3)
-    d.has_pre_treatment_periods = c1.checkbox(L("wizard.has_pre"), value=d.has_pre_treatment_periods)
-    d.n_pre_periods = c2.number_input(L("wizard.n_pre"), min_value=0, value=d.n_pre_periods,
-                                      disabled=not d.has_pre_treatment_periods)
-    d.n_post_periods = c3.number_input(L("wizard.n_post"), min_value=0, value=d.n_post_periods)
+    d.has_pre_treatment_periods = bound(c1.checkbox, "form_has_pre", d.has_pre_treatment_periods, L("wizard.has_pre"))
+    d.n_pre_periods = bound(c2.number_input, "form_n_pre", d.n_pre_periods, L("wizard.n_pre"), min_value=0,
+                            disabled=not d.has_pre_treatment_periods)
+    d.n_post_periods = bound(c3.number_input, "form_n_post", d.n_post_periods, L("wizard.n_post"), min_value=0)
 
     st.subheader(L("step6.title"))
     st.caption(L("step6.intro"))
     c1, c2 = st.columns(2)
-    d.has_control_group = c1.checkbox(L("wizard.control_group"), value=d.has_control_group)
+    d.has_control_group = bound(c1.checkbox, "form_control", d.has_control_group, L("wizard.control_group"))
     d.n_treated_units = option_select(c2, "wizard.n_treated", ["one", "few", "many"], d.n_treated_units)
     c1, c2 = st.columns(2)
     d.instrument = option_select(c1, "wizard.instrument", ["available", "none", "unsure"], d.instrument)
     d.confounders_observed = option_select(c2, "wizard.confounders", ["measured", "not_measured", "unsure"],
                                            d.confounders_observed)
 
-    d.answers_confirmed = st.checkbox(L("wizard.answers_confirmed"), value=d.answers_confirmed,
-                                      help=L("wizard.answers_confirmed_help"))
+    d.answers_confirmed = bound(st.checkbox, "form_confirmed", d.answers_confirmed, L("wizard.answers_confirmed"),
+                                help=L("wizard.answers_confirmed_help"))
 
     st.session_state.design = d
 
@@ -493,21 +508,22 @@ elif page == "virtual_lab":
 
     cfg = st.session_state.vw_config
     c1, c2, c3 = st.columns(3)
-    cfg.n_units = c1.number_input(L("virtual.n_units"), 20, 2000, cfg.n_units, step=10)
-    cfg.n_periods = c2.number_input(L("virtual.n_periods"), 4, 60, cfg.n_periods)
-    cfg.treatment_period = c3.number_input(L("virtual.treatment_period"), 2, cfg.n_periods - 1,
-                                           min(max(cfg.treatment_period, 2), cfg.n_periods - 1))
+    cfg.n_units = bound(c1.number_input, "world_n_units", cfg.n_units, L("virtual.n_units"), 20, 2000, step=10)
+    cfg.n_periods = bound(c2.number_input, "world_n_periods", cfg.n_periods, L("virtual.n_periods"), 4, 60)
+    cfg.treatment_period = bound(c3.number_input, "world_treatment_period",
+                                 min(max(cfg.treatment_period, 2), cfg.n_periods - 1),
+                                 L("virtual.treatment_period"), 2, cfg.n_periods - 1)
 
     c1, c2, c3 = st.columns(3)
-    cfg.share_treated = c1.slider(L("virtual.share_treated"), 0.05, 0.9, cfg.share_treated)
-    cfg.true_att = c2.number_input(L("virtual.true_att"), value=cfg.true_att, step=0.1)
-    cfg.noise_sd = c3.number_input(L("virtual.noise"), 0.1, 5.0, cfg.noise_sd)
+    cfg.share_treated = bound(c1.slider, "world_share_treated", cfg.share_treated, L("virtual.share_treated"), 0.05, 0.9)
+    cfg.true_att = bound(c2.number_input, "world_true_att", cfg.true_att, L("virtual.true_att"), step=0.1)
+    cfg.noise_sd = bound(c3.number_input, "world_noise", cfg.noise_sd, L("virtual.noise"), 0.1, 5.0)
 
     st.subheader(L("virtual.threats"))
 
     def threat(container, key: str, value: str) -> str:
-        return container.select_slider(L(f"threat.{key}"), LEVELS, value=value,
-                                       format_func=lambda v: L(f"intensity.{v}"))
+        return bound(container.select_slider, f"world_{key}", value, L(f"threat.{key}"), LEVELS,
+                     format_func=lambda v: L(f"intensity.{v}"))
 
     c1, c2, c3 = st.columns(3)
     cfg.confounding = threat(c1, "confounding", cfg.confounding)
@@ -519,8 +535,8 @@ elif page == "virtual_lab":
     cfg.anticipation = threat(c3, "anticipation", cfg.anticipation)
     c1, c2, c3 = st.columns(3)
     cfg.dynamic_effects = threat(c1, "dynamic_effects", cfg.dynamic_effects)
-    cfg.staggered_adoption = c2.checkbox(L("threat.staggered_adoption"), value=cfg.staggered_adoption)
-    cfg.seed = int(c3.number_input(L("common.seed"), min_value=0, value=cfg.seed or 42, step=1))
+    cfg.staggered_adoption = bound(c2.checkbox, "world_staggered", cfg.staggered_adoption, L("threat.staggered_adoption"))
+    cfg.seed = int(bound(c3.number_input, "world_seed", cfg.seed or 42, L("common.seed"), min_value=0, step=1))
 
     st.session_state.vw_config = cfg
 
