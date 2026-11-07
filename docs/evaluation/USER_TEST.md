@@ -10,7 +10,9 @@ Purpose: see how the question analysis behaves on questions the developer did no
 4. Keep every question and every form, even the ones that look bad.
 5. Before they start, confirm that the online app has been rebooted and shows "What the question asks" under the research question.
 
-**About the evaluation sets.** Their questions are new material. They must not be added to the frozen `question_set.json`. Keep them for a later, separate evaluation set, and do not change the analyser because of them until you have decided whether they will be used as such. A question that was used to fix the analyser can no longer test it.
+**Blind, and in both languages.** Do not say what the app is expected to answer, and do not suggest a method. Ask at least one tester to write in French, since no French question has been evaluated.
+
+**About the evaluation sets.** Their questions are new material. They must not be added to either frozen `question_set.json`. Keep them for a later, separate evaluation set, and do not change the analyser because of them until you have decided whether they will be used as such. A question that was used to fix the analyser can no longer test it.
 
 ## Instructions for the tester (about 20 minutes)
 

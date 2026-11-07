@@ -19,6 +19,9 @@ causal effect, and only the methods whose conditions hold are ordered.
      ITS                 a long enough series before and after treatment
      Matching / adjust.  all important confounders measured
 
+   RCT, RDD, IV and matching also compare treated with untreated units within the
+   sample: they need both, and more than one treated unit for any inference.
+
    A method is "supported", "needs_info" (a condition the researcher
    answered "not sure" about) or "not_supported" (a condition fails), with
    the reasons. If no method is supported, the engine says so and lists what
@@ -41,6 +44,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from causal_engine.diagnosis import DiagnosisResult, Level, ResearchDesignInput
+from causal_engine.question_analysis import form_is_default
 from causal_engine.question_reading import AMBIGUOUS, DESCRIPTIVE, PREDICTIVE
 from utils.i18n import Msg
 
@@ -90,6 +94,11 @@ def _gates(key: str, d: ResearchDesignInput, diag: DiagnosisResult) -> tuple[lis
     """(failed conditions, unconfirmed conditions) of method `key`."""
     failed, unsure = [], []
     pre = _pre(d)
+    if key in ("rct", "rdd", "iv", "matching"):
+        if not d.has_control_group:
+            failed.append(Msg("rec.gate.no_control_group"))
+        if d.n_treated_units == "one":
+            failed.append(Msg("rec.gate.one_treated"))
     if key == "rct":
         if d.assignment_mechanism != "random":
             failed.append(Msg("rec.gate.not_random"))
@@ -157,6 +166,8 @@ def _rationale(key: str, d: ResearchDesignInput, diag: DiagnosisResult) -> list[
         notes.append(Msg("rec.did.staggered"))
     if key in ("did", "event_study") and d.n_treated_units == "one":
         notes.append(Msg("rec.did.one_treated"))
+    if key in ("did", "event_study") and d.assignment_mechanism == "self_selected":
+        notes.append(Msg("rec.note.did_self_selected"))
     if key in ("did", "event_study", "matching") and d.treatment_type == "continuous":
         notes.append(Msg("rec.note.continuous_treatment"))
     if key in ("did", "event_study", "synthetic_control", "matching") and diag.potential_spillovers == Level.HIGH:
@@ -234,6 +245,11 @@ def _check_question(methods: list[MethodAssessment], d: ResearchDesignInput, dia
     signals = diag.question_signals
     by_key = {method.key: method for method in methods}
     analysis = diag.analysis
+    if analysis is None and form_is_default(d):
+        # No question and no answer: nothing is known about the study.
+        for method in methods:
+            _ask(method, Msg("rec.ask.nothing_known"))
+        return
     if analysis is not None and not analysis.causal:
         # The question does not (yet) ask for a causal effect: no causal method answers it.
         for method in methods:

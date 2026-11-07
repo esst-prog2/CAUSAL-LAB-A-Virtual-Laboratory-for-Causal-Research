@@ -74,8 +74,12 @@ def test_robustness_handles_string_unit_ids():
 
 
 def test_heterogeneity_keyword_not_triggered_by_substring():
+    # Naming income as an outcome says nothing about heterogeneity (second-stage review,
+    # 2026-11-07); asking how the effect varies by it does.
     design = ResearchDesignInput(research_question="Effect of a wage subsidy on average village income levels")
-    assert diagnose(design).treatment_heterogeneity == Level.HIGH  # "income"
+    assert diagnose(design).treatment_heterogeneity == Level.MEDIUM
+    design = ResearchDesignInput(research_question="Does the effect of a wage subsidy vary by income?")
+    assert diagnose(design).treatment_heterogeneity == Level.HIGH
     design = ResearchDesignInput(research_question="Effect of a wage subsidy on average village output")
     assert diagnose(design).treatment_heterogeneity == Level.MEDIUM
 

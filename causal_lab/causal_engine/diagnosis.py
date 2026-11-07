@@ -99,13 +99,14 @@ class DiagnosisResult:
 
 _SPILLOVER_KEYWORDS = (
     "neighbor", "neighbour", "nearby", "spatial", "adjacent",
-    "surrounding", "diffusion", "spread", "region", "territories",
+    "surrounding", "diffusion", "spread",
 )
 _ENDOGENEITY_KEYWORDS = (
-    "self-select", "chose", "choice", "endogenous", "reverse", "demand",
+    "self-select", "chose", "choice", "endogenous", "reverse causal", "reverse causation",
 )
 _HETEROGENEITY_KEYWORDS = (
-    "gender", "income", "age", "heterogene", "differ by", "vary by",
+    "heterogene", "differ by", "vary by", "varies by", "by gender", "by income", "by age",
+    "across groups", "subgroup", "for whom",
 )
 # Design features the wording of the question describes (English and French),
 # checked against the form by the recommendation engine. Each pattern is narrow on
@@ -132,7 +133,7 @@ def question_signals(text: str) -> frozenset:
     return frozenset(name for name, pattern in QUESTION_SIGNALS.items() if re.search(pattern, low))
 # Keywords that must match as whole words rather than word prefixes
 # (otherwise "age" would match "average", "agency", ...).
-_WHOLE_WORD_KEYWORDS = {"age", "chose", "choice", "demand", "spread"}
+_WHOLE_WORD_KEYWORDS = {"by age", "chose", "choice", "spread"}
 
 
 def _keyword_flag(text: str, keywords: tuple[str, ...]) -> bool:

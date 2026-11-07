@@ -202,6 +202,8 @@ def build_report(state, lang: str, now: datetime | None = None) -> Report:
                          [L("common.bias"), f"{did.att - truth['true_att']:+.4f}"]]
             add(Heading(L("method.did"), 2))
             add(Table([L("report.col.item"), L("report.col.value")], rows))
+            for warning in did.warnings:
+                add(Paragraph(R(warning), emphasis=True))
             references(*METHOD_REFERENCES["did"])
             if staggered:
                 add(Paragraph(L("estimation.staggered_warning"), emphasis=True))
@@ -227,6 +229,8 @@ def build_report(state, lang: str, now: datetime | None = None) -> Report:
                           + ([[L("common.true_att"), _num(truth["true_att"]), ""]] if truth is not None else [])))
                 add(Paragraph(F("staggered.details", cohorts=cs.n_cohorts, units=cs.n_units,
                                 comparison=L(f"staggered.comparison.{cs.comparison}"))))
+                if cs.n_always_treated:
+                    add(Paragraph(F("staggered.always_treated", n=cs.n_always_treated)))
                 if cs.min_cohort_size < SMALL_COHORT:
                     add(Paragraph(F("staggered.small_cohorts", n=cs.min_cohort_size, minimum=SMALL_COHORT, df=cs.df),
                                   emphasis=True))

@@ -13,14 +13,14 @@ The system SHALL run a configurable number of independent replications, each wit
 - **THEN** it generates `n_reps` synthetic datasets, one per replication, each with `seed = base_seed + replication_index` and otherwise identical config, and estimates the DiD ATT on each with `estimate_did`. It returns a `MonteCarloSummary` with:
   - `bias`: mean over replications of (estimate − that replication's true ATT);
   - `rmse` and `mae`;
-  - `coverage`: the share of replications whose estimate ± z·SE interval contains that replication's true ATT;
+  - `coverage`: the share of replications whose estimate ± t·SE interval contains that replication's true ATT;
   - `avg_ci_length` and `mean_estimate`;
   - `true_att`: the mean of the per-replication true ATTs;
   - the full list of point estimates
 
 #### Scenario: Confidence level determines the critical value
 - **WHEN** `ci_level` is any value in (0, 1)
-- **THEN** the coverage check uses the two-sided normal critical value `z = Φ⁻¹(0.5 + ci_level / 2)`, e.g. ≈ 1.95996 for 0.95
+- **THEN** the coverage check uses the two-sided Student t critical value with n_units - 1 degrees of freedom, the interval the app reports
 
 ### Requirement: Triggering from the app
 The system SHALL only offer Monte Carlo simulation when a Virtual World dataset (not an uploaded real-world dataset) is active, since it needs a known ground truth.

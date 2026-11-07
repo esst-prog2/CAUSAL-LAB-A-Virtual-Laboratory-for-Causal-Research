@@ -99,9 +99,9 @@ _PATTERNS = {
     # An experiment implies a controlled assignment, but "natural" and "quasi" ones do not.
     "experiment": r"(?<!natural )(?<!quasi-)(?<!quasi )(?<!thought )\bexperiments?\b|\bexp[ée]rimentation\b",
     "lottery": r"\blotter(y|ies)\b|loterie",
-    "self_selection": r"\b(join|joining|joined|choos|chose|opt(ed|ing)? (in|for)|decid|enrol(l)?(ing|ed)? in|"
-                      r"take[s]? up|taking up|participat|volunteer|self-select|adh[ée]r|choisi|d[ée]cid|s'inscri|"
-                      r"particip)",
+    "self_selection": r"\b(join|joining|joined|choos|chose|opt(ed|ing)? (in|for)|decid(e|es|ed|ing) to|"
+                      r"enrol(l)?(ing|ed)? in|take[s]? up|taking up|participat|volunteer|self-select|adh[ée]r|choisi|"
+                      r"d[ée]cid(e|ent|[ée]) de|s'inscri|particip)",
     "policy": r"\b(polic(y|ies)\b|reforms?\b|laws?\b|acts?\b|program(me)?s?\b|tax(es)?\b|bans?\b|mandates?\b|"
               r"regulations?\b|subsid|expansions?\b|minimum wage|proposition\b|r[ée]formes?\b|lois?\b|"
               r"interdiction|politiques?\b|subvention|construction\b)",
@@ -181,6 +181,10 @@ def analyze(design) -> QuestionAnalysis | None:
         return _not_causal_analysis(q, reading, threshold)
     treatment, outcome, population = reading.treatment, reading.outcome, reading.population
     domain = _domain(q)
+    # How treatment was assigned is read from the treatment, when it can be told apart:
+    # "the effect of a tax credit on labour force participation" is not self-selection,
+    # and "the effect of schooling on tax compliance" is not a tax policy.
+    about_treatment = treatment or q
     e: dict[str, Element] = {}
     inferred, strong, follow = {}, set(), []
     if reading.intent == AMBIGUOUS and not confirmed:
@@ -220,14 +224,14 @@ def analyze(design) -> QuestionAnalysis | None:
         e["assignment"] = Element("assignment", INFERRED, Msg("qa.infer.border", words=_has("border", q).group(0)))
         inferred["assignment_mechanism"] = "geographic"
         follow.append(Msg("qa.ask.border"))
-    elif _has("self_selection", q):
+    elif _has("self_selection", about_treatment):
         e["assignment"] = Element("assignment", INFERRED,
-                                  Msg("qa.infer.self_selection", words=_has("self_selection", q).group(0)))
+                                  Msg("qa.infer.self_selection", words=_has("self_selection", about_treatment).group(0)))
         inferred["assignment_mechanism"] = "self_selected"
         strong.add("assignment_mechanism")
         follow.append(Msg("qa.ask.self_selection"))
-    elif _has("policy", q):
-        e["assignment"] = Element("assignment", INFERRED, Msg("qa.infer.policy", words=_has("policy", q).group(0)))
+    elif _has("policy", about_treatment):
+        e["assignment"] = Element("assignment", INFERRED, Msg("qa.infer.policy", words=_has("policy", about_treatment).group(0)))
         inferred["assignment_mechanism"] = "policy"
         follow.append(Msg("qa.ask.policy"))
     else:

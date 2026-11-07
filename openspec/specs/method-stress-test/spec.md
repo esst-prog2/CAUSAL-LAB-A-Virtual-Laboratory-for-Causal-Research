@@ -6,7 +6,7 @@ TBD - created by archiving change methods-monte-carlo-stress-code. Update Purpos
 ## Requirements
 
 ### Requirement: Break My Design for the six Causal Methods
-For a Causal Methods estimate, the system SHALL run, on request, checks aimed at the method's identifying assumption. Each check returns PASS, WARNING or N/A with a translated message, and the result is summarized by the same Identification Strength score as the DiD stress test. The checks are:
+For a Causal Methods estimate, the system SHALL run, on request, checks aimed at the method's identifying assumption. Each check returns PASS, WARNING or N/A with a translated message, and the result is summarized by the same qualitative summary as the DiD stress test, from the checks aimed at the method's identifying assumption. The checks are:
 - **RCT:** a joint HC1 Wald test that the covariates do not predict treatment, and a minimum arm size of 30.
 - **Matching:** at most 5% of treated units outside the control propensity range; no standardized difference above 0.1 after matching; at most 5% of propensity scores beyond 0.95 or below 0.05; and agreement of matching and IPW at 10%.
 - **IV:** first-stage F of at least 10, and, with more than one instrument, the robust Wooldridge overidentification test at 10%.

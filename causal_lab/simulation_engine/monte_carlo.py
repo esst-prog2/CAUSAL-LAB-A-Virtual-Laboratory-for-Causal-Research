@@ -32,7 +32,8 @@ class MonteCarloSummary:
 
 def run_monte_carlo(config: VirtualWorldConfig, n_reps: int = 200, ci_level: float = 0.95,
                      base_seed: int = 0) -> MonteCarloSummary:
-    z = float(stats.norm.ppf(0.5 + ci_level / 2))
+    # The interval the app reports: Student t with one degree of freedom less than the units.
+    crit = float(stats.t.ppf(0.5 + ci_level / 2, max(config.n_units - 1, 1)))
 
     estimates: list[float] = []
     true_atts: list[float] = []
@@ -49,8 +50,8 @@ def run_monte_carlo(config: VirtualWorldConfig, n_reps: int = 200, ci_level: flo
         # its own replication's truth.
         true_atts.append(truth["true_att"])
 
-        lo = result.att - z * result.se
-        hi = result.att + z * result.se
+        lo = result.att - crit * result.se
+        hi = result.att + crit * result.se
         ci_lengths.append(hi - lo)
         if lo <= truth["true_att"] <= hi:
             covered += 1

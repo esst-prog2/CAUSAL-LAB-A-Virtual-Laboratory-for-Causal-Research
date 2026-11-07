@@ -12,7 +12,7 @@ The system SHALL offer a Report page that generates, on request, a report of the
 - a description of the active data;
 - the DiD estimate with its standard error, CI, p-value and N, and, for a Virtual World, the true ATT and the bias;
 - the event-study coefficients, and the Callaway & Sant'Anna estimate when adoption is staggered;
-- every stress-test check with its verdict and the Identification Strength score;
+- every stress-test check with its verdict and the qualitative summary of the checks;
 - the robustness battery;
 - the Causal Methods results already computed;
 - the generated Python, R and Stata code.
@@ -21,7 +21,7 @@ Every number in it SHALL come from the same engines as the app pages, run on the
 
 #### Scenario: Report on a Virtual World
 - **WHEN** the researcher generates a report after creating a staggered Virtual World and running the diagnosis and a Causal Methods estimate
-- **THEN** the report holds every section above, and its estimated ATT, true ATT, Identification Strength and method estimate equal what the engines return
+- **THEN** the report holds every section above, and its estimated ATT, true ATT, summary of the checks and method estimate equal what the engines return
 
 #### Scenario: Report on real data
 - **WHEN** the active data are uploaded or bundled real data

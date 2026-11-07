@@ -1,0 +1,72 @@
+{
+ "n_reps": 1000,
+ "seed_base": 20261029,
+ "cells": {
+  "clean_100": {
+   "bias": -0.003925056390075903,
+   "bias_mcse": 0.0030828214665407994,
+   "empirical_se": 0.0974873745392949,
+   "mean_model_se": 0.09673310073840452,
+   "coverage": 0.949,
+   "ci_width": 0.3838789165293176,
+   "rejection": 0.998,
+   "coverage_mcse": 0.006956938982052382,
+   "coverage_with_10pct_bias": 0.922,
+   "normal_formula_10pct_bias": 0.9350473122049322,
+   "bias_over_se_at_10pct": 0.5168861498114806
+  },
+  "clean_400": {
+   "bias": 0.00014749552299182984,
+   "bias_mcse": 0.0015345598421513914,
+   "empirical_se": 0.048527043070268595,
+   "mean_model_se": 0.04860200784615085,
+   "coverage": 0.95,
+   "ci_width": 0.1910960277226177,
+   "rejection": 1.0,
+   "coverage_mcse": 0.006892024376045114,
+   "coverage_with_10pct_bias": 0.828,
+   "normal_formula_10pct_bias": 0.8270363087292429,
+   "bias_over_se_at_10pct": 1.0287640823044695
+  },
+  "anticipation_high_100": {
+   "bias": 0.0560749436099241,
+   "bias_mcse": 0.0030828214665407994,
+   "empirical_se": 0.0974873745392949,
+   "mean_model_se": 0.09673310073840452,
+   "coverage": 0.915,
+   "ci_width": 0.3838789165293176,
+   "rejection": 0.994,
+   "coverage_mcse": 0.008819013550278736
+  },
+  "anticipation_high_400": {
+   "bias": 0.06014749552299183,
+   "bias_mcse": 0.0015345598421513914,
+   "empirical_se": 0.048527043070268595,
+   "mean_model_se": 0.04860200784615086,
+   "coverage": 0.769,
+   "ci_width": 0.1910960277226177,
+   "rejection": 1.0,
+   "coverage_mcse": 0.01332812815064441
+  },
+  "null_100": {
+   "bias": -0.0039250563900758975,
+   "bias_mcse": 0.0030828214665407994,
+   "empirical_se": 0.0974873745392949,
+   "mean_model_se": 0.09673310073840452,
+   "coverage": 0.949,
+   "ci_width": 0.3838789165293176,
+   "rejection": 0.051,
+   "coverage_mcse": 0.006956938982052382
+  },
+  "null_400": {
+   "bias": 0.00014749552299149905,
+   "bias_mcse": 0.0015345598421513914,
+   "empirical_se": 0.048527043070268595,
+   "mean_model_se": 0.04860200784615086,
+   "coverage": 0.95,
+   "ci_width": 0.1910960277226177,
+   "rejection": 0.05,
+   "coverage_mcse": 0.006892024376045114
+  }
+ }
+}

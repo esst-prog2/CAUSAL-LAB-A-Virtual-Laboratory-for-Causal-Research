@@ -177,6 +177,9 @@ _ABSENCE = re.compile(r"\bwould\s+(?P<o>.+?)\s+(?:be|have been)\s+(?:[\w-]+\s+){
                       r"if not for|but for|had\b|if\b)\s*(?P<t>.+)", re.I | re.S)
 _ABSENCE_FR = re.compile(r"\b(?P<o>(?:la|le|les|l['’])\s*.+?)\s+(?:serait|seraient|aurait|auraient)-(?:il|elle|ils|elles)\s+"
                          r"(?:[\w-]+\s+){0,2}?(?:sans|en l['’]absence d(?:e|u|es|['’]))\s*(?P<t>.+)", re.I | re.S)
+_WOULD_WITHOUT = re.compile(r"\bwould\s+(?P<o>.+?)\s+(?:[\w-]+\s+){1,3}?(?:in the absence of|absent|without|if not for|but for)\s+"
+                            r"(?P<t>.+)", re.I | re.S)
+_RESPONSIBLE = re.compile(r"\b(?:is|are|was|were)\s+(?P<t>.+?)\s+(?:partly\s+|largely\s+)?responsible\s+for\s+(?P<rest>.+)", re.I | re.S)
 _IF_WOULD = re.compile(r"\bif\s+(?P<t>.+?),?\s+(?:would|will)\s+(?P<o>.+)", re.I | re.S)
 _WOULD_HAD = re.compile(r"\bwould\s+(?P<o>.+?)\s+(?:have\s+)?\w+\s+had\s+(?P<t>.+)", re.I | re.S)
 _EFFECTIVE = re.compile(r"\b(?:how\s+effective\s+)?(?:is|are|was|were)\s+(?P<t>.+?)\s+(?:(?:cost-)?effective)\s*"
@@ -192,7 +195,7 @@ _RETURNS = re.compile(r"\b(?P<o>(?:[\w-]+\s+)?returns?)\s+to\s+(?P<t>.+)", re.I 
 _AUX_CLAUSE = re.compile(rf"\b{_AUX}{_NOT}\s+(?P<tail>.+)", re.I | re.S)
 _VERB_IN_TAIL = re.compile(rf"\b(?P<v>{_BASE})\b", re.I)
 # "Does X matter?", "do programs work?": asks for an effect and names no outcome.
-_BARE_EFFECT = re.compile(rf"^(?P<t>.+?)\s+(?:not\s+)?(?P<v>matter|work|succeed|pay off)\s*(?:\?.*)?$", re.I | re.S)
+_BARE_EFFECT = re.compile(r"^(?P<t>.+?)\s+(?:not\s+)?(?P<v>matter|work|succeed|pay off)\s*(?:\?.*)?$", re.I | re.S)
 _ADVERB_AT_END = re.compile(r"\s+(?:really|actually|truly|indeed|always|also|in fact|necessarily)$", re.I)
 _INTRANSITIVE_IN_TAIL = re.compile(rf"\b(?P<v>{'|'.join(_INTRANSITIVE)})\b", re.I)
 _PERFECT = re.compile(rf"\b(?:has|have|had)(?:n['’]t)?{_NOT}\s+(?P<t>.+?)\s+(?P<v>{_PAST})\b\s*(?P<rest>.*)", re.I | re.S)
@@ -275,6 +278,10 @@ def _strong_causal(q: str) -> Reading | None:
         m = pattern.search(q)
         if m:
             return _causal(m.group("t"), m.group("o"), _evidence(m.group(0)))
+    m = _WOULD_WITHOUT.search(q) or _RESPONSIBLE.search(q)
+    if m:
+        after = m.group("o") if "o" in m.groupdict() else m.group("rest")
+        return _causal(m.group("t"), after, _evidence(m.group(0)))
     for pattern in (_IF_WOULD, _WOULD_HAD):       # counterfactual, with roles too loose to quote as stated
         m = pattern.search(q)
         if m:

@@ -43,6 +43,20 @@ So a pass or fail near a bar is weak evidence. A bar at 5% errors cannot be conf
 - **Stated readings.** The share of "stated" readings that are wrong (2 of 39 in the first run, plus 2 the metric missed) has no bar. If it matters to you, set one for the next set.
 - **Rater agreement.** You may want a minimum raw agreement for the labels to be used at all, to be fixed before the second rater returns the sheet.
 
+## Results so far, so that any change is declared as post-hoc
+
+| Criterion | Bar | Version 1 (56 titles) | Version 2 (58 titles) |
+|---|---|---|---|
+| Recall of causal questions | ≥ 0.70 | 0.64: fails | 0.60: fails |
+| Precision of causal readings | ≥ 0.85 | 0.95 | 0.95 |
+| False non-causal | ≤ 5% | 0% | 3.3% |
+| Abstention on ambiguous | ≥ 0.70 | 0.92 | 0.87 |
+| Recommendation from untouched form | 0 | 0 | 0 |
+| Wrong method given the form | ≤ 5% | 0% | 0% |
+| Threshold false positives | ≤ 2 | 0 | 1 |
+
+Lowering the recall bar to 0.60 would make version 2 pass. That is exactly the change to avoid, or to declare.
+
 ## Your decision
 
 For each criterion, keep or replace it, and add one line to `PLANNING_LOG.md`, with the date and the words "post-hoc: results seen" if you change anything. The bars apply to the next evaluation as they stand unless you change them first.

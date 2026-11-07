@@ -15,7 +15,7 @@
 |---|---|
 | DiD on simulated worlds, with the true effect known | Built. 4 threats x 5 levels x 1,000 worlds, stored and reproducible |
 | "How much bias is too much" | Decided: at most 10% of the effect and at least 90% coverage |
-| Confounding, staggered adoption, heterogeneity | Confounding and staggered dynamic effects are in the study. Effect heterogeneity is in the app's simulator but **not one of the study's four threats**: the study has diverging pre-trends and anticipation instead |
+| Confounding, staggered adoption, heterogeneity | Confounding and staggered dynamic effects are in the study. Heterogeneity over time since adoption is in the study, through the staggered threat. Heterogeneity **across units** is in the app's simulator but **not one of the study's four threats**, which also include diverging pre-trends and anticipation |
 | Eight methods in the recommendation | Built |
 | Six more estimators (RCT, matching, IV, RDD, synthetic control, DML) | Built, beyond the brief |
 | Question analysis | Built, stated by the author as the principal contribution |
@@ -26,7 +26,7 @@
 1. **One method or several.** Issue #1 asks for one. The app covers eight in its recommendation.
 2. **What the contribution is.** Issue #1 centres on measuring when an estimator fails. The author now presents the analysis of research questions as the original contribution.
 3. **The starting point.** Issue #1 says the existing code is not the starting point. The project extended it.
-4. **Effect heterogeneity.** It was named in issue #1 but is not one of the threats of the stored study.
+4. **Effect heterogeneity.** Issue #1 asks to vary it. The stored study varies effects that grow with time since adoption, but not effects that differ across units (`treatment_heterogeneity`). Whether that satisfies the request is the professor's call. Adding it would take a new threat in `simulation_engine/demo_study.py` and about 30 minutes of computing, and has not been done.
 
 ## A possible reading, to be confirmed
 
@@ -43,6 +43,7 @@ This is a proposal, not an agreement:
 - Whether the question analysis may be presented as the principal contribution.
 - Whether effect heterogeneity must be added to the simulation study.
 - What is assessed in December.
+- Whether issue #2 can be closed.
 
 ## Proposed line for PLANNING_LOG.md
 

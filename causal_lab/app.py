@@ -280,10 +280,15 @@ elif page == "research_question":
     d = st.session_state.design
 
     st.subheader(L("step1.title"))
+    previous_question = d.research_question
     d.research_question = st.text_area(
         L("step1.question"), value=d.research_question, height=100,
         placeholder=L("step1.placeholder"),
     )
+    if d.research_question != previous_question:
+        # A stated causal aim belongs to the question it was stated for.
+        d.causal_confirmed = False
+        st.session_state.pop("qa_confirm_causal", None)
     # The question is analysed first: the rest of the form is checked against it.
     if d.research_question.strip():
         with st.container(border=True):
@@ -341,6 +346,7 @@ elif page == "research_question":
     if st.button(L("wizard.run"), icon=":material/play_arrow:", type="primary"):
         st.session_state.diagnosis = diagnose(d)
         st.session_state.recommendations = recommend(d, st.session_state.diagnosis)
+        st.session_state.diagnosed_design = replace(d)
         st.success(L("wizard.done"))
         cols = st.columns(3)
         for col, target in zip(cols, ("diagnosis", "recommendation")):
@@ -390,6 +396,8 @@ elif page == "recommendation":
 
         # 1. The research question, analysed before any method.
         d = st.session_state.design
+        if st.session_state.get("diagnosed_design") not in (None, d):
+            st.warning(L("recommendation.stale"))
         analysis = st.session_state.diagnosis.analysis if st.session_state.diagnosis is not None else None
         with st.container(border=True):
             question_panel.render(analysis, d, L)
@@ -627,6 +635,8 @@ elif page == "estimation":
                 c1.metric(L("common.estimated_att"), f"{result.att:.4f}")
                 c2.metric(L("estimation.cluster_se"), f"{result.se:.4f}")
                 c3.metric(L("common.ci95"), f"[{result.ci_low:.3f}, {result.ci_high:.3f}]")
+                for warning in result.warnings:
+                    st.warning(R(warning))
 
                 if truth is not None:
                     true_att = truth["true_att"]
@@ -681,6 +691,8 @@ elif page == "estimation":
                 references_caption("staggered")
                 if cs.n_dropped:
                     st.caption(F("staggered.dropped", n=cs.n_dropped))
+                if cs.n_always_treated:
+                    st.caption(F("staggered.always_treated", n=cs.n_always_treated))
                 if cs.min_cohort_size < SMALL_COHORT:
                     st.info(F("staggered.small_cohorts", n=cs.min_cohort_size, minimum=SMALL_COHORT, df=cs.df))
                 es_cs = cs.event_study
@@ -732,7 +744,8 @@ elif page == "break_my_design":
 
         pt = next(c for c in report.checks if c.name == "Parallel Trends")
         if pt.assessment:
-            {"plausible": st.success, "questionable": st.warning, "violated": st.error}[pt.assessment](
+            # Not rejected is not a success: the test can pass at a large bias (Guided Demo).
+            {"plausible": st.info, "questionable": st.warning, "violated": st.error}[pt.assessment](
                 "### " + F("break.pt_banner", assessment=L(f"assessment.{pt.assessment}")))
 
         st.subheader(L("break.results"))

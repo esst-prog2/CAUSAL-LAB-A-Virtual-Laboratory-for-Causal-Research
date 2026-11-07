@@ -18,24 +18,31 @@ their dummies are not counted in K, as in Stata's xtreg, fe and reghdfe.
 Counting them inflates the SE badly on short panels: with two periods,
 N/K is close to 2 (hw6 review 3; on Card & Krueger, 1.91 instead of ~1.36).
 
-Note: this canonical two-way fixed-effects specification can be
-biased under staggered treatment timing combined with treatment
-effect heterogeneity (see the diagnosis engine's warning). v0.1 ships
-the canonical estimator only; heterogeneity-robust estimators
-(Callaway & Sant'Anna, de Chaisemartin & D'Haultfoeuille) are planned
-for a later version.
+Inference uses a Student t with G - 1 degrees of freedom, G being the number
+of clusters, as Stata's xtreg, fe and R fixest do. With few clusters the normal
+interval under-covers: on 500 worlds it covered 87.8% with 10 units, against
+91.2% for this one. With few treated clusters neither is reliable (about 85%
+with 4 treated units of 40), so the result then carries a warning.
+
+Note: this canonical two-way fixed-effects specification can be biased under
+staggered treatment timing combined with treatment effect heterogeneity (see
+the diagnosis engine's warning). The heterogeneity-robust alternative is
+estimators.staggered_did (Callaway & Sant'Anna 2021).
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import numpy as np
 import pandas as pd
 import statsmodels.formula.api as smf
 from scipy import stats
 
-from estimators.common import Z_95
-from utils.i18n import LocalizedError
+from utils.i18n import LocalizedError, Msg
+
+# Below these, clustered inference is unreliable; the result says so.
+FEW_CLUSTERS = 30
+FEW_CLUSTERS_PER_ARM = 10
 
 
 @dataclass
@@ -51,6 +58,8 @@ class DiDResult:
     n_periods: int
     formula: str
     summary_text: str
+    n_clusters: int = 0
+    warnings: list[Msg] = field(default_factory=list)
 
 
 def estimate_did(df: pd.DataFrame, outcome_col: str = "Y", treatment_col: str = "D",
@@ -59,6 +68,9 @@ def estimate_did(df: pd.DataFrame, outcome_col: str = "Y", treatment_col: str = 
     """Estimate a two-way fixed-effects DiD model via OLS with unit and
     period dummies, using cluster-robust standard errors at the unit
     level (or `cluster_col` if provided)."""
+    # Only complete rows: statsmodels would drop them from the model but not from the clusters.
+    used = list(dict.fromkeys([outcome_col, treatment_col, unit_col, time_col, cluster_col or unit_col]))
+    df = df[used].dropna()
     if df[treatment_col].nunique() < 2:
         raise LocalizedError("err.did_no_variation", column=treatment_col)
     # A text or boolean treatment would enter the formula as a category and
@@ -81,10 +93,12 @@ def estimate_did(df: pd.DataFrame, outcome_col: str = "Y", treatment_col: str = 
 
     beta = fitted.params[treatment_col]
     se = fitted.bse[treatment_col] * nested_fe_factor(data, fitted, unit_col, cluster_var)
-    # Clustered statsmodels fits use normal inference (use_t is False).
+    n_clusters = int(data[cluster_var].nunique())
+    dof = max(n_clusters - 1, 1)
     t_stat = beta / se
-    p_value = 2 * stats.norm.sf(abs(t_stat))
-    ci = (beta - Z_95 * se, beta + Z_95 * se)
+    p_value = 2 * stats.t.sf(abs(t_stat), dof)
+    half_width = stats.t.ppf(0.975, dof) * se
+    ci = (beta - half_width, beta + half_width)
 
     summary_text = (
         f"DiD estimate (ATT) = {beta:.4f}\n"
@@ -105,7 +119,27 @@ def estimate_did(df: pd.DataFrame, outcome_col: str = "Y", treatment_col: str = 
         n_periods=data[time_col].nunique(),
         formula=formula,
         summary_text=summary_text,
+        n_clusters=n_clusters,
+        warnings=_warnings(data, treatment_col, unit_col, time_col, cluster_var, n_clusters),
     )
+
+
+def _warnings(data: pd.DataFrame, treatment_col, unit_col, time_col, cluster_var, n_clusters: int) -> list[Msg]:
+    """What the coefficient and its interval cannot be trusted for on these data."""
+    out = []
+    treated_clusters = int((data.groupby(cluster_var, observed=True)[treatment_col].max() > 0).sum())
+    if n_clusters < FEW_CLUSTERS or min(treated_clusters, n_clusters - treated_clusters) < FEW_CLUSTERS_PER_ARM:
+        out.append(Msg("warn.did_few_clusters", clusters=n_clusters, treated=treated_clusters))
+    d = data[treatment_col].astype(float)
+    if not set(d.unique()) <= {0.0, 1.0}:
+        out.append(Msg("warn.did_not_binary"))
+        return out
+    ordered = data.assign(_d=d).sort_values(time_col, kind="stable")
+    switched_off = (ordered.groupby(unit_col, observed=True)["_d"].diff() < 0).groupby(
+        ordered[unit_col], observed=True).any()
+    if switched_off.any():
+        out.append(Msg("warn.did_reversal", n=int(switched_off.sum())))
+    return out
 
 
 def nested_fe_factor(data: pd.DataFrame, fitted, unit_col: str, cluster_var: str) -> float:

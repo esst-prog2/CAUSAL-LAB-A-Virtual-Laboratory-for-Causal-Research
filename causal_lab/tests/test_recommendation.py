@@ -126,10 +126,13 @@ def test_ruled_out_methods_are_never_ranked_above_supported_ones():
         statuses = [r.status for r in recs]
         assert statuses == sorted(statuses, key=[SUPPORTED, NEEDS_INFO, NOT_SUPPORTED].index)
         assert all(r.unmet for r in recs if r.status == NOT_SUPPORTED)
-        if mech == "random":
+        comparable = control and treated != "one"       # these designs compare treated with untreated units
+        if mech == "random" and comparable:
             assert recommended(recs).key == "rct"
-        if mech == "threshold":
+        if mech == "threshold" and comparable:
             assert recommended(recs).key == "rdd"
+        if not comparable:
+            assert all(r.status == NOT_SUPPORTED for r in recs if r.key in ("rct", "rdd", "iv", "matching"))
 
 
 def test_no_numerical_credibility_is_attached_to_a_method():

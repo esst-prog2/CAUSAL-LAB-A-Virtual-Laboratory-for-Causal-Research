@@ -16,6 +16,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import numpy as np
 import pandas as pd
 from linearmodels.panel import PanelOLS
+from scipy import stats
 
 from estimators.did import estimate_did
 from simulation_engine.dgp import VirtualWorldConfig, generate
@@ -57,7 +58,8 @@ def test_clustered_se_does_not_count_the_nested_unit_dummies():
     ours = estimate_did(df)
     assert abs(ours.att - beta[1]) < 1e-8
     assert abs(ours.se / se - 1) < 1e-8, (ours.se, se)
-    assert abs(ours.ci_high - ours.ci_low - 2 * 1.959964 * ours.se) < 1e-5
+    # Student t with G - 1 degrees of freedom, as Stata's xtreg, fe and R fixest.
+    assert abs(ours.ci_high - ours.ci_low - 2 * stats.t.ppf(0.975, ours.n_clusters - 1) * ours.se) < 1e-5
 
 
 def test_did_recovers_true_effect_of_two():

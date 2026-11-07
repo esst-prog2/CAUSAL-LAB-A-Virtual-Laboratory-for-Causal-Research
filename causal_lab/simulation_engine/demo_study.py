@@ -171,7 +171,7 @@ def summarize(level: str, reps: list[Replication]) -> Summary:
     n = len(reps)
     coverage, coverage_mcse = _share(covered)
     rejection, rejection_mcse = _share(rejected)
-    wrong_sign = float(np.mean(rejected & (np.sign(est) != np.sign(truth))))
+    wrong_sign = float(np.mean(rejected & (truth != 0) & (np.sign(est) != np.sign(truth))))
     detection, detection_mcse = _share(flagged)
     err = est - truth
     passed = ~flagged
