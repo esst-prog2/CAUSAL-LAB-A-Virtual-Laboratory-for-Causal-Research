@@ -1,6 +1,20 @@
 # Academic scope: what is written, what was built, what is unconfirmed
 
-**Status: PENDING PROFESSOR CONFIRMATION.** Nothing in this repository shows that a change of scope was approved. This note states the facts so that the professor can confirm or correct them.
+**Status: the contribution is decided (professor's written feedback on Homework 7 and 8, received 2026-11-09). Three points remain open.** The note below kept the facts and a proposal while the answer was pending; the proposal on the contribution was not the one chosen.
+
+## The decision, 2026-11-09
+
+In writing, in the feedback on Homework 7 and 8 (both accepted, 2 points):
+
+> "make the DiD bias study the main contribution. It is measured and validated against rules you set in advance. The research-question classifier is, by your own measurement, careful but not yet complete: when it reads a question as causal it is right 95% of the time, but it catches only 0.60 of causal questions against your target of 0.70. So present it as the extension it is: the front door that keeps students from picking the wrong method, with both numbers stated. Your demo path already goes from the question screen to the simulation, so the order works. You only need to say which part is the claim."
+
+So:
+
+- **The claim is the DiD bias study**: 4 threats x 5 levels x 1,000 worlds, judged by the rule fixed in advance (at most 10% bias, at least 90% coverage). Its finding: with low diverging pre-trends, a bias of 47% of the effect while the pre-trend test warns in only 14.2% of worlds.
+- **The question analysis is an extension**: the front door that keeps the wrong method from being picked. It is always presented with both numbers: precision 0.95 (18/19) and recall 0.60 (18/30) against a bar of 0.70, from `docs/evaluation/v2/REPORT.md`.
+- **The demo order stays**: question screen first, simulation last. The presentation says which part is the claim.
+
+Still open, not answered by that feedback: effect heterogeneity across units, what exactly is assessed in December beyond the demo, and whether issue #2 can be closed.
 
 ## What is written
 
@@ -28,9 +42,9 @@
 3. **The starting point.** Issue #1 says the existing code is not the starting point. The project extended it.
 4. **Effect heterogeneity.** Issue #1 asks to vary it. The stored study varies effects that grow with time since adoption, but not effects that differ across units (`treatment_heterogeneity`). Whether that satisfies the request is the professor's call. Adding it would take a new threat in `simulation_engine/demo_study.py` and about 30 minutes of computing, and has not been done.
 
-## A possible reading, to be confirmed
+## A possible reading, proposed before the decision
 
-This is a proposal, not an agreement:
+Kept as written. The professor chose otherwise on the second point: the question analysis is an extension, not the principal contribution.
 
 - **DiD and its simulation study remain the validated core**: the only method measured under the decision rule.
 - **The question analysis is the principal contribution**: it decides whether DiD, or another design, should be used at all.
