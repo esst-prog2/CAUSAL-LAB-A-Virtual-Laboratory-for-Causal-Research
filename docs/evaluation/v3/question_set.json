@@ -1,0 +1,1471 @@
+{
+ "description": "Third frozen evaluation set, for version 3 (commit 20b4b8f). See PROTOCOL.md in this folder.",
+ "questions": [
+  {
+   "id": "T01",
+   "question": "Does mandating ESG reporting reduce ESG decoupling? Evidence from the European Union's Directive 2014/95",
+   "stratum": "did",
+   "source": {
+    "authors": [
+     "Ahmed Aboud",
+     "Ahmed Abo El Fetoh Saleh",
+     "Yasser Eliwa"
+    ],
+    "year": 2023,
+    "journal": "Business Strategy and the Environment",
+    "doi": "https://doi.org/10.1002/bse.3543",
+    "openalex": "https://openalex.org/W4386191727"
+   },
+   "intent": "causal",
+   "design": "did",
+   "threshold": null,
+   "clarification_key": "qa.ask.assignment",
+   "treatment_word": "reporting",
+   "outcome_word": "decoupling",
+   "explanation": "'Does X reduce Y'; an EU directive in a DiD.",
+   "criterion": "Read as causal, and no recommendation without a form. With the form of did: did, or abstain; never another method.",
+   "label_rater": "Claude (agent, also wrote the analyser), single rater"
+  },
+  {
+   "id": "T02",
+   "question": "Does central environmental protection inspection improve corporate environmental, social, and governance performance? Evidence from China",
+   "stratum": "did",
+   "source": {
+    "authors": [
+     "Lin Wang",
+     "Quanquan Le",
+     "Manru Peng"
+    ],
+    "year": 2022,
+    "journal": "Business Strategy and the Environment",
+    "doi": "https://doi.org/10.1002/bse.3280",
+    "openalex": "https://openalex.org/W4307068731"
+   },
+   "intent": "causal",
+   "design": "did",
+   "threshold": null,
+   "clarification_key": "qa.ask.assignment",
+   "treatment_word": "inspection",
+   "outcome_word": "performance",
+   "explanation": "'Does X improve Y'; a staged inspection programme in a DiD.",
+   "criterion": "Read as causal, and no recommendation without a form. With the form of did: did, or abstain; never another method.",
+   "label_rater": "Claude (agent, also wrote the analyser), single rater"
+  },
+  {
+   "id": "T03",
+   "question": "Did 'Targets and Terror' Reduce Waiting Times in England for Hospital Care?",
+   "stratum": "did",
+   "source": {
+    "authors": [
+     "Carol Propper",
+     "Matt Sutton",
+     "Carolyn Whitnall"
+    ],
+    "year": 2008,
+    "journal": "The B E Journal of Economic Analysis & Policy",
+    "doi": "https://doi.org/10.2202/1935-1682.1863",
+    "openalex": "https://openalex.org/W2129275255"
+   },
+   "intent": "causal",
+   "design": "did",
+   "threshold": null,
+   "clarification_key": "qa.ask.assignment",
+   "treatment_word": "targets",
+   "outcome_word": "waiting",
+   "explanation": "'Did X reduce Y'; England against Scotland in a DiD.",
+   "criterion": "Read as causal, and no recommendation without a form. With the form of did: did, or abstain; never another method.",
+   "label_rater": "Claude (agent, also wrote the analyser), single rater"
+  },
+  {
+   "id": "T04",
+   "question": "Bad Credit, No Problem? Credit and Labor Market Consequences of Bad Credit Reports",
+   "stratum": "did",
+   "source": {
+    "authors": [
+     "Will Dobbie",
+     "Paul S. Goldsmith-Pinkham",
+     "Neale Mahoney"
+    ],
+    "year": 2020,
+    "journal": "The Journal of Finance",
+    "doi": "https://doi.org/10.1111/jofi.12954",
+    "openalex": "https://openalex.org/W3122909464"
+   },
+   "intent": "causal",
+   "design": "did",
+   "threshold": null,
+   "clarification_key": "qa.ask.assignment",
+   "treatment_word": "reports",
+   "outcome_word": null,
+   "explanation": "'Consequences of X'; staggered removal of bankruptcy flags.",
+   "criterion": "Read as causal, and no recommendation without a form. With the form of did: did, or abstain; never another method.",
+   "label_rater": "Claude (agent, also wrote the analyser), single rater"
+  },
+  {
+   "id": "T05",
+   "question": "Is there a health penalty of China's rapid urbanization?",
+   "stratum": "did",
+   "source": {
+    "authors": [
+     "Ellen Van de Poel",
+     "Owen O’Donnell",
+     "Eddy K.A. van Doorslaer"
+    ],
+    "year": 2011,
+    "journal": "Health Economics",
+    "doi": "https://doi.org/10.1002/hec.1717",
+    "openalex": "https://openalex.org/W1966928337"
+   },
+   "intent": "causal",
+   "design": "did",
+   "threshold": null,
+   "clarification_key": "qa.ask.assignment",
+   "treatment_word": "urbanization",
+   "outcome_word": "health",
+   "explanation": "'A health penalty of X' asks what X does to health.",
+   "criterion": "Read as causal, and no recommendation without a form. With the form of did: did, or abstain; never another method.",
+   "label_rater": "Claude (agent, also wrote the analyser), single rater"
+  },
+  {
+   "id": "T06",
+   "question": "Do Patient‐Centered Medical Homes Reduce Emergency Department Visits?",
+   "stratum": "did",
+   "source": {
+    "authors": [
+     "Guy David",
+     "Candace Gunnarsson",
+     "Philip A. Saynisch"
+    ],
+    "year": 2014,
+    "journal": "Health Services Research",
+    "doi": "https://doi.org/10.1111/1475-6773.12218",
+    "openalex": "https://openalex.org/W2081055983"
+   },
+   "intent": "causal",
+   "design": "did",
+   "threshold": null,
+   "clarification_key": "qa.ask.assignment",
+   "treatment_word": "homes",
+   "outcome_word": "visits",
+   "explanation": "'Do X reduce Y'; staggered certification in a DiD.",
+   "criterion": "Read as causal, and no recommendation without a form. With the form of did: did, or abstain; never another method.",
+   "label_rater": "Claude (agent, also wrote the analyser), single rater"
+  },
+  {
+   "id": "T07",
+   "question": "The Rising Incumbent Reelection Rate: What's Gerrymandering Got to Do With It?",
+   "stratum": "rdd",
+   "source": {
+    "authors": [
+     "John N. Friedman",
+     "Richard T Holden"
+    ],
+    "year": 2009,
+    "journal": "The Journal of Politics",
+    "doi": "https://doi.org/10.1017/s0022381609090483",
+    "openalex": "https://openalex.org/W2153213357"
+   },
+   "intent": "causal",
+   "design": "rdd",
+   "threshold": null,
+   "clarification_key": "qa.ask.assignment",
+   "treatment_word": "gerrymandering",
+   "outcome_word": null,
+   "explanation": "'What has X got to do with Y' asks whether X caused the rise.",
+   "criterion": "Read as causal, and no recommendation without a form. With the form of rdd: rdd, or abstain; never another method.",
+   "label_rater": "Claude (agent, also wrote the analyser), single rater"
+  },
+  {
+   "id": "T08",
+   "question": "Will Women Executives Reduce Corruption? Marginalization and Network Inclusion",
+   "stratum": "rdd",
+   "source": {
+    "authors": [
+     "Monika Bauhr",
+     "Nicholas Charron"
+    ],
+    "year": 2020,
+    "journal": "Comparative Political Studies",
+    "doi": "https://doi.org/10.1177/0010414020970218",
+    "openalex": "https://openalex.org/W3108479746"
+   },
+   "intent": "causal",
+   "design": "rdd",
+   "threshold": null,
+   "clarification_key": "qa.ask.assignment",
+   "treatment_word": "women",
+   "outcome_word": "corruption",
+   "explanation": "'Will X reduce Y'; close mixed-gender elections.",
+   "criterion": "Read as causal, and no recommendation without a form. With the form of rdd: rdd, or abstain; never another method.",
+   "label_rater": "Claude (agent, also wrote the analyser), single rater"
+  },
+  {
+   "id": "T09",
+   "question": "The gift of time? School starting age and mental health",
+   "stratum": "rdd",
+   "source": {
+    "authors": [
+     "Thomas Sean Dee",
+     "Hans Henrik Sievertsen"
+    ],
+    "year": 2018,
+    "journal": "Health Economics",
+    "doi": "https://doi.org/10.1002/hec.3638",
+    "openalex": "https://openalex.org/W1827874139"
+   },
+   "intent": "ambiguous",
+   "design": "rdd",
+   "threshold": null,
+   "clarification_key": "qa.ask.intent",
+   "treatment_word": null,
+   "outcome_word": null,
+   "explanation": "'X and Y' with no causal clause; the abstract's fuzzy RDD does not change the wording.",
+   "criterion": "Read as ambiguous, or ambiguous; never causal. With the form of rdd: rdd, or abstain; never another method.",
+   "label_rater": "Claude (agent, also wrote the analyser), single rater"
+  },
+  {
+   "id": "T10",
+   "question": "Does the one-child policy improve children's human capital in urban China? A regression discontinuity design",
+   "stratum": "rdd",
+   "source": {
+    "authors": [
+     "Xuezheng Qin",
+     "Castiel Chen Zhuang",
+     "Rudai Yang"
+    ],
+    "year": 2016,
+    "journal": "Journal of Comparative Economics",
+    "doi": "https://doi.org/10.1016/j.jce.2016.09.001",
+    "openalex": "https://openalex.org/W2523416363"
+   },
+   "intent": "causal",
+   "design": "rdd",
+   "threshold": null,
+   "clarification_key": "qa.ask.assignment",
+   "treatment_word": "policy",
+   "outcome_word": "capital",
+   "explanation": "'Does X improve Y'; a birth-date discontinuity.",
+   "criterion": "Read as causal, and no recommendation without a form. With the form of rdd: rdd, or abstain; never another method.",
+   "label_rater": "Claude (agent, also wrote the analyser), single rater"
+  },
+  {
+   "id": "T11",
+   "question": "When Do the Advantaged See the Disadvantages of Others? A Quasi-Experimental Study of National Service",
+   "stratum": "rdd",
+   "source": {
+    "authors": [
+     "Cecilia Hyunjung Mo",
+     "Katharine Conn"
+    ],
+    "year": 2018,
+    "journal": "American Political Science Review",
+    "doi": "https://doi.org/10.1017/s0003055418000412",
+    "openalex": "https://openalex.org/W2888206812"
+   },
+   "intent": "ambiguous",
+   "design": "rdd",
+   "threshold": null,
+   "clarification_key": "qa.ask.intent",
+   "treatment_word": null,
+   "outcome_word": null,
+   "explanation": "'When do the advantaged see…' does not name a change and its effect in the wording.",
+   "criterion": "Read as ambiguous, or ambiguous; never causal. With the form of rdd: rdd, or abstain; never another method.",
+   "label_rater": "Claude (agent, also wrote the analyser), single rater"
+  },
+  {
+   "id": "T12",
+   "question": "Does Doctor–Patient Communication Affect Patient Satisfaction with Hospital Care? Results of an Analysis with a Novel Instrumental Variable",
+   "stratum": "iv",
+   "source": {
+    "authors": [
+     "Sarah Lou Clever",
+     "Lei Jin",
+     "Wendy S. Levinson"
+    ],
+    "year": 2008,
+    "journal": "Health Services Research",
+    "doi": "https://doi.org/10.1111/j.1475-6773.2008.00849.x",
+    "openalex": "https://openalex.org/W1815912883"
+   },
+   "intent": "causal",
+   "design": "iv",
+   "threshold": null,
+   "clarification_key": "qa.ask.assignment",
+   "treatment_word": "communication",
+   "outcome_word": "satisfaction",
+   "explanation": "'Does X affect Y'; a novel instrument.",
+   "criterion": "Read as causal, and no recommendation without a form. With the form of iv: iv, or abstain; never another method.",
+   "label_rater": "Claude (agent, also wrote the analyser), single rater"
+  },
+  {
+   "id": "T13",
+   "question": "Is Green the New Gold? Venture Capital and Green Entrepreneurship",
+   "stratum": "iv",
+   "source": {
+    "authors": [
+     "Boris Mrkajic",
+     "Samuele Murtinu",
+     "Vittoria Giada Scalera"
+    ],
+    "year": 2016,
+    "journal": "Small Business Economics",
+    "doi": "https://doi.org/10.1007/s11187-017-9943-x",
+    "openalex": "https://openalex.org/W3122215043"
+   },
+   "intent": "ambiguous",
+   "design": "iv",
+   "threshold": null,
+   "clarification_key": "qa.ask.intent",
+   "treatment_word": null,
+   "outcome_word": null,
+   "explanation": "'Is green the new gold? X and Y' names two things, no causal clause.",
+   "criterion": "Read as ambiguous, or ambiguous; never causal. With the form of iv: iv, or abstain; never another method.",
+   "label_rater": "Claude (agent, also wrote the analyser), single rater"
+  },
+  {
+   "id": "T14",
+   "question": "Does Firm Investment Respond to Peers’ Investment?",
+   "stratum": "iv",
+   "source": {
+    "authors": [
+     "Maria Cecilia Bustamante",
+     "Laurent Frésard"
+    ],
+    "year": 2020,
+    "journal": "Management Science",
+    "doi": "https://doi.org/10.1287/mnsc.2020.3695",
+    "openalex": "https://openalex.org/W3121021015"
+   },
+   "intent": "causal",
+   "design": "iv",
+   "threshold": null,
+   "clarification_key": "qa.ask.assignment",
+   "treatment_word": "peers",
+   "outcome_word": "investment",
+   "explanation": "'Does Y respond to X': X is the peers' investment.",
+   "criterion": "Read as causal, and no recommendation without a form. With the form of iv: iv, or abstain; never another method.",
+   "label_rater": "Claude (agent, also wrote the analyser), single rater"
+  },
+  {
+   "id": "T15",
+   "question": "Does Federal Research Funding Increase University Research Output?",
+   "stratum": "iv",
+   "source": {
+    "authors": [
+     "A. Abigail Payne",
+     "Aloysius Siow"
+    ],
+    "year": 2003,
+    "journal": "Advances in Economic Analysis & Policy",
+    "doi": "https://doi.org/10.2202/1538-0637.1018",
+    "openalex": "https://openalex.org/W2035254427"
+   },
+   "intent": "causal",
+   "design": "iv",
+   "threshold": null,
+   "clarification_key": "qa.ask.assignment",
+   "treatment_word": "funding",
+   "outcome_word": "output",
+   "explanation": "'Does X increase Y'.",
+   "criterion": "Read as causal, and no recommendation without a form. With the form of iv: iv, or abstain; never another method.",
+   "label_rater": "Claude (agent, also wrote the analyser), single rater"
+  },
+  {
+   "id": "T16",
+   "question": "Did Railroads Induce or Follow Economic Growth?",
+   "stratum": "iv",
+   "source": {
+    "authors": [
+     "John R. Atack",
+     "Fred Bateman",
+     "Michael R. Haines"
+    ],
+    "year": 2010,
+    "journal": "Social Science History",
+    "doi": "https://doi.org/10.1017/s0145553200011202",
+    "openalex": "https://openalex.org/W2095695115"
+   },
+   "intent": "causal",
+   "design": "iv",
+   "threshold": null,
+   "clarification_key": "qa.ask.assignment",
+   "treatment_word": "railroads",
+   "outcome_word": "growth",
+   "explanation": "'Did X induce Y'.",
+   "criterion": "Read as causal, and no recommendation without a form. With the form of iv: iv, or abstain; never another method.",
+   "label_rater": "Claude (agent, also wrote the analyser), single rater"
+  },
+  {
+   "id": "T17",
+   "question": "Broadband Internet: An Information Superhighway to Sex Crime?",
+   "stratum": "iv",
+   "source": {
+    "authors": [
+     "Manudeep Bhuller",
+     "Tarjei Havnes",
+     "Edwin Leuven"
+    ],
+    "year": 2013,
+    "journal": "The Review of Economic Studies",
+    "doi": "https://doi.org/10.1093/restud/rdt013",
+    "openalex": "https://openalex.org/W3125497380"
+   },
+   "intent": "causal",
+   "design": "iv",
+   "threshold": null,
+   "clarification_key": "qa.ask.assignment",
+   "treatment_word": "broadband",
+   "outcome_word": "crime",
+   "explanation": "'X: a superhighway to Y?' asks whether X leads to Y (metaphor, labelled causal as in development).",
+   "criterion": "Read as causal, and no recommendation without a form. With the form of iv: iv, or abstain; never another method.",
+   "label_rater": "Claude (agent, also wrote the analyser), single rater"
+  },
+  {
+   "id": "T18",
+   "question": "Extended Lymph Node Dissection for Gastric Cancer: Who May Benefit? Final Results of the Randomized Dutch Gastric Cancer Group Trial",
+   "stratum": "rct",
+   "source": {
+    "authors": [
+     "Hendrik H. Hartgrink",
+     "C.J.H. van de Velde",
+     "Hein Putter"
+    ],
+    "year": 2004,
+    "journal": "Journal of Clinical Oncology",
+    "doi": "https://doi.org/10.1200/jco.2004.08.026",
+    "openalex": "https://openalex.org/W2106033134"
+   },
+   "intent": "causal",
+   "design": "rct",
+   "threshold": null,
+   "clarification_key": "qa.ask.assignment",
+   "treatment_word": "dissection",
+   "outcome_word": null,
+   "explanation": "'Who may benefit' from X: an effect, possibly heterogeneous.",
+   "criterion": "Read as causal, and no recommendation without a form. With the form of rct: rct, or abstain; never another method.",
+   "label_rater": "Claude (agent, also wrote the analyser), single rater"
+  },
+  {
+   "id": "T19",
+   "question": "Rationally Trust, but Emotionally? The Roles of Cognitive and Affective Trust in Laypeople's Acceptance of AI for Preventive Care Operations",
+   "stratum": "rct",
+   "source": {
+    "authors": [
+     "Nakyung Kyung",
+     "Hyeokkoo Eric Kwon"
+    ],
+    "year": 2025,
+    "journal": "Production and Operations Management",
+    "doi": "https://doi.org/10.1177/10591478231225891",
+    "openalex": "https://openalex.org/W4409094305"
+   },
+   "intent": "ambiguous",
+   "design": "rct",
+   "threshold": null,
+   "clarification_key": "qa.ask.intent",
+   "treatment_word": null,
+   "outcome_word": null,
+   "explanation": "'The roles of X in Y': role words, no causal clause.",
+   "criterion": "Read as ambiguous, or ambiguous; never causal. With the form of rct: rct, or abstain; never another method.",
+   "label_rater": "Claude (agent, also wrote the analyser), single rater"
+  },
+  {
+   "id": "T20",
+   "question": "Does Changing the Narrative Improve Host Community Attitudes Toward Climate Migrants? Experimental Evidence from Bangladesh",
+   "stratum": "rct",
+   "source": {
+    "authors": [
+     "Ivar Kolstad",
+     "Sosina Bezu",
+     "Päivi Lujala"
+    ],
+    "year": 2022,
+    "journal": "International Migration Review",
+    "doi": "https://doi.org/10.1177/01979183221116883",
+    "openalex": "https://openalex.org/W4292451941"
+   },
+   "intent": "causal",
+   "design": "rct",
+   "threshold": null,
+   "clarification_key": "qa.ask.assignment",
+   "treatment_word": "narrative",
+   "outcome_word": "attitudes",
+   "explanation": "'Does X improve Y'.",
+   "criterion": "Read as causal, and no recommendation without a form. With the form of rct: rct, or abstain; never another method.",
+   "label_rater": "Claude (agent, also wrote the analyser), single rater"
+  },
+  {
+   "id": "T21",
+   "question": "Pushy Patients Or Pushy Providers? Effect Of Patient Knowledge On Antibiotic Prescribing In Tanzania",
+   "stratum": "rct",
+   "source": {
+    "authors": [
+     "Jessica King",
+     "Timothy Powell‐Jackson",
+     "James Hargreaves"
+    ],
+    "year": 2022,
+    "journal": "Health Affairs",
+    "doi": "https://doi.org/10.1377/hlthaff.2021.01782",
+    "openalex": "https://openalex.org/W4282934544"
+   },
+   "intent": "causal",
+   "design": "rct",
+   "threshold": null,
+   "clarification_key": "qa.ask.assignment",
+   "treatment_word": "knowledge",
+   "outcome_word": "prescribing",
+   "explanation": "'Effect of X on Y'.",
+   "criterion": "Read as causal, and no recommendation without a form. With the form of rct: rct, or abstain; never another method.",
+   "label_rater": "Claude (agent, also wrote the analyser), single rater"
+  },
+  {
+   "id": "T22",
+   "question": "Does International Law Matter?",
+   "stratum": "rct",
+   "source": {
+    "authors": [
+     "Shima Baradaran Baughman",
+     "Michael G. Findley",
+     "Daniel Nielson"
+    ],
+    "year": 2013,
+    "journal": "Griffith Research Online",
+    "doi": null,
+    "openalex": "https://openalex.org/W3121386895"
+   },
+   "intent": "causal",
+   "design": "rct",
+   "threshold": null,
+   "clarification_key": "qa.ask.assignment",
+   "treatment_word": "law",
+   "outcome_word": null,
+   "explanation": "'Does X matter' asks for an effect with no outcome named.",
+   "criterion": "Read as causal, and no recommendation without a form. With the form of rct: rct, or abstain; never another method.",
+   "label_rater": "Claude (agent, also wrote the analyser), single rater"
+  },
+  {
+   "id": "T23",
+   "question": "Designing seed mixtures for restoration on alpine soils: who should your neighbours be?",
+   "stratum": "rct",
+   "source": {
+    "authors": [
+     "Knut Rydgren",
+     "Dagmar Hagen",
+     "Line Rosef"
+    ],
+    "year": 2017,
+    "journal": "Applied Vegetation Science",
+    "doi": "https://doi.org/10.1111/avsc.12308",
+    "openalex": "https://openalex.org/W2594113464"
+   },
+   "intent": "ambiguous",
+   "design": "rct",
+   "threshold": null,
+   "clarification_key": "qa.ask.intent",
+   "treatment_word": null,
+   "outcome_word": null,
+   "explanation": "'Who should your neighbours be?' is a design question for a mixture, not a change and its effect in the wording.",
+   "criterion": "Read as ambiguous, or ambiguous; never causal. With the form of rct: rct, or abstain; never another method.",
+   "label_rater": "Claude (agent, also wrote the analyser), single rater"
+  },
+  {
+   "id": "T24",
+   "question": "Have international pollution protocols made a difference?",
+   "stratum": "synthetic_control",
+   "source": {
+    "authors": [
+     "Elisabeth Thuestad Isaksen"
+    ],
+    "year": 2020,
+    "journal": "Journal of Environmental Economics and Management",
+    "doi": "https://doi.org/10.1016/j.jeem.2020.102358",
+    "openalex": "https://openalex.org/W3042317972"
+   },
+   "intent": "causal",
+   "design": "synthetic_control",
+   "threshold": null,
+   "clarification_key": "qa.ask.assignment",
+   "treatment_word": "protocols",
+   "outcome_word": null,
+   "explanation": "'Have X made a difference'.",
+   "criterion": "Read as causal, and no recommendation without a form. With the form of synthetic_control: synthetic_control, or abstain; never another method.",
+   "label_rater": "Claude (agent, also wrote the analyser), single rater"
+  },
+  {
+   "id": "T25",
+   "question": "Compared with what? Estimating the effects of injury prevention policies using the synthetic control method",
+   "stratum": "synthetic_control",
+   "source": {
+    "authors": [
+     "Carl Bonander"
+    ],
+    "year": 2017,
+    "journal": "Injury Prevention",
+    "doi": "https://doi.org/10.1136/injuryprev-2017-042360",
+    "openalex": "https://openalex.org/W2767545889"
+   },
+   "intent": "causal",
+   "design": "synthetic_control",
+   "threshold": null,
+   "clarification_key": "qa.ask.assignment",
+   "treatment_word": "policies",
+   "outcome_word": null,
+   "explanation": "'Estimating the effects of X'.",
+   "criterion": "Read as causal, and no recommendation without a form. With the form of synthetic_control: synthetic_control, or abstain; never another method.",
+   "label_rater": "Claude (agent, also wrote the analyser), single rater"
+  },
+  {
+   "id": "T26",
+   "question": "Can public‐private innovation partnerships improve public services? Evidence from a synthetic control approach",
+   "stratum": "synthetic_control",
+   "source": {
+    "authors": [
+     "José M. Alonso",
+     "Rhys Andrews"
+    ],
+    "year": 2022,
+    "journal": "Public Administration Review",
+    "doi": "https://doi.org/10.1111/puar.13514",
+    "openalex": "https://openalex.org/W4280602492"
+   },
+   "intent": "causal",
+   "design": "synthetic_control",
+   "threshold": null,
+   "clarification_key": "qa.ask.assignment",
+   "treatment_word": "partnerships",
+   "outcome_word": "services",
+   "explanation": "'Can X improve Y'.",
+   "criterion": "Read as causal, and no recommendation without a form. With the form of synthetic_control: synthetic_control, or abstain; never another method.",
+   "label_rater": "Claude (agent, also wrote the analyser), single rater"
+  },
+  {
+   "id": "T27",
+   "question": "What is the effect of reduced street lighting on crime and road traffic injuries at night? A mixed-methods study",
+   "stratum": "its",
+   "source": {
+    "authors": [
+     "Chloe Perkins",
+     "Rebecca Steinbach",
+     "Lisa Tompson"
+    ],
+    "year": 2015,
+    "journal": "Public Health Research",
+    "doi": "https://doi.org/10.3310/phr03110",
+    "openalex": "https://openalex.org/W2417144566"
+   },
+   "intent": "causal",
+   "design": "its",
+   "threshold": null,
+   "clarification_key": "qa.ask.assignment",
+   "treatment_word": "lighting",
+   "outcome_word": "crime",
+   "explanation": "'What is the effect of X on Y'.",
+   "criterion": "Read as causal, and no recommendation without a form. With the form of its: its, or abstain; never another method.",
+   "label_rater": "Claude (agent, also wrote the analyser), single rater"
+  },
+  {
+   "id": "T28",
+   "question": "What Happened Following Comprehensive Developmental Education Reform in the Sunshine State? The Impact of Florida’s Developmental Education Reform on Introductory College-Level Course Completion",
+   "stratum": "its",
+   "source": {
+    "authors": [
+     "Toby J. Park-Gaghan",
+     "Christine G. Mokher",
+     "Xinye Hu"
+    ],
+    "year": 2020,
+    "journal": "Educational Researcher",
+    "doi": "https://doi.org/10.3102/0013189x20933876",
+    "openalex": "https://openalex.org/W3035171940"
+   },
+   "intent": "causal",
+   "design": "its",
+   "threshold": null,
+   "clarification_key": "qa.ask.assignment",
+   "treatment_word": "reform",
+   "outcome_word": "completion",
+   "explanation": "'What happened following X? The impact of X on Y'.",
+   "criterion": "Read as causal, and no recommendation without a form. With the form of its: its, or abstain; never another method.",
+   "label_rater": "Claude (agent, also wrote the analyser), single rater"
+  },
+  {
+   "id": "T29",
+   "question": "Do quality incentives change prescribing patterns in primary care? An observational study in Scotland",
+   "stratum": "its",
+   "source": {
+    "authors": [
+     "Seán MacBride‐Stewart",
+     "Rob A. Elton",
+     "Tom Walley"
+    ],
+    "year": 2008,
+    "journal": "Family Practice",
+    "doi": "https://doi.org/10.1093/fampra/cmm074",
+    "openalex": "https://openalex.org/W2121287843"
+   },
+   "intent": "causal",
+   "design": "its",
+   "threshold": null,
+   "clarification_key": "qa.ask.assignment",
+   "treatment_word": "incentives",
+   "outcome_word": "prescribing",
+   "explanation": "'Do X change Y'.",
+   "criterion": "Read as causal, and no recommendation without a form. With the form of its: its, or abstain; never another method.",
+   "label_rater": "Claude (agent, also wrote the analyser), single rater"
+  },
+  {
+   "id": "T30",
+   "question": "Does climate-smart agriculture improve household income and food security? Evidence from Southern Ethiopia",
+   "stratum": "matching",
+   "source": {
+    "authors": [
+     "Abrham Mulu Belay",
+     "Alisher Mirzabaev",
+     "John Walker Recha"
+    ],
+    "year": 2023,
+    "journal": "Environment Development and Sustainability",
+    "doi": "https://doi.org/10.1007/s10668-023-03307-9",
+    "openalex": "https://openalex.org/W4382182098"
+   },
+   "intent": "causal",
+   "design": "matching",
+   "threshold": null,
+   "clarification_key": "qa.ask.assignment",
+   "treatment_word": "agriculture",
+   "outcome_word": "income",
+   "explanation": "'Does X improve Y'.",
+   "criterion": "Read as causal, and no recommendation without a form. With the form of matching: matching, or abstain; never another method.",
+   "label_rater": "Claude (agent, also wrote the analyser), single rater"
+  },
+  {
+   "id": "T31",
+   "question": "A New Way of Revitalizing Distressed Urban Communities? Assessing the Impact of the Federal Empowerment Zone Program",
+   "stratum": "matching",
+   "source": {
+    "authors": [
+     "Deirdre Oakley",
+     "Hui-shien Tsao"
+    ],
+    "year": 2006,
+    "journal": "Journal of Urban Affairs",
+    "doi": "https://doi.org/10.1111/j.1467-9906.2006.00309.x",
+    "openalex": "https://openalex.org/W2035334359"
+   },
+   "intent": "causal",
+   "design": "matching",
+   "threshold": null,
+   "clarification_key": "qa.ask.assignment",
+   "treatment_word": "zone",
+   "outcome_word": null,
+   "explanation": "'Assessing the impact of X'.",
+   "criterion": "Read as causal, and no recommendation without a form. With the form of matching: matching, or abstain; never another method.",
+   "label_rater": "Claude (agent, also wrote the analyser), single rater"
+  },
+  {
+   "id": "T32",
+   "question": "Cultural engagement and mental health: Does socio-economic status explain the association?",
+   "stratum": "matching",
+   "source": {
+    "authors": [
+     "Daisy E. Fancourt",
+     "Andrew Steptoe"
+    ],
+    "year": 2019,
+    "journal": "Social Science & Medicine",
+    "doi": "https://doi.org/10.1016/j.socscimed.2019.112425",
+    "openalex": "https://openalex.org/W2957550088"
+   },
+   "intent": "ambiguous",
+   "design": "matching",
+   "threshold": null,
+   "clarification_key": "qa.ask.intent",
+   "treatment_word": null,
+   "outcome_word": null,
+   "explanation": "'Does Z explain the association' between X and Y: an association.",
+   "criterion": "Read as ambiguous, or ambiguous; never causal. With the form of matching: matching, or abstain; never another method.",
+   "label_rater": "Claude (agent, also wrote the analyser), single rater"
+  },
+  {
+   "id": "T33",
+   "question": "Who is lonely in lockdown? Cross-cohort analyses of predictors of loneliness before and during the COVID-19 pandemic",
+   "stratum": "predictive",
+   "source": {
+    "authors": [
+     "Feifei Bu",
+     "Andrew Steptoe",
+     "Daisy E. Fancourt"
+    ],
+    "year": 2020,
+    "journal": "Public Health",
+    "doi": "https://doi.org/10.1016/j.puhe.2020.06.036",
+    "openalex": "https://openalex.org/W3047168709"
+   },
+   "intent": "predictive",
+   "design": null,
+   "threshold": null,
+   "clarification_key": "qa.ask.rephrase",
+   "treatment_word": null,
+   "outcome_word": "loneliness",
+   "explanation": "'Predictors of loneliness'.",
+   "criterion": "Read as predictive, or ambiguous; never causal.",
+   "label_rater": "Claude (agent, also wrote the analyser), single rater"
+  },
+  {
+   "id": "T34",
+   "question": "Does Cultural Socialization Predict Multiple Bases and Foci of Commitment?",
+   "stratum": "predictive",
+   "source": {
+    "authors": [
+     "Michael Clugston",
+     "Jon P. Howell",
+     "Peter W. Dorfman"
+    ],
+    "year": 2000,
+    "journal": "Journal of Management",
+    "doi": "https://doi.org/10.1177/014920630002600106",
+    "openalex": "https://openalex.org/W2075133269"
+   },
+   "intent": "predictive",
+   "design": null,
+   "threshold": null,
+   "clarification_key": "qa.ask.rephrase",
+   "treatment_word": null,
+   "outcome_word": null,
+   "explanation": "'Does X predict Y'.",
+   "criterion": "Read as predictive, or ambiguous; never causal.",
+   "label_rater": "Claude (agent, also wrote the analyser), single rater"
+  },
+  {
+   "id": "T35",
+   "question": "Self rated health: Is it as good a predictor of subsequent mortality among adults in lower as well as in higher social classes?",
+   "stratum": "predictive",
+   "source": {
+    "authors": [
+     "Bo Bur­ström",
+     "P Fredlund"
+    ],
+    "year": 2001,
+    "journal": "Journal of Epidemiology & Community Health",
+    "doi": "https://doi.org/10.1136/jech.55.11.836",
+    "openalex": "https://openalex.org/W2107212347"
+   },
+   "intent": "predictive",
+   "design": null,
+   "threshold": null,
+   "clarification_key": "qa.ask.rephrase",
+   "treatment_word": null,
+   "outcome_word": "mortality",
+   "explanation": "'A predictor of subsequent mortality'.",
+   "criterion": "Read as predictive, or ambiguous; never causal.",
+   "label_rater": "Claude (agent, also wrote the analyser), single rater"
+  },
+  {
+   "id": "T36",
+   "question": "Do Intentions Really Predict Behavior? Self-Generated Validity Effects in Survey Research",
+   "stratum": "predictive",
+   "source": {
+    "authors": [
+     "Pierre Chandon",
+     "Vicki G. Morwitz",
+     "Werner Reinartz"
+    ],
+    "year": 2005,
+    "journal": "Journal of Marketing",
+    "doi": "https://doi.org/10.1509/jmkg.69.2.1.60755",
+    "openalex": "https://openalex.org/W2116308420"
+   },
+   "intent": "predictive",
+   "design": null,
+   "threshold": null,
+   "clarification_key": "qa.ask.rephrase",
+   "treatment_word": null,
+   "outcome_word": null,
+   "explanation": "'Do intentions predict behavior'; the 'effects' come later and are about measurement.",
+   "criterion": "Read as predictive, or ambiguous; never causal.",
+   "label_rater": "Claude (agent, also wrote the analyser), single rater"
+  },
+  {
+   "id": "T37",
+   "question": "Do the Fama–French Factors Proxy for Innovations in Predictive Variables?",
+   "stratum": "predictive",
+   "source": {
+    "authors": [
+     "Ralitsa Petkova"
+    ],
+    "year": 2006,
+    "journal": "The Journal of Finance",
+    "doi": "https://doi.org/10.1111/j.1540-6261.2006.00849.x",
+    "openalex": "https://openalex.org/W1985201787"
+   },
+   "intent": "ambiguous",
+   "design": null,
+   "threshold": null,
+   "clarification_key": "qa.ask.intent",
+   "treatment_word": null,
+   "outcome_word": null,
+   "explanation": "'Do X proxy for Y': a relationship between variables, not a prediction asked.",
+   "criterion": "Read as ambiguous, or ambiguous; never causal.",
+   "label_rater": "Claude (agent, also wrote the analyser), single rater"
+  },
+  {
+   "id": "T38",
+   "question": "Can Postoperative Nausea and Vomiting Be Predicted?",
+   "stratum": "predictive",
+   "source": {
+    "authors": [
+     "David R. Sinclair",
+     "Frances F. Chung",
+     "Gábor Mezei"
+    ],
+    "year": 1999,
+    "journal": "Anesthesiology",
+    "doi": "https://doi.org/10.1097/00000542-199907000-00018",
+    "openalex": "https://openalex.org/W1969011462"
+   },
+   "intent": "predictive",
+   "design": null,
+   "threshold": null,
+   "clarification_key": "qa.ask.rephrase",
+   "treatment_word": null,
+   "outcome_word": null,
+   "explanation": "'Can X be predicted'.",
+   "criterion": "Read as predictive, or ambiguous; never causal.",
+   "label_rater": "Claude (agent, also wrote the analyser), single rater"
+  },
+  {
+   "id": "T39",
+   "question": "Prevalence odds ratio or prevalence ratio in the analysis of cross sectional data: what is to be done?",
+   "stratum": "descriptive",
+   "source": {
+    "authors": [
+     "Mary Lou Thompson",
+     "Jonathan Elliot Myers",
+     "David Kriebel"
+    ],
+    "year": 1998,
+    "journal": "Occupational and Environmental Medicine",
+    "doi": "https://doi.org/10.1136/oem.55.4.272",
+    "openalex": "https://openalex.org/W2152053725"
+   },
+   "intent": "ambiguous",
+   "design": null,
+   "threshold": null,
+   "clarification_key": "qa.ask.intent",
+   "treatment_word": null,
+   "outcome_word": null,
+   "explanation": "A methodological question about measures, not a quantity to describe.",
+   "criterion": "Read as ambiguous, or ambiguous; never causal.",
+   "label_rater": "Claude (agent, also wrote the analyser), single rater"
+  },
+  {
+   "id": "T40",
+   "question": "Do antimicrobials increase the carriage rate of penicillin resistant pneumococci in children? Cross sectional prevalence study",
+   "stratum": "descriptive",
+   "source": {
+    "authors": [
+     "Vilhjalmur A. Arason",
+     "Karl Gustaf Kristinsson",
+     "Johann Agust Sigurdsson"
+    ],
+    "year": 1996,
+    "journal": "BMJ",
+    "doi": "https://doi.org/10.1136/bmj.313.7054.387",
+    "openalex": "https://openalex.org/W2055750915"
+   },
+   "intent": "causal",
+   "design": null,
+   "threshold": null,
+   "clarification_key": "qa.ask.assignment",
+   "treatment_word": "antimicrobials",
+   "outcome_word": "carriage",
+   "explanation": "'Do X increase Y'; the prevalence study is the data, not the question.",
+   "criterion": "Read as causal, and no recommendation without a form.",
+   "label_rater": "Claude (agent, also wrote the analyser), single rater"
+  },
+  {
+   "id": "T41",
+   "question": "Who Has Diabetes? Best Estimates of Diabetes Prevalence in the Department of Veterans Affairs Based on Computerized Patient Data",
+   "stratum": "descriptive",
+   "source": {
+    "authors": [
+     "Donald R. Miller",
+     "Monika M. Safford",
+     "LEONARD M. POGACH"
+    ],
+    "year": 2004,
+    "journal": "Diabetes Care",
+    "doi": "https://doi.org/10.2337/diacare.27.suppl_2.b10",
+    "openalex": "https://openalex.org/W2033136851"
+   },
+   "intent": "descriptive",
+   "design": null,
+   "threshold": null,
+   "clarification_key": "qa.ask.rephrase",
+   "treatment_word": null,
+   "outcome_word": "diabetes",
+   "explanation": "'Who has X? Estimates of prevalence'.",
+   "criterion": "Read as descriptive, or ambiguous; never causal.",
+   "label_rater": "Claude (agent, also wrote the analyser), single rater"
+  },
+  {
+   "id": "T42",
+   "question": "Prevalence of bullying and victimization among children in early elementary school: Do family and school neighbourhood socioeconomic status matter?",
+   "stratum": "descriptive",
+   "source": {
+    "authors": [
+     "Pauline W. Jansen",
+     "Marina Verlinden",
+     "Anke Dommisse-van Berkel"
+    ],
+    "year": 2012,
+    "journal": "BMC Public Health",
+    "doi": "https://doi.org/10.1186/1471-2458-12-494",
+    "openalex": "https://openalex.org/W2126387279"
+   },
+   "intent": "causal",
+   "design": null,
+   "threshold": null,
+   "clarification_key": "qa.ask.assignment",
+   "treatment_word": "status",
+   "outcome_word": null,
+   "explanation": "Prevalence of X, then 'do Z matter': the explicit causal clause decides (mixed-title rule).",
+   "criterion": "Read as causal, and no recommendation without a form.",
+   "label_rater": "Claude (agent, also wrote the analyser), single rater"
+  },
+  {
+   "id": "T43",
+   "question": "Erectile Dysfunction in the Cardiac Patient: How Common and Should We Treat?",
+   "stratum": "descriptive",
+   "source": {
+    "authors": [
+     "Robert Alan Kloner",
+     "Stephanie Mullin",
+     "Thomas Shook"
+    ],
+    "year": 2003,
+    "journal": "The Journal of Urology",
+    "doi": "https://doi.org/10.1097/01.ju.0000075055.34506.59",
+    "openalex": "https://openalex.org/W2064475494"
+   },
+   "intent": "descriptive",
+   "design": null,
+   "threshold": null,
+   "clarification_key": "qa.ask.rephrase",
+   "treatment_word": null,
+   "outcome_word": null,
+   "explanation": "'How common' decides; 'should we treat' is a recommendation, not a causal question.",
+   "criterion": "Read as descriptive, or ambiguous; never causal.",
+   "label_rater": "Claude (agent, also wrote the analyser), single rater"
+  },
+  {
+   "id": "T44",
+   "question": "ST‐Segment–Elevation Myocardial Infarction (STEMI) Patients Without Standard Modifiable Cardiovascular Risk Factors—How Common Are They, and What Are Their Outcomes?",
+   "stratum": "descriptive",
+   "source": {
+    "authors": [
+     "Stephen Thomas Vernon",
+     "Sean Coffey",
+     "Mario I D'Souza"
+    ],
+    "year": 2019,
+    "journal": "Journal of the American Heart Association",
+    "doi": "https://doi.org/10.1161/jaha.119.013296",
+    "openalex": "https://openalex.org/W2986215287"
+   },
+   "intent": "descriptive",
+   "design": null,
+   "threshold": null,
+   "clarification_key": "qa.ask.rephrase",
+   "treatment_word": null,
+   "outcome_word": null,
+   "explanation": "'How common are they, and what are their outcomes'.",
+   "criterion": "Read as descriptive, or ambiguous; never causal.",
+   "label_rater": "Claude (agent, also wrote the analyser), single rater"
+  },
+  {
+   "id": "T45",
+   "question": "Are there causal relationships between the dimensions of the Maslach Burnout Inventory? A review and two longitudinal tests",
+   "stratum": "ambiguous",
+   "source": {
+    "authors": [
+     "Toon W. Taris",
+     "Pascale Marie Le Blanc",
+     "Wilmar Bernardus Schaufeli"
+    ],
+    "year": 2005,
+    "journal": "Work & Stress",
+    "doi": "https://doi.org/10.1080/02678370500270453",
+    "openalex": "https://openalex.org/W2159269032"
+   },
+   "intent": "causal",
+   "design": null,
+   "threshold": null,
+   "clarification_key": "qa.ask.assignment",
+   "treatment_word": null,
+   "outcome_word": null,
+   "explanation": "'Are there causal relationships between X' asks explicitly about causes.",
+   "criterion": "Read as causal, and no recommendation without a form.",
+   "label_rater": "Claude (agent, also wrote the analyser), single rater"
+  },
+  {
+   "id": "T46",
+   "question": "Is Type II Diabetes Associated With an Increased Risk of Cognitive Dysfunction?: A critical review of published studies",
+   "stratum": "ambiguous",
+   "source": {
+    "authors": [
+     "Mark W. J. Strachan",
+     "Ian J. Deary",
+     "Fiona M.E Ewing"
+    ],
+    "year": 1997,
+    "journal": "Diabetes Care",
+    "doi": "https://doi.org/10.2337/diacare.20.3.438",
+    "openalex": "https://openalex.org/W1967789041"
+   },
+   "intent": "ambiguous",
+   "design": null,
+   "threshold": null,
+   "clarification_key": "qa.ask.intent",
+   "treatment_word": null,
+   "outcome_word": null,
+   "explanation": "'Is X associated with Y'.",
+   "criterion": "Read as ambiguous, or ambiguous; never causal.",
+   "label_rater": "Claude (agent, also wrote the analyser), single rater"
+  },
+  {
+   "id": "T47",
+   "question": "Is There a Bidirectional Relationship between Children's Reading Skills and Reading Motivation?",
+   "stratum": "ambiguous",
+   "source": {
+    "authors": [
+     "Paul L. Morgan",
+     "Douglas Fuchs"
+    ],
+    "year": 2007,
+    "journal": "Exceptional Children",
+    "doi": "https://doi.org/10.1177/001440290707300203",
+    "openalex": "https://openalex.org/W2167785076"
+   },
+   "intent": "ambiguous",
+   "design": null,
+   "threshold": null,
+   "clarification_key": "qa.ask.intent",
+   "treatment_word": null,
+   "outcome_word": null,
+   "explanation": "'A bidirectional relationship between X and Y'.",
+   "criterion": "Read as ambiguous, or ambiguous; never causal.",
+   "label_rater": "Claude (agent, also wrote the analyser), single rater"
+  },
+  {
+   "id": "T48",
+   "question": "Are Retinal Arteriolar or Venular Diameters Associated with Markers for Cardiovascular Disorders? The Rotterdam Study",
+   "stratum": "ambiguous",
+   "source": {
+    "authors": [
+     "M. Kamran Ikram",
+     "Frank Jan de Jong",
+     "Johannes R. Vingerling"
+    ],
+    "year": 2004,
+    "journal": "Investigative Ophthalmology & Visual Science",
+    "doi": "https://doi.org/10.1167/iovs.03-1390",
+    "openalex": "https://openalex.org/W2129698390"
+   },
+   "intent": "ambiguous",
+   "design": null,
+   "threshold": null,
+   "clarification_key": "qa.ask.intent",
+   "treatment_word": null,
+   "outcome_word": null,
+   "explanation": "'Are X associated with Y'.",
+   "criterion": "Read as ambiguous, or ambiguous; never causal.",
+   "label_rater": "Claude (agent, also wrote the analyser), single rater"
+  },
+  {
+   "id": "T49",
+   "question": "On the Relationship Between Interoceptive Awareness and Alexithymia: Is Interoceptive Awareness Related to Emotional Awareness?",
+   "stratum": "ambiguous",
+   "source": {
+    "authors": [
+     "Beate M. Herbert",
+     "Cornelia Herbert",
+     "Olga Pollatos"
+    ],
+    "year": 2011,
+    "journal": "Journal of Personality",
+    "doi": "https://doi.org/10.1111/j.1467-6494.2011.00717.x",
+    "openalex": "https://openalex.org/W1510105321"
+   },
+   "intent": "ambiguous",
+   "design": null,
+   "threshold": null,
+   "clarification_key": "qa.ask.intent",
+   "treatment_word": null,
+   "outcome_word": null,
+   "explanation": "'Is X related to Y'.",
+   "criterion": "Read as ambiguous, or ambiguous; never causal.",
+   "label_rater": "Claude (agent, also wrote the analyser), single rater"
+  },
+  {
+   "id": "T50",
+   "question": "ARE THE 100 BEST BETTER? AN EMPIRICAL INVESTIGATION OF THE RELATIONSHIP BETWEEN BEING A “GREAT PLACE TO WORK” AND FIRM PERFORMANCE",
+   "stratum": "ambiguous",
+   "source": {
+    "authors": [
+     "Ingrid Smithey Fulmer",
+     "Barry A. Gerhart",
+     "KIMBERLY S. SCOTT"
+    ],
+    "year": 2003,
+    "journal": "Personnel Psychology",
+    "doi": "https://doi.org/10.1111/j.1744-6570.2003.tb00246.x",
+    "openalex": "https://openalex.org/W2136263386"
+   },
+   "intent": "ambiguous",
+   "design": null,
+   "threshold": null,
+   "clarification_key": "qa.ask.intent",
+   "treatment_word": null,
+   "outcome_word": null,
+   "explanation": "'Are the 100 best better? The relationship between X and Y': a comparison and a relationship.",
+   "criterion": "Read as ambiguous, or ambiguous; never causal.",
+   "label_rater": "Claude (agent, also wrote the analyser), single rater"
+  },
+  {
+   "id": "T51",
+   "question": "What Is the Threshold for Symptomatic Response and Remission for Major Depressive Disorder, Panic Disorder, Social Anxiety Disorder, and Generalized Anxiety Disorder?",
+   "stratum": "threshold",
+   "source": {
+    "authors": [
+     "Borwin Bandelow",
+     "David S. Baldwin",
+     "Ornah T. Dolberg"
+    ],
+    "year": 2006,
+    "journal": "The Journal of Clinical Psychiatry",
+    "doi": "https://doi.org/10.4088/jcp.v67n0914",
+    "openalex": "https://openalex.org/W1976277684"
+   },
+   "intent": "descriptive",
+   "design": null,
+   "threshold": "ordinary",
+   "clarification_key": "qa.ask.rephrase",
+   "treatment_word": null,
+   "outcome_word": null,
+   "explanation": "'What is the threshold for response': a level to describe; the threshold assigns nothing.",
+   "criterion": "Read as descriptive, or ambiguous; never causal.",
+   "label_rater": "Claude (agent, also wrote the analyser), single rater"
+  },
+  {
+   "id": "T52",
+   "question": "Static stress transfer and earthquake triggering: No lower threshold in sight?",
+   "stratum": "threshold",
+   "source": {
+    "authors": [
+     "Alon Ziv",
+     "Allan M. Rubin"
+    ],
+    "year": 2000,
+    "journal": "Journal of Geophysical Research Atmospheres",
+    "doi": "https://doi.org/10.1029/2000jb900081",
+    "openalex": "https://openalex.org/W2075047516"
+   },
+   "intent": "ambiguous",
+   "design": null,
+   "threshold": "ordinary",
+   "clarification_key": "qa.ask.intent",
+   "treatment_word": null,
+   "outcome_word": null,
+   "explanation": "A physical threshold for triggering; no change and its effect asked in the wording.",
+   "criterion": "Read as ambiguous, or ambiguous; never causal.",
+   "label_rater": "Claude (agent, also wrote the analyser), single rater"
+  },
+  {
+   "id": "T53",
+   "question": "How novel is too novel? Stream community thresholds at exceptionally low levels of catchment urbanization",
+   "stratum": "threshold",
+   "source": {
+    "authors": [
+     "Ryan S. King",
+     "Matthew E. Baker",
+     "Paul F. Kazyak"
+    ],
+    "year": 2010,
+    "journal": "Ecological Applications",
+    "doi": "https://doi.org/10.1890/10-1357.1",
+    "openalex": "https://openalex.org/W2115679869"
+   },
+   "intent": "ambiguous",
+   "design": null,
+   "threshold": "ordinary",
+   "clarification_key": "qa.ask.intent",
+   "treatment_word": null,
+   "outcome_word": null,
+   "explanation": "'How novel is too novel? Thresholds': an ecological threshold.",
+   "criterion": "Read as ambiguous, or ambiguous; never causal.",
+   "label_rater": "Claude (agent, also wrote the analyser), single rater"
+  },
+  {
+   "id": "T54",
+   "question": "Is blindsight like normal, near-threshold vision?",
+   "stratum": "threshold",
+   "source": {
+    "authors": [
+     "Paul Azzopardi",
+     "Alan Cowey"
+    ],
+    "year": 1997,
+    "journal": "Proceedings of the National Academy of Sciences",
+    "doi": "https://doi.org/10.1073/pnas.94.25.14190",
+    "openalex": "https://openalex.org/W2171340434"
+   },
+   "intent": "ambiguous",
+   "design": null,
+   "threshold": "ordinary",
+   "clarification_key": "qa.ask.intent",
+   "treatment_word": null,
+   "outcome_word": null,
+   "explanation": "'Is X like Y': a comparison; near-threshold is a perceptual level.",
+   "criterion": "Read as ambiguous, or ambiguous; never causal.",
+   "label_rater": "Claude (agent, also wrote the analyser), single rater"
+  },
+  {
+   "id": "T55",
+   "question": "Which Time-to-Peak Threshold Best Identifies Penumbral Flow?",
+   "stratum": "threshold",
+   "source": {
+    "authors": [
+     "Jan Sobesky",
+     "Olivier Zaro Weber",
+     "Fritz G. Lehnhardt"
+    ],
+    "year": 2004,
+    "journal": "Stroke",
+    "doi": "https://doi.org/10.1161/01.str.0000147043.29399.f6",
+    "openalex": "https://openalex.org/W2119252392"
+   },
+   "intent": "ambiguous",
+   "design": null,
+   "threshold": "ordinary",
+   "clarification_key": "qa.ask.intent",
+   "treatment_word": null,
+   "outcome_word": null,
+   "explanation": "'Which threshold best identifies': a measurement question.",
+   "criterion": "Read as ambiguous, or ambiguous; never causal.",
+   "label_rater": "Claude (agent, also wrote the analyser), single rater"
+  },
+  {
+   "id": "T56",
+   "question": "Substitute or stepping stone? Assessing the impact of low‐threshold online collective actions on offline participation",
+   "stratum": "threshold",
+   "source": {
+    "authors": [
+     "Sandy Schumann",
+     "Olivier Klein"
+    ],
+    "year": 2015,
+    "journal": "European Journal of Social Psychology",
+    "doi": "https://doi.org/10.1002/ejsp.2084",
+    "openalex": "https://openalex.org/W2152301075"
+   },
+   "intent": "causal",
+   "design": null,
+   "threshold": "ordinary",
+   "clarification_key": "qa.ask.assignment",
+   "treatment_word": "actions",
+   "outcome_word": "participation",
+   "explanation": "'Assessing the impact of X on Y'; 'low-threshold' describes the actions.",
+   "criterion": "Read as causal, and no recommendation without a form.",
+   "label_rater": "Claude (agent, also wrote the analyser), single rater"
+  },
+  {
+   "id": "T57",
+   "question": "Is There an Apparent Diffusion Coefficient Threshold in Predicting Tissue Viability in Hyperacute Stroke?",
+   "stratum": "threshold",
+   "source": {
+    "authors": [
+     "Catherine Oppenheim",
+     "Cécile B.G. Grandin",
+     "Yves Samson"
+    ],
+    "year": 2001,
+    "journal": "Stroke",
+    "doi": "https://doi.org/10.1161/hs1101.098331",
+    "openalex": "https://openalex.org/W2170597858"
+   },
+   "intent": "predictive",
+   "design": null,
+   "threshold": "ordinary",
+   "clarification_key": "qa.ask.rephrase",
+   "treatment_word": null,
+   "outcome_word": null,
+   "explanation": "'A threshold in predicting tissue viability'.",
+   "criterion": "Read as predictive, or ambiguous; never causal.",
+   "label_rater": "Claude (agent, also wrote the analyser), single rater"
+  },
+  {
+   "id": "T58",
+   "question": "Applying the National Lung Screening Trial eligibility criteria to the US population: what percent of the population and of incident lung cancers would be covered?",
+   "stratum": "threshold",
+   "source": {
+    "authors": [
+     "Paul F. Pinsky",
+     "Christine D. Berg"
+    ],
+    "year": 2012,
+    "journal": "Journal of Medical Screening",
+    "doi": "https://doi.org/10.1258/jms.2012.012010",
+    "openalex": "https://openalex.org/W2111855883"
+   },
+   "intent": "descriptive",
+   "design": null,
+   "threshold": "unclear",
+   "clarification_key": "qa.ask.threshold_role",
+   "treatment_word": null,
+   "outcome_word": null,
+   "explanation": "'What percent would be covered' by eligibility criteria: a share; the criteria decide screening, but no cutoff is stated.",
+   "criterion": "Read as descriptive, or ambiguous; never causal.",
+   "label_rater": "Claude (agent, also wrote the analyser), single rater"
+  }
+ ],
+ "excluded": [
+  {
+   "stratum": "did",
+   "title": "Do all institutional investors care about corporate carbon emissions?",
+   "openalex": "https://openalex.org/W4307054807",
+   "reason": "DiD is only a robustness check; the question is answered by associations."
+  },
+  {
+   "stratum": "did",
+   "title": "Do foreign institutional investors influence corporate climate change disclosure quality? International evidence",
+   "openalex": "https://openalex.org/W4378232974",
+   "reason": "DiD is only an add-on to an association study."
+  },
+  {
+   "stratum": "iv",
+   "title": "Institutions matter, but which ones?",
+   "openalex": "https://openalex.org/W2084206981",
+   "reason": "A conceptual discussion that proposes an instrument; it does not use one to answer the title."
+  },
+  {
+   "stratum": "iv",
+   "title": "Retrospectives: Who Invented Instrumental Variable Regression?",
+   "openalex": "https://openalex.org/W2161429633",
+   "reason": "The history of the method, not a use of it."
+  },
+  {
+   "stratum": "matching",
+   "title": "When to Control for Covariates? Panel Asymptotics for Estimates of Treatment Effects",
+   "openalex": "https://openalex.org/W2076309946",
+   "reason": "A methods paper on when to control for covariates."
+  },
+  {
+   "stratum": "ambiguous",
+   "title": "Polymorphic haplotypes of the interleukin-10 5? flanking region determine variable interleukin-10 transcription and are associated with particular phenotypes of juvenile rheumatoid arthritis",
+   "openalex": "https://openalex.org/W2033998941",
+   "reason": "Not a question: the '?' is an encoding of the prime in 5′."
+  }
+ ]
+}
