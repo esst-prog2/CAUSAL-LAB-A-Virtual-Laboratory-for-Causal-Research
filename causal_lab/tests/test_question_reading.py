@@ -240,6 +240,25 @@ def test_second_version_thresholds():
     assert recommended(recommend(design, diagnose(design))) is None
 
 
+def test_version_3_1_threshold_words_are_whole_words():
+    # "at" inside "What", and "just above" inside "adjust above", are not clues.
+    for question in ("What is the threshold of blood pressure for starting statins?",
+                     "Do households adjust above some income threshold?"):
+        assert threshold_kind(question)[0] == THRESHOLD_UNCLEAR, question
+    assert threshold_kind("Do pupils just above the cutoff do better?")[0] == THRESHOLD_ASSIGNMENT
+    # "Triggering" as a noun names a phenomenon; the verb still makes a rule.
+    assert threshold_kind("Landslide triggering: is there a rainfall threshold?")[0] == THRESHOLD_UNCLEAR
+    assert threshold_kind("Does a score above the threshold that triggers referral improve care?")[0] \
+        == THRESHOLD_ASSIGNMENT
+
+
+def test_version_3_1_a_listed_outcome_keeps_its_commas():
+    reading = read_question("Does microcredit raise income, savings, and consumption?")
+    assert reading.outcome == "income, savings, and consumption"
+    reading = read_question("Does microcredit raise income, especially for women and girls?")
+    assert reading.outcome == "income"
+
+
 def test_an_experiment_is_inferred_random_unless_natural():
     a = analyze(ResearchDesignInput(research_question="Do bonuses raise output? Evidence from a field experiment"))
     assert a.inferred["assignment_mechanism"] == "random" and a.status("assignment") == INFERRED

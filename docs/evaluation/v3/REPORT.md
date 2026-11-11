@@ -118,5 +118,26 @@ It does not show:
 ## What should happen next
 
 1. A second rater fills in `rater_sheet.csv` in this folder (`../RATER_PROCEDURE.md`).
-2. The threshold reader needs its own correction ("triggering", an outcome level), and then a new set: not this one.
+2. The threshold reader needs its own correction ("triggering", an outcome level), and then a new set: not this one. The correction is version 3.1 (addendum below); the new set is still to do.
 3. Report all three evaluations together, never this one alone.
+
+## Addendum: the version in the code is 3.1, not the version evaluated
+
+Reading the three threshold false positives after the run showed that two were bugs, not judgement:
+- T51: the word "at" was found inside "What" ("What Is the Threshold…" read as "at the threshold"). The same bug made V52, the only threshold false positive of the second set.
+- T52: "trigger" made a rule even as the noun "triggering".
+
+The run also showed T02's outcome cut at the first comma of a list. Version 3.1 matches threshold words as whole words, counts "trigger" only as a verb, and keeps the commas of a short list ("A, B, and C") in the outcome. The tests use invented examples, not titles from any set. T10 is not changed: naming "a regression discontinuity design" is a fair clue to an assignment threshold, and the label rule that counts it as false is not changed after the run.
+
+**This set revealed these errors, so it cannot measure their correction: version 3.1 is not evaluated, and the results above stand as version 3's.** A regression check, which is not evidence, compares 3.1 with 3 on all 388 titles (the three sets and the development set). 6 readings change, and no other:
+
+| Title | Version 3 | Version 3.1 |
+|---|---|---|
+| T51, "What Is the Threshold for Symptomatic Response…" | threshold: assignment | unclear |
+| T52, "…earthquake triggering: No lower threshold in sight?" | threshold: assignment | unclear |
+| T02, outcome | "corporate environmental" | "corporate environmental, social, and governance performance" |
+| V52 (second set), "…what is the threshold of cost…" | threshold: assignment | unclear |
+| D199 (development), "What Threshold for Adjuvant Therapy…" | threshold: assignment | unclear |
+| D081 (development), outcome | "Poverty" | "Poverty, Health, and Education" |
+
+Rescored on this set, 3.1 would have 1 threshold false positive (T10), but that is a corrected run on the set that showed the errors, not an evaluation. Whether 3.1 passes the threshold bar needs a fourth set.

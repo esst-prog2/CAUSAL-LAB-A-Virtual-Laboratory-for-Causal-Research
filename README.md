@@ -275,7 +275,7 @@ Each version was evaluated once, on its own set of published articles whose titl
 
 - **It is cautious, and it does not understand.** Its errors are mostly abstentions. Version 3 opened the verb class in English (a question with a subject, a verb and an object is read as causal, with roles to confirm, unless the verb only describes), which removes the limit named in the second report; the third set barely tested that rule (one title).
 - **The form does the work.** A title gave a design clue in 5 of 72 cases. The "no wrong method" line shows that wording does not disturb a correct form; it cannot show that the app finds a design.
-- **The code is version 3**, the version evaluated on the third set. The threshold reader, unchanged since version 2.1, made 3 false positives there ("triggering", an outcome level, a design name).
+- **The code is version 3.1, which has not been evaluated.** On the third set the threshold reader made 3 false positives; two were bugs ("at" found inside "What", which also caused version 2's only one, and the noun "triggering"), corrected in 3.1 with a list-comma fix for outcomes. That set cannot measure the correction, so the table keeps version 3's numbers ([addendum](docs/evaluation/v3/REPORT.md)).
 - **Limits.** Labels by a single rater who also wrote the analyser; **no second rating yet, so no kappa**. Bars proposed by the agent, not yet reviewed by the author. English titles of highly cited papers only: **French is not evaluated**. No implicit threshold in any set: **that behaviour is covered by development tests only**. No question written by a student yet.
 
 ## 5. What could stop this

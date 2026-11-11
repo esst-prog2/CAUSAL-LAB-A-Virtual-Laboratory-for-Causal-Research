@@ -124,6 +124,21 @@ def _cut(text: str, pattern: str) -> tuple[str, str]:
     return (text[:m.start()], text[m.end():]) if m else (text, "")
 
 
+# The commas of a list ("environmental, social, and governance performance") belong to
+# the phrase; a list item is a word or two, never a preposition that opens a new part.
+_LIST = re.compile(r"[\w-]+,\s+(?!(?:in|on|at|for|among|with|by|from|to|especially|particularly|mainly|notably|"
+                   r"evidence|dans|pour|chez|en|surtout|notamment)\b)[\w-]+(?:\s+[\w-]+)?,?\s+(?:and|or|et|ou)\s", re.I)
+
+
+def _before_comma(text: str) -> str:
+    """The text before the first comma that is not inside a list."""
+    lists = [m.span() for m in _LIST.finditer(text)]
+    for comma in re.finditer(",", text):
+        if not any(start <= comma.start() < end for start, end in lists):
+            return text[:comma.start()]
+    return text
+
+
 def _split_on(rest: str, word: str) -> tuple[str, str] | None:
     """Treatment and the text after it: the last `word` before the first hard stop."""
     head, _ = _cut(rest, _HARD_STOPS)
@@ -140,10 +155,8 @@ def _outcome_and_population(after: str) -> tuple[str, str]:
     for m in re.finditer(_POPULATION, after, re.I):
         rest = after[m.end():]
         if _STRONG_POPULATION.match(m.group(0)) or _POPULATION_NOUN.match(rest):
-            outcome, _ = _cut(after[:m.start()], r",")
-            return clean(outcome), clean(rest)
-    outcome, _ = _cut(after, r",")
-    return clean(outcome), ""
+            return clean(_before_comma(after[:m.start()])), clean(rest)
+    return clean(_before_comma(after)), ""
 
 
 def _treatment_part(text: str) -> str:
@@ -590,15 +603,16 @@ def read_question(question: str) -> Reading:
 # Thresholds: an assignment rule, an ordinary number, or unclear
 # --------------------------------------------------------------------------
 _CUTOFF_WORD = re.compile(r"cut-?\s?offs?\b|\bthresholds?\b|\bseuils?\b", re.I)
-_SHARP = re.compile(r"barely (?:won|lost|passed|failed|above|below|qualified)|just (?:above|below|over|under)|de justesse|"
+_SHARP = re.compile(r"\b(?:barely (?:won|lost|passed|failed|above|below|qualified)|just (?:above|below|over|under)|de justesse|"
                     r"discontinuit\w*|by a (?:narrow|slim|small) margin|narrowly (?:won|lost|elected|defeated)|"
-                    r"close (?:elections?|races?)|juste (?:au[- ]dessus|au[- ]dessous|en[- ]dessous)", re.I)
-_NEAR_CUTOFF = re.compile(r"(?:near|close to|around|at|proches? d[ue]|autour d[ue])\s+(?:(?:the|a|an|le|la|ce)\s+)?(?:[\w-]+\s+){0,3}?"
+                    r"close (?:elections?|races?)|juste (?:au[- ]dessus|au[- ]dessous|en[- ]dessous))", re.I)
+_NEAR_CUTOFF = re.compile(r"\b(?:near|close to|around|at|proches? d[ue]|autour d[ue])\s+(?:(?:the|a|an|le|la|ce)\s+)?(?:[\w-]+\s+){0,3}?"
                           r"(?:cut-?\s?offs?\b|thresholds?\b|seuils?\b)", re.I)
 _ORDINARY = re.compile(r"threshold (?:effects?|models?|regressions?)|\b(?:above|below|beyond) which\b|significance (?:level|threshold)|"
                        r"poverty (?:line|threshold)|seuils? de (?:pauvret[ée]|significativit[ée])|effets? de seuil", re.I)
-# Words that make a rule decide who is treated.
-_RULE = re.compile(r"\beligib\w*|[ée]ligib\w*|\bqualif\w*|\badmi(?:t|ss)\w*|\bentitl\w*|\bexempt\w*|\bactivat\w*|\btrigger\w*|"
+# Words that make a rule decide who is treated. "Trigger" counts as a verb ("a score
+# above 30 triggers referral"), not as the noun "triggering", which names a phenomenon.
+_RULE = re.compile(r"\beligib\w*|[ée]ligib\w*|\bqualif\w*|\badmi(?:t|ss)\w*|\bentitl\w*|\bexempt\w*|\bactivat\w*|\btrigger(?:s|ed)?\b|"
                    r"d[ée]clench\w*|\badmissib\w*|\bdetermined by\b|\bbased on\b|\bassign\w*|\bsplit\w*|\baward\w*|\bgrant\w*|"
                    r"\bcross\w*", re.I)
 _GETS = r"(?:receives?|gets?|are (?:awarded|assigned|granted|given|eligible)|is (?:awarded|assigned|granted|given|eligible)|obtiennent|re[çc]oivent)"
