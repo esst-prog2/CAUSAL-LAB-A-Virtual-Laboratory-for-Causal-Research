@@ -257,6 +257,107 @@ _SUBJECT_VERB_COMPARE = re.compile(rf"\b{_AUX}{_NOT}\s+(?P<t>.+?\b(?:who|that|wi
 _GOOD_FOR = re.compile(r"\b(?:is|are|was|were)\s+(?P<t>.+?)\s+(?:good|bad|beneficial|harmful|better|worse)\s+for\s+(?P<o>.+)", re.I | re.S)
 
 
+# --------------------------------------------------------------------------
+# Version 3: an open verb class
+# --------------------------------------------------------------------------
+# The causal verbs above are a closed list, and new titles keep using verbs that are
+# not on it ("do firms respond to", "does microfinance empower"). A question built as
+# auxiliary + subject + verb + object asks what the subject does, whatever the verb,
+# unless the verb only describes: knowing, using, preferring, differing. That list is
+# the closed one now. The reading is causal with roles to confirm, never stated.
+_NON_CAUSAL_VERBS = re.compile(
+    r"\b(?:know|knew|think|believe|feel|want|wish|need|prefer|like|dislike|use|follow|adhere|comply|understand|perceive|"
+    r"report|say|tell|see|look|seem|appear|exist|occur|happen|differ|vary|persist|remain|stay|have|get|live|mean|agree|"
+    r"disagree|share|cluster|converge|diverge|coincide|co-occur|coexist|recogni[sz]e|value|care|trust|expect|anticipate|"
+    r"choose|deserve|represent|reflect|resemble|belong|contain|include|consist|measure|mirror|track|describe|exhibit|"
+    r"show|display|respect|accept|recall|remember|hold|stand|lie|sit|go|come|move|travel|migrate|engage|participate|"
+    r"spend|earn|pay|buy|sell|own|speak|read|write|play|watch|eat|drink|sleep|work|cost|weigh|last|count|"
+    r"explain|predict|forecast|correlate|associate|relate|link|compare|outperform|exceed|beat)\b", re.I)
+_OPEN_AUX = re.compile(r"(?:^|[?:.]\s+|^\s*(?:what|whom?)\s+)(?:does|do|did|can|could|will|would|might|may)(?:n['’]t)?(?:\s+not)?"
+                       r"\s+(?P<tail>[^?:]+)", re.I)
+_PRONOUN = re.compile(r"^(?:i|we|you|they|it|he|she|one|this|that|these|those|there|anyone|someone|people)\b", re.I)
+_NOT_THE_VERB = re.compile(r"^(?:of|in|on|for|to|with|from|by|at|and|or|the|a|an|its|their|his|her|our|this|that|"
+                           r"these|those|new|more|less|high|low|higher|lower|early|late|public|private|social|local)$", re.I)
+_NOUN_LIKE = re.compile(r"(?:tion|sion|ment|ness|ity|ism|ance|ence|ship|ics|ial|al|ic|ive|ous|ful|less|ary|ory|ian|"
+                        r"ing|[^s]s|'s|’s)$", re.I)
+_DIRECT_OBJECT = re.compile(r"^(?!(?:to|on|with|from|in|into|at|for|against|upon|about|over|by|of|as)\b)\S", re.I)
+# When the subject is the units themselves, "do firms export to China?" describes what
+# they do; it asks for an effect only when the verb names what they react to.
+_UNITS = re.compile(r"\b(?:firms|companies|banks|students|pupils|children|kids|women|men|workers|employees|people|individuals|"
+                    r"households|families|patients|adults|adolescents|teenagers|youths?|voters|consumers|investors|"
+                    r"managers|ceos|physicians|doctors|nurses|teachers|parents|mothers|fathers|immigrants|migrants|"
+                    r"countries|states|governments|cities|municipalities|schools|hospitals|users|citizens|farmers|"
+                    r"entrepreneurs|analysts|auditors|directors|politicians|legislators|judges|officers|borrowers|"
+                    r"lenders|buyers|sellers|customers|clients|graduates|athletes|employers|owners|members|partisans)$", re.I)
+_REACTION = re.compile(r"^(?:respond|react|adjust|adapt|benefit|suffer|gain|lose)$", re.I)
+_COMPARATIVE = re.compile(r"\b(?:longer|shorter|better|worse|more|less|fewer|higher|lower|faster|slower|earlier|later|"
+                          r"larger|smaller|than)\b", re.I)
+# "Is developmental education helping students persist?": the progressive asks the same.
+_PROGRESSIVE = re.compile(r"(?:^|[?:.]\s+)(?:is|are|was|were)\s+(?P<t>(?:\S+\s+){0,6}?\S+)\s+(?P<v>[a-z-]+ing)\s+(?P<rest>[^?]+)",
+                          re.I)
+_WHAT_WORKS = re.compile(r"(?:^\s*|[?:.,;]\s+)what works\b", re.I)      # heading the question, not "do we know what works"
+_EFFECT_ON = re.compile(r"\b(?:is|are|was|were)\s+there\s+(?:an?\s+|any\s+)?(?P<t>.+?)\s+(?:effects?|impacts?)\s+(?:on|upon)\s+"
+                        r"(?P<rest>.+)", re.I | re.S)
+
+
+def _open_verb(q: str) -> Reading | None:
+    """"Do minimum wages discipline firms?": auxiliary, subject, a verb not on any list, an object."""
+    for clause in _OPEN_AUX.finditer(q):
+        tail = clause.group("tail").strip()
+        words = tail.split()
+        if len(words) < 2 or _PRONOUN.match(tail) or re.search(r"\b(?:be|been|being)\b", tail, re.I):
+            continue
+        if _COMPARATIVE.search(tail):
+            return None                         # "do subsidized firms survive longer?" compares groups
+        for i in range(1, len(words)):
+            word = words[i].strip(",;\"'")
+            if _NOT_THE_VERB.match(word) or _NOT_THE_VERB.match(words[i - 1]) or _NOUN_LIKE.search(word):
+                continue
+            if _NON_CAUSAL_VERBS.fullmatch(word):
+                return None                     # a verb that describes: the question stays ambiguous
+            subject, rest = " ".join(words[:i]), " ".join(words[i + 1:])
+            if any(_UNITS.search(w.strip(",;\"'")) for w in words[:i]) and not _REACTION.match(word):
+                return None                     # what a group does, not what something does to it
+            evidence = _evidence(f"{subject} {word}")
+            if q.lstrip().lower().startswith(("what", "who")) or not rest or not _DIRECT_OBJECT.match(rest):
+                return Reading(CAUSAL, evidence, certain=False)      # the roles are not in the word order
+            outcome, population = _outcome_and_population(rest)
+            return Reading(CAUSAL, evidence, _treatment_part(subject), outcome, population, certain=False)
+    return None
+
+
+def _progressive(q: str) -> Reading | None:
+    """"Is X helping Y?", "are awareness efforts contributing to the rise in Y?"."""
+    m = _PROGRESSIVE.search(q)
+    if not m:
+        return None
+    subject, verb, rest = m.group("t").strip(), m.group("v").lower(), m.group("rest").strip()
+    stem = verb[:-3]
+    if _PRONOUN.match(subject) or any(_UNITS.search(w) for w in subject.split()) or _COMPARATIVE.search(rest) \
+            or any(_NON_CAUSAL_VERBS.fullmatch(s) for s in (stem, stem + "e", stem[:-1])):
+        return None
+    to_verb = re.match(r"to\s+", rest, re.I) and any(f"{s} to" in _CAUSAL_VERBS for s in (stem, stem + "e"))
+    if not (_DIRECT_OBJECT.match(rest) or to_verb):
+        return None
+    outcome, population = _outcome_and_population(re.sub(r"^to\s+", "", rest) if to_verb else rest)
+    return Reading(CAUSAL, _evidence(m.group(0)), _treatment_part(subject), outcome, population, certain=False)
+
+
+def _what_works(q: str) -> Reading | None:
+    m = _WHAT_WORKS.search(q)
+    return Reading(CAUSAL, m.group(0), certain=False) if m else None
+
+
+def _effect_noun(q: str) -> Reading | None:
+    """"Is there a minimum wage effect on employment?", "how large are peer effects?":
+    the question names an effect, so it asks for one."""
+    m = _EFFECT_ON.search(q)
+    if m:
+        return _causal(m.group("t"), m.group("rest"), _evidence(m.group(0)), certain=False)
+    m = re.search(r"\b(?:effects?|impacts?)\b", q, re.I)
+    return Reading(CAUSAL, _evidence(m.group(0)), certain=False) if m else None
+
+
 def _evidence(words: str, limit: int = 60) -> str:
     """The words behind a reading, cut on a word boundary."""
     words = clean(words)
@@ -475,6 +576,10 @@ def read_question(question: str) -> Reading:
     comparison = _comparison(q)
     if comparison is not None:
         return comparison
+    for rule in (_effect_noun, _what_works, _open_verb, _progressive):
+        reading = rule(q)
+        if reading is not None:
+            return reading
     m = _CLAUSE.search(q)            # a statement: "the reform reduces employment", "whether X affects Y"
     if m and not re.match(r"\s*(?:what|which|who|when|where|is|are|was|were)\b", q, re.I):
         return _causal(m.group("t"), m.group("rest"), _evidence(m.group(0)), certain=False)

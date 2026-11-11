@@ -101,10 +101,32 @@ def test_counterfactuals_with_any_verb_and_responsibility_are_causal():
     assert (reading.intent, reading.treatment, reading.outcome) == (CAUSAL, "the minimum wage", "job losses")
 
 
-def test_an_unknown_verb_abstains_in_both_languages():
-    # The limit of a closed list: the reader asks, it does not call these non-causal.
-    for question in ("Does job insecurity erode trust?", "Le salaire minimum détruit-il des emplois ?"):
+def test_an_unknown_verb_is_read_as_causal_with_roles_to_confirm_in_english():
+    # Version 3: the verb class is open in English. The roles are never quoted as stated.
+    reading = read_question("Does job insecurity erode trust?")
+    assert (reading.intent, reading.treatment, reading.outcome, reading.certain) == (CAUSAL, "job insecurity", "trust",
+                                                                                      False)
+    # French keeps the closed list: the reader asks, it does not call this non-causal.
+    assert read_question("Le salaire minimum détruit-il des emplois ?").intent == AMBIGUOUS
+
+
+def test_the_open_verb_class_keeps_describing_verbs_and_groups_out():
+    for question in ("Do physicians follow clinical guidelines?", "Do consumers prefer green products?",
+                     "Do we know what works?", "Does income inequality differ across regions?",
+                     "Do firms export to China?", "Do children of immigrants attend college?"):
         assert read_question(question).intent == AMBIGUOUS, question
+
+
+def test_a_reaction_verb_gives_causal_intent_without_guessing_roles():
+    reading = read_question("Do firms respond to gender pay gap transparency?")
+    assert (reading.intent, reading.treatment, reading.outcome, reading.certain) == (CAUSAL, "", "", False)
+
+
+def test_a_named_effect_without_of_is_causal_with_roles_to_confirm():
+    reading = read_question("Is there a minimum wage effect on employment?")
+    assert (reading.intent, reading.treatment, reading.outcome, reading.certain) == (CAUSAL, "minimum wage", "employment",
+                                                                                      False)
+    assert read_question("How large are peer effects?").intent == CAUSAL
 
 
 # --------------------------------------------------------------------------
