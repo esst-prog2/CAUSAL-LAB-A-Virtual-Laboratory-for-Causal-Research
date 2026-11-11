@@ -259,22 +259,24 @@ What changed because of it:
 
 ### Evaluation of the question analyser
 
-Each version was evaluated once, on its own set of published articles whose title is a question, selected from OpenAlex by a fixed rule and frozen by hash before the run. Protocols and full reports, failures included: [first](docs/evaluation/REPORT.md), [second](docs/evaluation/v2/REPORT.md). Criteria for review: [CRITERIA](docs/evaluation/CRITERIA.md).
+Each version was evaluated once, on its own set of published articles whose title is a question, selected from OpenAlex by a fixed rule and frozen by hash before the run. Protocols and full reports, failures included: [first](docs/evaluation/REPORT.md), [second](docs/evaluation/v2/REPORT.md), [third](docs/evaluation/v3/REPORT.md). Criteria for review: [CRITERIA](docs/evaluation/CRITERIA.md).
 
-| Criterion | Bar | Version 1, 56 titles | Version 2, 58 titles |
-|---|---|---|---|
-| Recall of causal questions | ≥ 0.70 | **0.64, fails** | **0.60, fails** |
-| Precision of causal readings | ≥ 0.85 | 0.95 | 0.95 |
-| Causal questions read as non-causal | ≤ 5% | 0 of 33 | 1 of 30 |
-| Abstention on ambiguous questions | ≥ 0.70 | 0.92 | 0.87 |
-| Recommendation from an untouched form | 0 | 0 | 0 |
-| Wrong method given the form | ≤ 5% | 0 of 40 | 0 of 32 |
-| Threshold false positives | ≤ 2 | 0 | 1 |
+| Criterion | Bar | Version 1, 56 titles | Version 2, 58 titles | Version 3, 58 titles |
+|---|---|---|---|---|
+| Recall of causal questions | ≥ 0.70 | **0.64, fails** | **0.60, fails** | 0.83 (25/30) |
+| Precision of causal readings | ≥ 0.85 | 0.95 | 0.95 | 1.00 (25/25) |
+| Causal questions read as non-causal | ≤ 5% | 0 of 33 | 1 of 30 | 0 of 30 |
+| Abstention on ambiguous questions | ≥ 0.70 | 0.92 | 0.87 | 0.94 |
+| Recommendation from an untouched form | 0 | 0 | 0 | 0 |
+| Wrong method given the form | ≤ 5% | 0 of 40 | 0 of 32 | 0 of 32 |
+| Threshold false positives | ≤ 2 | 0 | 1 | **3, fails** |
 
-- **It is cautious, and it does not understand.** Its errors are mostly abstentions: about a third of causal questions are read as ambiguous, largely because the list of verbs is closed. Version 2 fixed the wordings seen in development without raising recall on new titles, so this is a structural limit of pattern matching.
+**Read the last column with this:** the frozen version 2, run on the third set, reads 24 of its 30 causal titles (0.80). Version 3 adds one. So the rise from 0.60 to 0.83 is mostly the difference between two sets of 30 titles, not the code; version 3 does not fail the recall bar on new titles, but it is not shown to be better than version 2.
+
+- **It is cautious, and it does not understand.** Its errors are mostly abstentions. Version 3 opened the verb class in English (a question with a subject, a verb and an object is read as causal, with roles to confirm, unless the verb only describes), which removes the limit named in the second report; the third set barely tested that rule (one title).
 - **The form does the work.** A title gave a design clue in 5 of 72 cases. The "no wrong method" line shows that wording does not disturb a correct form; it cannot show that the app finds a design.
-- **The code is version 2.1.** A later correction of assignment inference and of two wordings was not evaluated on a fresh set. On the second set, its intent readings are identical to version 2's ([addendum](docs/evaluation/v2/REPORT.md)).
-- **Limits.** Labels by a single rater who also wrote the analyser; **no second rating yet, so no kappa**. Bars proposed by the agent, not yet reviewed by the author. English titles of highly cited papers only: **French is not evaluated**. No implicit threshold in either set: **that behaviour is covered by development tests only**. No question written by a student yet.
+- **The code is version 3**, the version evaluated on the third set. The threshold reader, unchanged since version 2.1, made 3 false positives there ("triggering", an outcome level, a design name).
+- **Limits.** Labels by a single rater who also wrote the analyser; **no second rating yet, so no kappa**. Bars proposed by the agent, not yet reviewed by the author. English titles of highly cited papers only: **French is not evaluated**. No implicit threshold in any set: **that behaviour is covered by development tests only**. No question written by a student yet.
 
 ## 5. What could stop this
 

@@ -157,7 +157,7 @@ For Thierry. Have someone ask these in a random order, and answer without the pa
 ## Evaluation design and independent validation
 
 ### 23. How do you know the analyser works?
-**Answer.** Two frozen evaluations on 114 published titles, one per version. Causal recall fails its 0.70 bar both times (0.64, 0.60). Precision 0.95, one causal question called non-causal, no wrong method given a form. So it rarely overclaims and often abstains. The labels are from one rater who wrote the analyser, so these are provisional until a second rater checks them [state the kappa if one exists].
+**Answer.** Three frozen evaluations on 172 published titles, one per version. Causal recall is 0.64, 0.60 and 0.83 against a bar of 0.70; but version 2 scores 0.80 on the third set, so the pass is mostly the set, not the code. Precision 0.95 to 1.00, one causal question called non-causal in all, no wrong method given a form. Version 3 fails the threshold bar (3 false positives for 2). So it rarely overclaims and often abstains. The labels are from one rater who wrote the analyser, so these are provisional until a second rater checks them [state the kappa if one exists].
 **Intuition.** I report the failure because the bar was set before the run.
 **Example.** A title gave a design clue in only 5 of 72 cases, so the form does most of the work.
 **Follow-up.** *Why not tune until it passes?* The set would stop measuring generalisation. Any new version needs a new set.
