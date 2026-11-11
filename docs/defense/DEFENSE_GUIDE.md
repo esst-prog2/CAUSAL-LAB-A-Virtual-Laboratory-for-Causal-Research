@@ -137,7 +137,7 @@ Two mismatches to state yourself:
 ### causal_engine/question_reading.py and question_analysis.py
 
 - **Purpose.** Read what a research question asks, before any method.
-- **Why it exists.** It is the project's stated contribution. A form alone led to answers that ignored the question: on 2026-11-01 a question about a scholarship cutoff got DiD.
+- **Why it exists.** It is an extension, not the claim (professor's decision, 2026-11-09): the front door that keeps the wrong method from being picked. A form alone led to answers that ignored the question: on 2026-11-01 a question about a scholarship cutoff got DiD. Always give both numbers: right 95% of the time when it reads a question as causal (18/19), but it catches 0.60 of causal questions (18/30) against a target of 0.70.
 - **Inputs.** The question text, and the form (`ResearchDesignInput`).
 - **Outputs.** `QuestionAnalysis`: the intent (causal, predictive, descriptive, ambiguous), eight elements each with a status (stated, inferred, to confirm, unknown), the implied form fields, follow-up questions and what blocks a ranking.
 - **Logic.** Deterministic regular expressions in reusable families (verbs with inflections, auxiliaries, connectors), in English and French. The words behind each conclusion are kept. Rules are tried in a fixed order: strong causal structures, then explicit prediction, association, verb clauses, explicit description, comparisons and statements. Anything else is ambiguous.
@@ -266,10 +266,10 @@ Two mismatches to state yourself:
 ## Part 3. Twenty hard questions
 
 **1. In one sentence, what is the contribution?**
-It reads the research question before any method, separates what the question states from what is inferred or unknown, and refuses to recommend until the essentials are answered. It is an aid to research design and does not establish identification.
+A simulation study of difference-in-differences, 1,000 worlds per level with a known true effect, judged by a rule fixed in advance (at most 10% bias, at least 90% coverage): with low diverging pre-trends DiD is already 47% biased, and the pre-trend test warns in only 14.2% of those worlds. If asked about the question screen: it is an extension, the front door that keeps students from picking the wrong method, right 95% of the time when it says "causal" but catching only 0.60 of causal questions against a target of 0.70. This order is the professor's, in writing, on 2026-11-09.
 
 **2. Issue #1 asked for one method. Why are there eight?**
-Be factual. The README records that you built beyond the brief on 2026-10-25, knowing it departed from that advice. DiD remains the only method under the full simulation study with the decision rule. Then state what your professor has confirmed in writing. Do not claim more than that.
+Be factual. The README records that you built beyond the brief on 2026-10-25, knowing it departed from that advice. DiD remains the only method under the full simulation study with the decision rule. Then state what your professor confirmed in writing on 2026-11-09: the DiD bias study is the main contribution, the question analysis an extension. The other methods are what the front door needs to say "not DiD here". Do not claim more than that.
 
 **3. How much bias is too much?**
 Give the rule, say that it is a judgement fixed for this design, and give the two weaknesses from Part 1: dependence on precision, and that it is only partly pre-specified.
