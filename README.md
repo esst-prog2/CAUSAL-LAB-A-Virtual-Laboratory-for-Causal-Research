@@ -259,23 +259,23 @@ What changed because of it:
 
 ### Evaluation of the question analyser
 
-Each version was evaluated once, on its own set of published articles whose title is a question, selected from OpenAlex by a fixed rule and frozen by hash before the run. Protocols and full reports, failures included: [first](docs/evaluation/REPORT.md), [second](docs/evaluation/v2/REPORT.md), [third](docs/evaluation/v3/REPORT.md). Criteria for review: [CRITERIA](docs/evaluation/CRITERIA.md).
+Each version was evaluated once, on its own set of published articles whose title is a question, selected from OpenAlex by a fixed rule and frozen by hash before the run. Protocols and full reports, failures included: [first](docs/evaluation/REPORT.md), [second](docs/evaluation/v2/REPORT.md), [third](docs/evaluation/v3/REPORT.md), [fourth](docs/evaluation/v4/REPORT.md). Criteria for review: [CRITERIA](docs/evaluation/CRITERIA.md).
 
-| Criterion | Bar | Version 1, 56 titles | Version 2, 58 titles | Version 3, 58 titles |
-|---|---|---|---|---|
-| Recall of causal questions | ≥ 0.70 | **0.64, fails** | **0.60, fails** | 0.83 (25/30) |
-| Precision of causal readings | ≥ 0.85 | 0.95 | 0.95 | 1.00 (25/25) |
-| Causal questions read as non-causal | ≤ 5% | 0 of 33 | 1 of 30 | 0 of 30 |
-| Abstention on ambiguous questions | ≥ 0.70 | 0.92 | 0.87 | 0.94 |
-| Recommendation from an untouched form | 0 | 0 | 0 | 0 |
-| Wrong method given the form | ≤ 5% | 0 of 40 | 0 of 32 | 0 of 32 |
-| Threshold false positives | ≤ 2 | 0 | 1 | **3, fails** |
+| Criterion | Bar | Version 1, 56 titles | Version 2, 58 titles | Version 3, 58 titles | Version 3.1, 58 titles |
+|---|---|---|---|---|---|
+| Recall of causal questions | ≥ 0.70 | **0.64, fails** | **0.60, fails** | 0.83 (25/30) | 0.86 (24/28) |
+| Precision of causal readings | ≥ 0.85 | 0.95 | 0.95 | 1.00 (25/25) | 0.96 (24/25) |
+| Causal questions read as non-causal | ≤ 5% | 0 of 33 | 1 of 30 | 0 of 30 | 1 of 28 |
+| Abstention on ambiguous questions | ≥ 0.70 | 0.92 | 0.87 | 0.94 | 0.91 |
+| Recommendation from an untouched form | 0 | 0 | 0 | 0 | 0 |
+| Wrong method given the form | ≤ 5% | 0 of 40 | 0 of 32 | 0 of 32 | 0 of 32 |
+| Threshold false positives | ≤ 2 | 0 | 1 | **3, fails** | 0 |
 
-**Read the last column with this:** the frozen version 2, run on the third set, reads 24 of its 30 causal titles (0.80). Version 3 adds one. So the rise from 0.60 to 0.83 is mostly the difference between two sets of 30 titles, not the code; version 3 does not fail the recall bar on new titles, but it is not shown to be better than version 2.
+**Read the last two columns with this:** the frozen version 2 reads 0.80 of the causal titles of the third set and 0.79 of the fourth. Versions 3 and 3.1 add one or two titles per set. So the rise from 0.60 is mostly the difference between sets of 30 titles, not the code: the current version passes every bar on new titles, but it is not shown to be better than version 2. On the fourth set the unchanged version 3 also has no threshold false positive: that set held no title of the kind that failed, so it does not test the 3.1 correction.
 
 - **It is cautious, and it does not understand.** Its errors are mostly abstentions. Version 3 opened the verb class in English (a question with a subject, a verb and an object is read as causal, with roles to confirm, unless the verb only describes), which removes the limit named in the second report; the third set barely tested that rule (one title).
-- **The form does the work.** A title gave a design clue in 5 of 72 cases. The "no wrong method" line shows that wording does not disturb a correct form; it cannot show that the app finds a design.
-- **The code is version 3.1, which has not been evaluated.** On the third set the threshold reader made 3 false positives; two were bugs ("at" found inside "What", which also caused version 2's only one, and the noun "triggering"), corrected in 3.1 with a list-comma fix for outcomes. That set cannot measure the correction, so the table keeps version 3's numbers ([addendum](docs/evaluation/v3/REPORT.md)).
+- **The form does the work.** A title gave a design clue in 12 of 136 cases. The "no wrong method" line shows that wording does not disturb a correct form; it cannot show that the app finds a design.
+- **The code is version 3.1, evaluated on the fourth set.** On the third set the threshold reader made 3 false positives; two were bugs ("at" found inside "What", which also caused version 2's only one, and the noun "triggering"), corrected in 3.1 ([addendum](docs/evaluation/v3/REPORT.md)) and covered by tests on invented examples.
 - **Limits.** Labels by a single rater who also wrote the analyser; **no second rating yet, so no kappa**. Bars proposed by the agent, not yet reviewed by the author. English titles of highly cited papers only: **French is not evaluated**. No implicit threshold in any set: **that behaviour is covered by development tests only**. No question written by a student yet.
 
 ## 5. What could stop this

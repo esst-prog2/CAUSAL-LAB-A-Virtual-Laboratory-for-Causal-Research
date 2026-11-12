@@ -141,3 +141,5 @@ The run also showed T02's outcome cut at the first comma of a list. Version 3.1 
 | D081 (development), outcome | "Poverty" | "Poverty, Health, and Education" |
 
 Rescored on this set, 3.1 would have 1 threshold false positive (T10), but that is a corrected run on the set that showed the errors, not an evaluation. Whether 3.1 passes the threshold bar needs a fourth set.
+
+**Later:** the fourth set (`../v4/REPORT.md`) was run on 2026-11-12: version 3.1 passes every bar there, but version 3 would too, since no title of that set has the wordings that failed here.
