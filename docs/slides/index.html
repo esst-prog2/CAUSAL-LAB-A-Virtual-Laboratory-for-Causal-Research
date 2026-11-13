@@ -35,7 +35,7 @@ html, body { background: var(--board); }
 .small { font-size: 0.6em; color: var(--ink-soft); }
 .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2em; align-items: start; }
 .shot { margin: 0; border: 3px solid var(--ink); }
-.shot img { display: block; width: 100%; height: auto; margin: 0; }
+.shot img { display: block; width: auto; max-width: 100%; height: 400px; margin: 0 auto; object-fit: contain; }
 .shot figcaption { font-size: 0.5em; color: var(--ink-soft); padding: 0.35em 0.5em; border-top: 2px solid var(--ink); }
 
 /* slide 1 */
@@ -107,15 +107,15 @@ html, body { background: var(--board); }
       <div>
         <p class="lab">In: “Is smoking associated with lung cancer?”</p>
         <figure class="shot">
-          <img src="../img/beat1-question.png" width="980" height="671" alt="Research Question screen: unclear, smoking and lung cancer to confirm, no method.">
-          <figcaption>Real run, 13 Nov 2026. Out: unclear, both terms “to confirm”, no method.</figcaption>
+          <img src="../img/beat1-question.png" width="601" height="700" alt="Research Question screen: unclear, smoking and lung cancer to confirm, no method.">
+          <figcaption>The live app, 13 Nov 2026. Out: unclear, both terms “to confirm”, no method.</figcaption>
         </figure>
       </div>
       <div>
         <p class="lab">In: the effect of a scholarship near its eligibility cutoff, form confirmed</p>
         <figure class="shot">
-          <img src="../img/beat2-method.png" width="660" height="236" alt="Method Recommendation screen: Regression Discontinuity, local average treatment effect at the cutoff.">
-          <figcaption>Real run, 13 Nov 2026. Out: regression discontinuity; difference-in-differences would estimate the ATT, another quantity.</figcaption>
+          <img src="../img/beat2-method.png" width="620" height="645" alt="Method Recommendation screen: Regression Discontinuity, local average treatment effect at the cutoff.">
+          <figcaption>The live app, 13 Nov 2026. Out: regression discontinuity; difference-in-differences would estimate the ATT, another quantity.</figcaption>
         </figure>
       </div>
     </div>
