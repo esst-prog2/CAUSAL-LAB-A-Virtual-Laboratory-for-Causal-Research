@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <style>
+      @font-face { font-family: "Big Shoulders Display"; src: url("assets/big-shoulders-display-latin.woff2") format("woff2"); font-weight: 100 900; }
+      @font-face { font-family: "Source Sans 3"; src: url("assets/source-sans-3-latin.woff2") format("woff2"); font-weight: 200 900; }
+      :root {
+        --ground: #FFFFFF;
+        --ink: #1B2333;
+        --ink-soft: #3A4357;
+        --blue: #3451B2;
+        --gold: #F2B705;
+        --pink: #F6C8D2;
+        --crimson: #D7263D;
+        --green: #2E9E83;
+        --font-display: "Big Shoulders Display", sans-serif;
+        --font-body: "Source Sans 3", sans-serif;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { margin: 0; width: 1920px; height: 1080px; overflow: hidden; background: var(--ground); }
+      #root { width: 100%; height: 100%; position: relative; font-family: var(--font-body); color: var(--ink); }
+      .clip { position: absolute; inset: 0; }
+      .scene { padding: 110px 140px; }
+      .ink-scene { background: var(--ink); color: #FFFFFF; }
+
+      /* the one line of text, always in the same place */
+      .line {
+        font-family: var(--font-display); font-weight: 800; text-transform: uppercase;
+        font-size: 92px; line-height: 0.95; letter-spacing: 0.01em; max-width: 1640px;
+      }
+      .small { font-size: 30px; color: var(--ink-soft); font-family: var(--font-body); margin-top: 18px; }
+      .ink-scene .small { color: #D7DCE6; }
+
+      /* title */
+      #title .name { font-family: var(--font-display); font-weight: 800; font-size: 210px; line-height: 0.9; text-transform: uppercase; }
+      #title .rule { height: 6px; background: var(--ink); width: 1640px; margin: 40px 0 34px; transform-origin: left center; }
+
+      /* beat 1: the question as a portrait */
+      .portrait { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px 22px; margin-top: 70px;
+        font-family: var(--font-display); font-weight: 800; text-transform: uppercase; font-size: 120px; line-height: 0.95; }
+      .word { display: inline-flex; flex-direction: column; }
+      .word .w { position: relative; padding: 6px 16px 2px; z-index: 0; }
+      .word .bg { position: absolute; inset: 0; z-index: -1; transform-origin: left center; }
+      .f-pink .bg { background: var(--pink); }
+      .f-gold .bg { background: var(--gold); }
+      .word .tag { font-size: 30px; letter-spacing: 0.08em; border-top: 4px solid var(--ink); margin-top: 10px; padding-top: 10px; }
+      .verdict { margin-top: 60px; font-family: var(--font-display); font-weight: 800; text-transform: uppercase; font-size: 64px; }
+
+      /* screenshots */
+      .shot { position: absolute; border: 5px solid var(--ink); background: #FFFFFF; box-shadow: 0 24px 50px -24px rgba(27, 35, 51, 0.5); }
+      .shot img { display: block; width: 100%; height: auto; }
+      .shot .cap { font-size: 28px; color: var(--ink-soft); padding: 10px 14px; border-top: 3px solid var(--ink); background: #FFFFFF; }
+
+      /* beat 2: the route */
+      .route { margin-top: 64px; display: grid; gap: 18px; width: 900px; }
+      .bar { font-family: var(--font-display); font-weight: 800; text-transform: uppercase; font-size: 46px; color: #FFFFFF; padding: 16px 22px 12px; transform-origin: left center; }
+      .b1 { background: var(--blue); width: 55%; }
+      .b2 { background: #C2416B; width: 70%; }
+      .b3 { background: var(--blue); width: 85%; }
+      .b4 { background: var(--ink); width: 100%; }
+
+      /* beat 3: the result */
+      .rows { margin-top: 70px; display: grid; gap: 26px; width: 1640px; }
+      .row { display: grid; grid-template-columns: 430px 1fr; align-items: center; gap: 30px; }
+      .row .k { font-family: var(--font-display); font-weight: 800; text-transform: uppercase; font-size: 46px; line-height: 1; }
+      .track { height: 92px; position: relative; }
+      .fill { position: absolute; inset: 0 auto 0 0; display: flex; align-items: center; padding: 0 22px; font-family: var(--font-display); font-weight: 800; font-size: 54px; white-space: nowrap; transform-origin: left center; }
+      .truth { background: var(--green); color: var(--ink); width: 100%; }
+      .est { background: var(--crimson); color: #FFFFFF; width: 52.8%; }
+      .quiet { background: #FFFFFF; color: var(--ink); width: 85.8%; }
+      .split { display: flex; height: 92px; }
+      .split .fill { position: static; }
+      .cover { background: var(--green); color: var(--ink); width: 31.6%; }
+      .miss { background: var(--crimson); color: #FFFFFF; width: 68.4%; }
+
+      /* end */
+      #end .try { display: inline-block; margin-top: 70px; background: var(--blue); color: #FFFFFF; font-family: var(--font-display); font-weight: 800; text-transform: uppercase; font-size: 84px; padding: 22px 48px 16px; }
+      #end .url { margin-top: 44px; font-size: 40px; color: var(--ink); }
+      #end .url span { display: block; font-size: 30px; color: var(--ink-soft); margin-top: 10px; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="30" data-width="1920" data-height="1080">
+
+      <!-- 0-3.5 s: title -->
+      <section id="title" class="clip scene" data-start="0" data-duration="3.5" data-track-index="0">
+        <div style="padding-top: 210px">
+          <div class="name" id="t-name">Causal Lab</div>
+          <div class="rule" id="t-rule"></div>
+          <div class="line" id="t-line" style="font-size: 64px">A lab for choosing a causal method</div>
+        </div>
+      </section>
+
+      <!-- 3.5-11 s: beat 1 -->
+      <section id="beat1" class="clip scene" data-start="3.5" data-duration="7.5" data-track-index="0">
+        <div class="line" id="b1-line">It reads your question first.</div>
+        <div class="portrait">
+          <span class="word"><span class="w">Is</span></span>
+          <span class="word f-pink"><span class="w"><span class="bg" id="b1-bg1"></span>smoking</span><span class="tag" id="b1-t1">To confirm</span></span>
+          <span class="word f-gold"><span class="w"><span class="bg" id="b1-bg2"></span>associated with</span><span class="tag" id="b1-t2">Unclear</span></span>
+          <span class="word f-pink"><span class="w"><span class="bg" id="b1-bg3"></span>lung cancer?</span><span class="tag" id="b1-t3">To confirm</span></span>
+        </div>
+        <div class="verdict" id="b1-verdict">No method yet.</div>
+        <div class="shot" id="b1-shot" style="right: 90px; top: 470px; width: 720px;">
+          <img src="assets/beat1-question.png" alt="">
+          <div class="cap">Real run, 13 Nov 2026</div>
+        </div>
+      </section>
+
+      <!-- 11-18.5 s: beat 2 -->
+      <section id="beat2" class="clip scene" data-start="11" data-duration="7.5" data-track-index="0">
+        <div class="line" id="b2-line">It picks a method only once you confirm.</div>
+        <div class="route">
+          <div class="bar b1" id="b2-r1">A causal effect is asked</div>
+          <div class="bar b2" id="b2-r2">A cutoff decides who is treated</div>
+          <div class="bar b3" id="b2-r3">You confirm the form</div>
+          <div class="bar b4" id="b2-r4">Regression discontinuity</div>
+        </div>
+        <div class="shot" id="b2-shot" style="right: 90px; top: 330px; width: 760px;">
+          <img src="assets/beat2-method.png" alt="">
+          <div class="cap">Real run, 13 Nov 2026</div>
+        </div>
+      </section>
+
+      <!-- 18.5-26.5 s: beat 3 -->
+      <section id="beat3" class="clip scene ink-scene" data-start="18.5" data-duration="6" data-track-index="0">
+        <div class="line" id="b3-line">And shows you where your design breaks.</div>
+        <div class="rows">
+          <div class="row" id="b3-r1"><span class="k">True effect</span><div class="track"><span class="fill truth" id="b3-f1">−0.50</span></div></div>
+          <div class="row" id="b3-r2"><span class="k">Average estimate</span><div class="track"><span class="fill est" id="b3-f2">−0.264</span></div></div>
+          <div class="row" id="b3-r3"><span class="k">Test stays quiet</span><div class="track"><span class="fill quiet" id="b3-f3">858 of 1,000 worlds</span></div></div>
+          <div class="row" id="b3-r4"><span class="k">In the 858 quiet worlds</span><div class="split" id="b3-f4"><span class="fill cover">covers 31.6%</span><span class="fill miss">misses 68.4%</span></div></div>
+        </div>
+        <div class="small" id="b3-src">Source: docs/DEMO_DETAILS.md</div>
+      </section>
+
+      <!-- 26.5-30 s: end -->
+      <section id="end" class="clip scene" data-start="24.5" data-duration="5.5" data-track-index="0">
+        <div style="padding-top: 150px">
+          <div class="line" id="e-line">Try it.</div>
+          <div class="try" id="e-try">Causal Lab</div>
+          <div class="url" id="e-url">esst-prog2.github.io/CAUSAL-LAB-A-Virtual-Laboratory-for-Causal-Research<span>Thierry Z. Barhame · MSc Statistics and Data Analytics · ELTE</span></div>
+        </div>
+      </section>
+    </div>
+    <script>
+      const tl = gsap.timeline({ paused: true });
+      const E = "power3.out";
+      // title
+      
+      tl.fromTo("#t-rule", { scaleX: 0 }, { scaleX: 1, duration: 0.8, ease: E }, 0.5);
+      tl.fromTo("#t-line", { opacity: 0 }, { opacity: 1, duration: 0.5, ease: E }, 1.1);
+      // beat 1
+      tl.fromTo("#b1-line", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.5, ease: E }, 3.6);
+      tl.fromTo(["#b1-bg1", "#b1-bg2", "#b1-bg3"], { scaleX: 0 }, { scaleX: 1, duration: 0.7, ease: E, stagger: 0.35 }, 4.4);
+      tl.fromTo(["#b1-t1", "#b1-t2", "#b1-t3"], { opacity: 0, y: -12 }, { opacity: 1, y: 0, duration: 0.4, ease: E, stagger: 0.35 }, 4.8);
+      tl.fromTo("#b1-verdict", { opacity: 0 }, { opacity: 1, duration: 0.5, ease: E }, 6.3);
+      tl.fromTo("#b1-shot", { opacity: 0, y: 60 }, { opacity: 1, y: 0, duration: 0.7, ease: E }, 7.3);
+      // beat 2
+      tl.fromTo("#b2-line", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.5, ease: E }, 11.1);
+      tl.fromTo(["#b2-r1", "#b2-r2", "#b2-r3", "#b2-r4"], { scaleX: 0 }, { scaleX: 1, duration: 0.6, ease: E, stagger: 0.7 }, 12.0);
+      tl.fromTo("#b2-shot", { opacity: 0, y: 60 }, { opacity: 1, y: 0, duration: 0.7, ease: E }, 15.0);
+      // beat 3
+      tl.fromTo("#b3-line", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.5, ease: E }, 18.6);
+      tl.fromTo("#b3-f1", { scaleX: 0 }, { scaleX: 1, duration: 0.6, ease: E }, 19.3);
+      tl.fromTo("#b3-f2", { scaleX: 0 }, { scaleX: 1, duration: 0.6, ease: E }, 19.9);
+      tl.fromTo("#b3-f3", { scaleX: 0 }, { scaleX: 1, duration: 0.6, ease: E }, 20.8);
+      tl.fromTo("#b3-f4", { scaleX: 0, transformOrigin: "left center" }, { scaleX: 1, duration: 0.6, ease: E }, 21.6);
+      tl.fromTo("#b3-src", { opacity: 0 }, { opacity: 1, duration: 0.4, ease: E }, 22.2);
+      // end
+      tl.fromTo("#e-line", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.5, ease: E }, 24.6);
+      tl.fromTo("#e-try", { opacity: 0, scale: 0.92 }, { opacity: 1, scale: 1, duration: 0.6, ease: E }, 24.9);
+      tl.fromTo("#e-url", { opacity: 0 }, { opacity: 1, duration: 0.5, ease: E }, 25.2);
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>
