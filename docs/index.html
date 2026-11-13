@@ -51,17 +51,17 @@ img { display: block; max-width: 100%; height: auto; }
   padding: 1rem var(--gutter); border-bottom: var(--rule) solid var(--ink);
 }
 .topline .name { font-size: 1.6rem; margin: 0; }
+.topline .author { margin: 0 auto 0 0; color: var(--ink-soft); font-size: 1rem; }
 .topline nav { display: flex; gap: 1.25rem; font-weight: 600; }
 
 /* First viewport: the question as a data portrait */
 .portrait { padding: clamp(1.5rem, 4vh, 3rem) var(--gutter) clamp(2rem, 5vh, 3.5rem); }
-.promise { font-size: clamp(1.6rem, 2.9vw, 2.75rem); max-width: 34ch; margin: 0 0 clamp(1.5rem, 4vh, 2.75rem); }
-.stage { display: grid; grid-template-columns: minmax(0, 1fr); gap: clamp(1.5rem, 3vw, 3rem); align-items: end; }
-@media (min-width: 64rem) { .stage { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); } }
-.question { display: grid; gap: clamp(0.5rem, 1.4vh, 1rem); margin: 0; font-size: clamp(2.6rem, 6.4vw, 6rem); }
+.promise { font-size: clamp(1.6rem, 2.6vw, 2.6rem); max-width: 52ch; margin: 0 0 clamp(1.5rem, 4vh, 2.75rem); }
+.stage { display: grid; gap: clamp(1.25rem, 3vh, 2rem); }
+.question { display: grid; gap: clamp(0.5rem, 1.4vh, 1rem); margin: 0; font-size: clamp(2.4rem, 5.6vw, 6rem); }
 .question .line { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0.4rem clamp(0.5rem, 1.2vw, 1rem); }
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-.answer { padding-bottom: 0.4rem; }
+.answer { display: grid; gap: 1.1rem; }
 .word { display: inline-flex; flex-direction: column; align-items: flex-start; }
 .word .w { position: relative; padding: 0.06em 0.14em 0.02em; z-index: 0; }
 .word.field .w::before {
@@ -75,18 +75,17 @@ img { display: block; max-width: 100%; height: auto; }
 }
 .f-pink { --field: var(--pink); }
 .f-gold { --field: var(--gold); }
-.verdict { margin: 0; font-size: clamp(1.6rem, 2.8vw, 2.6rem); max-width: 20ch; }
+.verdict { margin: 0; font-size: clamp(1.6rem, 2.6vw, 2.5rem); }
 .verdict span { color: var(--blue); }
-.action { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 2rem; margin-top: clamp(1.5rem, 4vh, 2.5rem); }
+.action { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 2rem; }
 .try {
   display: inline-block; background: var(--blue); color: #FFFFFF; text-decoration: none;
   font-family: var(--display); font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em;
   font-size: 1.6rem; line-height: 1; padding: 0.85rem 1.6rem 0.75rem;
-  box-shadow: 0 6px 14px -6px rgba(27, 35, 51, 0.55);
-  transition: transform 160ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 160ms cubic-bezier(0.16, 1, 0.3, 1);
+  transition: background-color 160ms cubic-bezier(0.16, 1, 0.3, 1);
 }
-.try:hover { color: #FFFFFF; transform: translateY(-2px); box-shadow: 0 10px 20px -8px rgba(27, 35, 51, 0.6); }
-.try:active { transform: translateY(1px); box-shadow: 0 3px 8px -4px rgba(27, 35, 51, 0.6); }
+.try:hover { color: #FFFFFF; background: var(--ink); }
+.try:active { background: #0E131D; }
 .for-whom { margin: 0; max-width: 46ch; }
 .for-whom small { display: block; color: var(--ink-soft); font-size: 0.95rem; margin-top: 0.3rem; }
 
@@ -96,6 +95,11 @@ img { display: block; max-width: 100%; height: auto; }
   @keyframes lay { from { transform: scaleX(0); } to { transform: scaleX(1); } }
   @keyframes settle { from { transform: translateY(-0.4rem); opacity: 0.35; } to { transform: none; opacity: 1; } }
 }
+
+.key { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem 1.6rem; padding: 1rem var(--gutter); border-top: 2px solid var(--ink); border-bottom: 2px solid var(--ink); font-size: 0.98rem; }
+.key .lettered { font-size: 1.15rem; letter-spacing: 0.06em; }
+.key span { display: inline-flex; align-items: center; gap: 0.5rem; }
+.key i { display: inline-block; width: 1.6rem; height: 1rem; background: var(--c); }
 
 /* The one ruled line through the beats */
 .beats { position: relative; }
@@ -118,14 +122,15 @@ img { display: block; max-width: 100%; height: auto; }
 /* Beat 2: the route from the question to the method */
 .route { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.7rem; }
 .route li { display: grid; grid-template-columns: 1fr; }
+.route .bar { min-width: max-content; }
 .route .bar {
   font-family: var(--display); font-weight: 800; text-transform: uppercase; letter-spacing: 0.02em;
   font-size: clamp(1.15rem, 1.8vw, 1.55rem); line-height: 1.05; padding: 0.55rem 0.75rem 0.45rem;
 }
 .route .label { font-size: 0.95rem; color: var(--ink-soft); padding: 0.25rem 0.1rem 0; }
-.bar.causal { background: var(--blue); color: #FFFFFF; width: 92%; }
+.bar.causal { background: var(--blue); color: #FFFFFF; width: 55%; }
 .bar.cutoff { background: var(--magenta); color: #FFFFFF; width: 70%; }
-.bar.form { background: var(--blue); color: #FFFFFF; width: 82%; }
+.bar.form { background: var(--blue); color: #FFFFFF; width: 85%; }
 .bar.method { background: var(--ink); color: #FFFFFF; width: 100%; }
 
 /* Beat 3: the main result, on an ink field */
@@ -180,6 +185,7 @@ footer p { margin: 0; max-width: 70ch; }
 
 <header class="topline">
   <p class="name lettered">Causal Lab</p>
+  <p class="author">Thierry Z. Barhame · MSc project, ELTE</p>
   <nav aria-label="Project links">
     <a href="https://causal-lab-a-virtual-laboratory-for-causal-research-busavtyebb.streamlit.app">The app</a>
     <a href="https://github.com/esst-prog2/CAUSAL-LAB-A-Virtual-Laboratory-for-Causal-Research">Source code</a>
@@ -199,8 +205,6 @@ footer p { margin: 0; max-width: 70ch; }
         </span>
         <span class="line" aria-hidden="true">
           <span class="word field f-gold" style="--d: 180ms"><span class="w">associated with</span><span class="tag">Unclear</span></span>
-        </span>
-        <span class="line" aria-hidden="true">
           <span class="word field f-pink" style="--d: 360ms"><span class="w">lung cancer?</span><span class="tag">To confirm</span></span>
         </span>
       </p>
@@ -215,14 +219,24 @@ footer p { margin: 0; max-width: 70ch; }
     </div>
   </section>
 
+  <div class="key" role="note" aria-label="Colour key">
+    <span class="lettered">Key</span>
+    <span><i style="--c: var(--pink)"></i>To confirm</span>
+    <span><i style="--c: var(--gold)"></i>Unclear</span>
+    <span><i style="--c: var(--blue)"></i>Confirmed, and the action</span>
+    <span><i style="--c: var(--magenta)"></i>A cutoff</span>
+    <span><i style="--c: var(--green)"></i>The true effect</span>
+    <span><i style="--c: var(--crimson)"></i>What fails</span>
+  </div>
+
   <div class="beats">
     <section class="beat" aria-labelledby="b1">
       <h2 id="b1" class="lettered">It reads your question first.</h2>
       <div class="pair">
         <p class="lede">Type <em>Is smoking associated with lung cancer?</em> Causal Lab says the question is unclear, marks <em>smoking</em> and <em>lung cancer</em> “to confirm”, and asks whether you want a causal effect. It does not pick a method until it knows what you want to know.</p>
         <figure class="shot">
-          <img src="img/beat1-question.png" width="980" height="866" alt="The Research Question screen of Causal Lab: What the question asks: unclear, based on the words 'associated with'. Treatment smoking and outcome lung cancer are marked 'to confirm'; population, comparison, estimand, assignment and data are unknown. A note says a method cannot be chosen before it is settled whether a causal effect is asked for.">
-          <figcaption>Screenshot from a real run of Causal Lab, Research Question screen.</figcaption>
+          <a href="img/beat1-question.png"><img src="img/beat1-question.png" width="980" height="866" alt="The Research Question screen of Causal Lab: What the question asks: unclear, based on the words 'associated with'. Treatment smoking and outcome lung cancer are marked 'to confirm'; population, comparison, estimand, assignment and data are unknown. A note says a method cannot be chosen before it is settled whether a causal effect is asked for."></a>
+          <figcaption>Screenshot from a real run of Causal Lab, Research Question screen. <a href="img/beat1-question.png">Open full size</a>.</figcaption>
         </figure>
       </div>
     </section>
@@ -240,8 +254,8 @@ footer p { margin: 0; max-width: 70ch; }
           </ol>
         </div>
         <figure class="shot">
-          <img src="img/beat2-method.png" width="1010" height="560" alt="The Method Recommendation screen: Recommended method: Regression Discontinuity, for the effect of receiving a scholarship on university enrollment near the eligibility cutoff, with the causal estimand, why it fits, the identification strategy, key assumptions, and threats and diagnostics.">
-          <figcaption>Screenshot from a real run of Causal Lab, Method Recommendation screen.</figcaption>
+          <a href="img/beat2-method.png"><img src="img/beat2-method.png" width="1010" height="560" alt="The Method Recommendation screen: Recommended method: Regression Discontinuity, for the effect of receiving a scholarship on university enrollment near the eligibility cutoff, with the causal estimand, why it fits, the identification strategy, key assumptions, and threats and diagnostics."></a>
+          <figcaption>Screenshot from a real run of Causal Lab, Method Recommendation screen. <a href="img/beat2-method.png">Open full size</a>.</figcaption>
         </figure>
       </div>
     </section>
@@ -256,13 +270,13 @@ footer p { margin: 0; max-width: 70ch; }
           <div class="row"><span class="k">True effect</span><div class="track"><span class="fill truth">−0.50</span></div></div>
           <div class="row"><span class="k">Average estimate</span><div class="track"><span class="fill estimate">−0.264</span></div></div>
           <div class="row"><span class="k">Test stays quiet</span><div class="track"><span class="fill quiet">858 of 1,000 worlds</span></div></div>
-          <div class="row"><span class="k">Of those, the interval…</span><div class="split"><span class="fill cover">covers 31.6%</span><span class="fill miss">misses 68.4%</span></div></div>
+          <div class="row"><span class="k">When the test is quiet, the 95% interval</span><div class="split"><span class="fill cover">covers 31.6%</span><span class="fill miss">misses 68.4%</span></div></div>
           <p class="note">Bars drawn to scale: the estimate’s length is its size relative to the true effect. Source: the stored study, <a href="https://github.com/esst-prog2/CAUSAL-LAB-A-Virtual-Laboratory-for-Causal-Research/blob/main/docs/DEMO_DETAILS.md">DEMO_DETAILS.md</a> and <a href="https://github.com/esst-prog2/CAUSAL-LAB-A-Virtual-Laboratory-for-Causal-Research/blob/main/causal_lab/data/demo_study/results.json">results.json</a>.</p>
         </div>
 
         <figure class="shot">
-          <img src="img/beat3-study.png" width="1010" height="580" alt="The Guided Demo screen: table for diverging pre-trends by level. At low, bias +0.236, coverage 31.3%, the pre-trend test warns in 14.2% of worlds, and coverage when the test does not warn is 31.6% (n = 858). Below, a chart: coverage of the 95% interval falls from 94.9% to 0% as the violation grows, while the test's warning rate rises.">
-          <figcaption>Screenshot from a real run of Causal Lab, Guided Demo screen.</figcaption>
+          <a href="img/beat3-study.png"><img src="img/beat3-study.png" width="1070" height="580" alt="The Guided Demo screen: table for diverging pre-trends by level. At low, bias +0.236, coverage 31.3%, the pre-trend test warns in 14.2% of worlds, and coverage when the test does not warn is 31.6% (n = 858). Below, a chart: coverage of the 95% interval falls from 94.9% to 0% as the violation grows, while the test's warning rate rises."></a>
+          <figcaption>Screenshot from a real run of Causal Lab, Guided Demo screen. <a href="img/beat3-study.png">Open full size</a>.</figcaption>
         </figure>
       </div>
     </section>
