@@ -1,0 +1,1733 @@
+{
+ "description": "Development titles of version 3 (even ranks of the pool, PROTOCOL.md). Intent labelled from the title, blind to the analyser, by the agent that wrote it. Used to develop version 3: not an evaluation.",
+ "questions": [
+  {
+   "id": "D001",
+   "question": "Nothing to See Here? A Non‐Inferiority Approach to Parallel Trends",
+   "stratum": "did",
+   "intent": "ambiguous",
+   "openalex": "https://openalex.org/W2989928112",
+   "year": 2026
+  },
+  {
+   "id": "D002",
+   "question": "How Do On‐demand Ridesharing Services Affect Traffic Congestion? The Moderating Role of Urban Compactness",
+   "stratum": "did",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W2557047754",
+   "year": 2021
+  },
+  {
+   "id": "D003",
+   "question": "Is policy pilot a viable path to sustainable development? Attention allocation perspective",
+   "stratum": "did",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W4406202718",
+   "year": 2025
+  },
+  {
+   "id": "D004",
+   "question": "What Happens to Workers at Firms that Automate?",
+   "stratum": "did",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W4319339995",
+   "year": 2023
+  },
+  {
+   "id": "D005",
+   "question": "Have health trends worsened in Greece as a result of the financial crisis? A quasi-experimental approach",
+   "stratum": "did",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W2110349327",
+   "year": 2013
+  },
+  {
+   "id": "D006",
+   "question": "Did the S.A.R.S. epidemic weaken the integration of Asian stock markets? Evidence from smooth time-varying cointegration analysis",
+   "stratum": "did",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W2800450554",
+   "year": 2018
+  },
+  {
+   "id": "D007",
+   "question": "Did the Kyoto Protocol fail? An evaluation of the effect of the Kyoto Protocol on CO2emissions",
+   "stratum": "did",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W2171746750",
+   "year": 2015
+  },
+  {
+   "id": "D008",
+   "question": "DO HIGHER TOBACCO TAXES REDUCE ADULT SMOKING? NEW EVIDENCE OF THE EFFECT OF RECENT CIGARETTE TAX INCREASES ON ADULT SMOKING",
+   "stratum": "did",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W2165580071",
+   "year": 2013
+  },
+  {
+   "id": "D009",
+   "question": "Immigration and Ideas: What Did Russian Scientists “Bring” to the United States?",
+   "stratum": "did",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W2100789554",
+   "year": 2015
+  },
+  {
+   "id": "D010",
+   "question": "Relaxing rural constraints: a 'win-win' policy for poverty and environment in China?",
+   "stratum": "did",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W2104663758",
+   "year": 2009
+  },
+  {
+   "id": "D011",
+   "question": "Does Reform Prevent Rebellion? Evidence From Russia’s Emancipation of the Serfs",
+   "stratum": "did",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W3123224218",
+   "year": 2015
+  },
+  {
+   "id": "D012",
+   "question": "Does Compliance Pay? Social Standards and Firm‐Level Trade",
+   "stratum": "did",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W2807958537",
+   "year": 2018
+  },
+  {
+   "id": "D013",
+   "question": "Does Smart City Construction Improve the Green Utilization Efficiency of Urban Land?",
+   "stratum": "did",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W3177409978",
+   "year": 2021
+  },
+  {
+   "id": "D014",
+   "question": "Texting Bans and Fatal Accidents on Roadways: Do They Work? Or Do Drivers Just React to Announcements of Bans?",
+   "stratum": "did",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W2096845275",
+   "year": 2013
+  },
+  {
+   "id": "D015",
+   "question": "No Country for Asylum Seekers? How Short-Term Exposure to Refugees Influences Attitudes and Voting Behavior in Hungary",
+   "stratum": "did",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W3127068043",
+   "year": 2021
+  },
+  {
+   "id": "D016",
+   "question": "How Would the Mandatory Adoption of IFRS Affect the Earnings Quality of U.S. Firms? Evidence from Cross-Listed Firms in the U.S.",
+   "stratum": "did",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W2172198459",
+   "year": 2011
+  },
+  {
+   "id": "D017",
+   "question": "Did the Roll-Out of Community Notes Reduce Engagement With Misinformation on X/Twitter?",
+   "stratum": "did",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W4404171602",
+   "year": 2024
+  },
+  {
+   "id": "D018",
+   "question": "How does green finance promote renewable energy technology innovation? A quasi-natural experiment perspective",
+   "stratum": "did",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W4395078074",
+   "year": 2024
+  },
+  {
+   "id": "D019",
+   "question": "Does Participatory Budgeting Change the Share of Public Funding to Low Income Neighborhoods?",
+   "stratum": "did",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W2901997799",
+   "year": 2018
+  },
+  {
+   "id": "D020",
+   "question": "Do the characteristics of new green space contribute to gentrification?",
+   "stratum": "did",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W3131552424",
+   "year": 2021
+  },
+  {
+   "id": "D021",
+   "question": "Do children spend too much time in schools? Evidence from a longer school year in Indonesia",
+   "stratum": "rdd",
+   "intent": "ambiguous",
+   "openalex": "https://openalex.org/W1977556443",
+   "year": 2014
+  },
+  {
+   "id": "D022",
+   "question": "How Do Payday Loans Affect Borrowers? Evidence from the U.K. Market",
+   "stratum": "rdd",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W2884963596",
+   "year": 2018
+  },
+  {
+   "id": "D023",
+   "question": "Modern Family? Paternity Leave and Marital Stability",
+   "stratum": "rdd",
+   "intent": "ambiguous",
+   "openalex": "https://openalex.org/W2592685220",
+   "year": 2018
+  },
+  {
+   "id": "D024",
+   "question": "Does Electoral Competition Curb Party Favoritism?",
+   "stratum": "rdd",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W3121240371",
+   "year": 2017
+  },
+  {
+   "id": "D025",
+   "question": "Do bonuses affect teacher staffing and student achievement in high poverty schools? Evidence from an incentive for national board certified teachers in Washington State",
+   "stratum": "rdd",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W1887475482",
+   "year": 2018
+  },
+  {
+   "id": "D026",
+   "question": "Does Welfare Prevent Crime? the Criminal Justice Outcomes of Youth Removed from Ssi",
+   "stratum": "rdd",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W4225713920",
+   "year": 2022
+  },
+  {
+   "id": "D027",
+   "question": "How Does Incarceration Affect Reoffending? Estimating the Dose-Response Function",
+   "stratum": "rdd",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W3184421526",
+   "year": 2021
+  },
+  {
+   "id": "D028",
+   "question": "Do Police Brutality Stories Reduce 911 Calls? Reassessing an Important Criminological Finding",
+   "stratum": "rdd",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W3003804123",
+   "year": 2020
+  },
+  {
+   "id": "D029",
+   "question": "Borrowing Trouble? Human Capital Investment with Opt-In Costs and Implications for the Effectiveness of Grant Aid",
+   "stratum": "rdd",
+   "intent": "ambiguous",
+   "openalex": "https://openalex.org/W2793258051",
+   "year": 2018
+  },
+  {
+   "id": "D030",
+   "question": "Do Congressional Candidates Have Reverse Coattails? Evidence from a Regression Discontinuity Design",
+   "stratum": "rdd",
+   "intent": "ambiguous",
+   "openalex": "https://openalex.org/W2147999137",
+   "year": 2009
+  },
+  {
+   "id": "D031",
+   "question": "Do Parties Matter for Ethnic Violence? Evidence From India",
+   "stratum": "rdd",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W2541276153",
+   "year": 2016
+  },
+  {
+   "id": "D032",
+   "question": "Stronger together? Assessing the causal effect of inter‐municipal cooperation on the efficiency of small Italian municipalities",
+   "stratum": "rdd",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W3098990857",
+   "year": 2020
+  },
+  {
+   "id": "D033",
+   "question": "Does Aid Reduce Anti-refugee Violence? Evidence from Syrian Refugees in Lebanon",
+   "stratum": "rdd",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W3040537839",
+   "year": 2020
+  },
+  {
+   "id": "D034",
+   "question": "Is Developmental Education Helping Community College Students Persist? A Critical Review of the Literature",
+   "stratum": "rdd",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W1997128196",
+   "year": 2011
+  },
+  {
+   "id": "D035",
+   "question": "Regaining Control? The Political Impact of Policy Responses to Refugee Crises",
+   "stratum": "rdd",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W3138934618",
+   "year": 2019
+  },
+  {
+   "id": "D036",
+   "question": "How Does Daddy at Home Affect Marital Stability?",
+   "stratum": "rdd",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W3003996065",
+   "year": 2020
+  },
+  {
+   "id": "D037",
+   "question": "Complements or Substitutes? How Institutional Arrangements Bind Traditional Authorities and the State in Africa",
+   "stratum": "rdd",
+   "intent": "ambiguous",
+   "openalex": "https://openalex.org/W4308587111",
+   "year": 2022
+  },
+  {
+   "id": "D038",
+   "question": "How Effective Are Community College Remedial Math Courses for Students With the Lowest Math Skills?",
+   "stratum": "rdd",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W2773462609",
+   "year": 2017
+  },
+  {
+   "id": "D039",
+   "question": "Do subsidized new firms survive longer? Evidence from a counterfactual approach",
+   "stratum": "rdd",
+   "intent": "ambiguous",
+   "openalex": "https://openalex.org/W2467167335",
+   "year": 2016
+  },
+  {
+   "id": "D040",
+   "question": "How Much of the Incumbency Advantage is Due to Scare-Off?",
+   "stratum": "rdd",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W1993794196",
+   "year": 2015
+  },
+  {
+   "id": "D041",
+   "question": "The VIF Score. What is it Good For? Absolutely Nothing",
+   "stratum": "iv",
+   "intent": "ambiguous",
+   "openalex": "https://openalex.org/W4389740580",
+   "year": 2023
+  },
+  {
+   "id": "D042",
+   "question": "Is off‐farm income reforming the farm? Evidence from Mexico",
+   "stratum": "iv",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W1971645049",
+   "year": 2009
+  },
+  {
+   "id": "D043",
+   "question": "Does institutional quality impact innovation? Evidence from cross-country patent grant data",
+   "stratum": "iv",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W2053071554",
+   "year": 2011
+  },
+  {
+   "id": "D044",
+   "question": "School-based mindfulness training in early adolescence: what works, for whom and how in the MYRIAD trial?",
+   "stratum": "iv",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W4285089456",
+   "year": 2022
+  },
+  {
+   "id": "D045",
+   "question": "Why Do Most Italian Youths Live with Their Parents? Intergenerational Transfers and Household Structure",
+   "stratum": "iv",
+   "intent": "ambiguous",
+   "openalex": "https://openalex.org/W3124918983",
+   "year": 2006
+  },
+  {
+   "id": "D046",
+   "question": "Does Cheaper Mean Better? The Impact of Using Adjunct Instructors on Student Outcomes",
+   "stratum": "iv",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W2123552939",
+   "year": 2010
+  },
+  {
+   "id": "D047",
+   "question": "Does social capital determine health? Evidence from eight transition countries",
+   "stratum": "iv",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W2149307679",
+   "year": 2009
+  },
+  {
+   "id": "D048",
+   "question": "Can Green Innovation Affect ESG Ratings and Financial Performance? Evidence from Chinese GEM Listed Companies",
+   "stratum": "iv",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W4285804244",
+   "year": 2022
+  },
+  {
+   "id": "D049",
+   "question": "Do Migrants Improve Governance at Home? Evidence from a Voting Experiment",
+   "stratum": "iv",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W2079820094",
+   "year": 2011
+  },
+  {
+   "id": "D050",
+   "question": "The Fall in Men's Return to Marriage: Declining Productivity Effects or Changing Selection?",
+   "stratum": "iv",
+   "intent": "ambiguous",
+   "openalex": "https://openalex.org/W2095872326",
+   "year": 1997
+  },
+  {
+   "id": "D051",
+   "question": "DOES UNDOCUMENTED IMMIGRATION INCREASE VIOLENT CRIME?*",
+   "stratum": "iv",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W2807065606",
+   "year": 2018
+  },
+  {
+   "id": "D052",
+   "question": "Forced to be Rich? Returns to Compulsory Schooling in Britain",
+   "stratum": "iv",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W1913969375",
+   "year": 2010
+  },
+  {
+   "id": "D053",
+   "question": "How does artificial intelligence promote renewable energy development? The role of climate finance",
+   "stratum": "iv",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W4393098566",
+   "year": 2024
+  },
+  {
+   "id": "D054",
+   "question": "Do Students Benefit from Attending Better Schools? Evidence from Rule‐based Student Assignments in Trinidad and Tobago",
+   "stratum": "iv",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W2138099610",
+   "year": 2010
+  },
+  {
+   "id": "D055",
+   "question": "Can health insurance protect against out-of-pocket and catastrophic expenditures and also support poverty reduction? Evidence from Ghana’s National Health Insurance Scheme",
+   "stratum": "iv",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W2499780129",
+   "year": 2016
+  },
+  {
+   "id": "D056",
+   "question": "Does contract farming improve smallholder income? The case of avocado farmers in Kenya",
+   "stratum": "iv",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W2398177152",
+   "year": 2016
+  },
+  {
+   "id": "D057",
+   "question": "Does Economic Freedom Foster Tolerance?",
+   "stratum": "iv",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W3122672653",
+   "year": 2013
+  },
+  {
+   "id": "D058",
+   "question": "What Holds Back the Second Generation?",
+   "stratum": "iv",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W4233657926",
+   "year": 2008
+  },
+  {
+   "id": "D059",
+   "question": "Health and labour force participation of older people in Europe: What do objective health indicators add to the analysis?",
+   "stratum": "iv",
+   "intent": "ambiguous",
+   "openalex": "https://openalex.org/W2003173337",
+   "year": 2007
+  },
+  {
+   "id": "D060",
+   "question": "Does Financial Development Cause Economic Growth? A Panel Data Dynamic Analysis for the Asian Developing Countries",
+   "stratum": "iv",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W2162332441",
+   "year": 2006
+  },
+  {
+   "id": "D061",
+   "question": "Does Training on Self-Regulated Learning Facilitate Students' Learning With Hypermedia?",
+   "stratum": "rct",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W1996643300",
+   "year": 2004
+  },
+  {
+   "id": "D062",
+   "question": "Dogma Disputed: Can Aggressively Lowering Blood Pressure in Hypertensive Patients with Coronary Artery Disease Be Dangerous?",
+   "stratum": "rct",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W2079663279",
+   "year": 2006
+  },
+  {
+   "id": "D063",
+   "question": "Seeing Eye to Eye: Can Leadership Training Align Perceptions of Leadership?",
+   "stratum": "rct",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W3038953346",
+   "year": 2020
+  },
+  {
+   "id": "D064",
+   "question": "What works for water conservation? Evidence from a field experiment in India",
+   "stratum": "rct",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W4324138101",
+   "year": 2023
+  },
+  {
+   "id": "D065",
+   "question": "Do Handwritten Notes Benefit Online Retailers? A Field Experiment",
+   "stratum": "rct",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W4286213287",
+   "year": 2022
+  },
+  {
+   "id": "D066",
+   "question": "How to Improve the Performance of Email Marketing Campaigns? A Field Experiment Using the Authority Principle to Improve Email Performance",
+   "stratum": "rct",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W4362588633",
+   "year": 2023
+  },
+  {
+   "id": "D067",
+   "question": "Do Technology-Based Sales Support Materials Make a Difference in Personal Selling? The Impact of Technology Usage by Gender in the Personal Selling Process",
+   "stratum": "rct",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W3031974805",
+   "year": 2020
+  },
+  {
+   "id": "D068",
+   "question": "How Does Prepopulating Search Bars with Keywords Affect Online Consumer Behavior? A Field Experiment",
+   "stratum": "rct",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W4414058664",
+   "year": 2025
+  },
+  {
+   "id": "D069",
+   "question": "Intersecting Biases: Does Veteran Status Overcome Disability and Gender Disadvantages in the Employment Landscape?",
+   "stratum": "rct",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W4407750307",
+   "year": 2025
+  },
+  {
+   "id": "D070",
+   "question": "Can Facebook Ads and Email Messages Increase Fiscal Capacity? Experimental Evidence from Venezuela",
+   "stratum": "rct",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W2907960498",
+   "year": 2021
+  },
+  {
+   "id": "D071",
+   "question": "Money Well Spent? The Cost-Effectiveness of a Texting Intervention Targeting College Persistence",
+   "stratum": "rct",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W4210349039",
+   "year": 2022
+  },
+  {
+   "id": "D072",
+   "question": "Can mass media campaigns increase demand for renewable energy? Experimental evidence from Senegal",
+   "stratum": "rct",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W4402135007",
+   "year": 2024
+  },
+  {
+   "id": "D073",
+   "question": "Walk for Whom? The Effectiveness of Egoistic and Philanthropic Incentive Designs for Mobile Health Interventions",
+   "stratum": "rct",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W3118890493",
+   "year": 2020
+  },
+  {
+   "id": "D074",
+   "question": "What drives overhead aversion in charity? Evidence from field-experimental variation in fundraising costs",
+   "stratum": "rct",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W4383497506",
+   "year": 2023
+  },
+  {
+   "id": "D075",
+   "question": "Too old to find employment? A novel approach to leverage the power of digital peer groups for older unemployed",
+   "stratum": "rct",
+   "intent": "ambiguous",
+   "openalex": "https://openalex.org/W4410496238",
+   "year": 2025
+  },
+  {
+   "id": "D076",
+   "question": "Can health information promote active transport?",
+   "stratum": "rct",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W7127325285",
+   "year": 2026
+  },
+  {
+   "id": "D077",
+   "question": "Pragmatic Men, Romantic Women? Performance Feedback Design on Two-sided Matching Platforms.",
+   "stratum": "rct",
+   "intent": "ambiguous",
+   "openalex": "https://openalex.org/W2991302141",
+   "year": 2019
+  },
+  {
+   "id": "D078",
+   "question": "How Do Recommender Systems Benefit Online Retailers in the Long Run? Evidence from a Field Experiment1",
+   "stratum": "rct",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W7166846367",
+   "year": 2026
+  },
+  {
+   "id": "D079",
+   "question": "How Am I Doing? The Impact of Localized Leaderboards in Digital Platforms",
+   "stratum": "rct",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W3209025136",
+   "year": 2021
+  },
+  {
+   "id": "D080",
+   "question": "Does a greater presence of school nurses improve the learning environment for students?",
+   "stratum": "rct",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W4415497497",
+   "year": 2025
+  },
+  {
+   "id": "D081",
+   "question": "Does Government Expenditure Affect Poverty, Health, and Education? Evidence from Aceh, Indonesia",
+   "stratum": "synthetic_control",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W4280646419",
+   "year": 2022
+  },
+  {
+   "id": "D082",
+   "question": "Does city lockdown prevent the spread of COVID-19? New evidence from the synthetic control method",
+   "stratum": "synthetic_control",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W3175914871",
+   "year": 2021
+  },
+  {
+   "id": "D083",
+   "question": "Does the Kyoto Protocol as an International Environmental Policy Promote Forest Carbon Sinks?",
+   "stratum": "synthetic_control",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W4200586799",
+   "year": 2021
+  },
+  {
+   "id": "D084",
+   "question": "Does carbon trading mechanism improve the efficiency of green innovation? Evidence from China",
+   "stratum": "synthetic_control",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W4386112130",
+   "year": 2023
+  },
+  {
+   "id": "D085",
+   "question": "Sanctuary Status and Crime in California: What’s the Connection?",
+   "stratum": "synthetic_control",
+   "intent": "ambiguous",
+   "openalex": "https://openalex.org/W3014309715",
+   "year": 2020
+  },
+  {
+   "id": "D086",
+   "question": "Do Regularization Programs for Illegal Immigrants Have a Magnet Effect? Evidence from Spain",
+   "stratum": "synthetic_control",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W1494462986",
+   "year": 2015
+  },
+  {
+   "id": "D087",
+   "question": "Did adolescents in Norway respond to the elimination of copayments for general practitioner services?",
+   "stratum": "synthetic_control",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W2800153777",
+   "year": 2018
+  },
+  {
+   "id": "D088",
+   "question": "Can China’s Policy of Carbon Emissions Trading Optimize Manufacturing Structure? Evidence from Guangdong Based on a Synthetic Control Approach",
+   "stratum": "synthetic_control",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W4220957722",
+   "year": 2022
+  },
+  {
+   "id": "D089",
+   "question": "Do Catch Shares Increase Prices? Evidence from US Fisheries",
+   "stratum": "synthetic_control",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W4377029676",
+   "year": 2023
+  },
+  {
+   "id": "D090",
+   "question": "THE POT RUSH: IS LEGALIZED MARIJUANA A POSITIVE LOCAL AMENITY?",
+   "stratum": "synthetic_control",
+   "intent": "ambiguous",
+   "openalex": "https://openalex.org/W2901719760",
+   "year": 2019
+  },
+  {
+   "id": "D091",
+   "question": "Will China’s low-carbon policy balance emission reduction and economic development? Evidence from two provinces",
+   "stratum": "synthetic_control",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W3131212131",
+   "year": 2021
+  },
+  {
+   "id": "D092",
+   "question": "Have Paved Trails and Protected Bike Lanes Led to More Bicycling in Atlanta?: A Generalized Synthetic-Control Analysis",
+   "stratum": "synthetic_control",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W4224255531",
+   "year": 2022
+  },
+  {
+   "id": "D093",
+   "question": "From Rents to Welfare: Why Are Some Oil-Rich States Generous to Their People?",
+   "stratum": "synthetic_control",
+   "intent": "ambiguous",
+   "openalex": "https://openalex.org/W4387171718",
+   "year": 2023
+  },
+  {
+   "id": "D094",
+   "question": "Does the Swiss Debt Brake Induce Sound Federal Finances? A Synthetic Control Analysis",
+   "stratum": "synthetic_control",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W2523583391",
+   "year": 2023
+  },
+  {
+   "id": "D095",
+   "question": "Helping or Hurting? The Efficacy of Municipal Bankruptcy",
+   "stratum": "synthetic_control",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W3122750596",
+   "year": 2021
+  },
+  {
+   "id": "D096",
+   "question": "Mass Trapping Drosophila suzukii, What Would It Take? A Two-Year Field Study on Trap Interference",
+   "stratum": "synthetic_control",
+   "intent": "ambiguous",
+   "openalex": "https://openalex.org/W4214600428",
+   "year": 2022
+  },
+  {
+   "id": "D097",
+   "question": "Does wearing clothing made of a synthetic “cooling” fabric improve indoor cycle exercise endurance in trained athletes?",
+   "stratum": "synthetic_control",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W2155185077",
+   "year": 2015
+  },
+  {
+   "id": "D098",
+   "question": "Can Reform Waves Turn the Tide? Some Case Studies Using the Synthetic Control Method",
+   "stratum": "synthetic_control",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W2953572811",
+   "year": 2016
+  },
+  {
+   "id": "D099",
+   "question": "Is public agency relocation effective to achieve decentralization? Evaluating its effects on regional employment",
+   "stratum": "synthetic_control",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W3204303481",
+   "year": 2021
+  },
+  {
+   "id": "D100",
+   "question": "Fading Colours? A Synthetic Comparative Case Study of the Impact of “Colour Revolutions”",
+   "stratum": "synthetic_control",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W2325770745",
+   "year": 2014
+  },
+  {
+   "id": "D101",
+   "question": "Is “Whole Child” Education Obsolete? Public School Principals’ Educational Goal Priorities in the Era of Accountability",
+   "stratum": "its",
+   "intent": "ambiguous",
+   "openalex": "https://openalex.org/W3012253044",
+   "year": 2020
+  },
+  {
+   "id": "D102",
+   "question": "Why did some practices not implement new antibiotic prescribing guidelines on urinary tract infection? A cohort study and survey in NHS England primary care",
+   "stratum": "its",
+   "intent": "ambiguous",
+   "openalex": "https://openalex.org/W2810999566",
+   "year": 2018
+  },
+  {
+   "id": "D103",
+   "question": "A New Wave of Mass Shootings? Exploring the Potential Impact of COVID-19",
+   "stratum": "its",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W4282921883",
+   "year": 2022
+  },
+  {
+   "id": "D104",
+   "question": "Assessing the impact of natural policy experiments on socioeconomic inequalities in health: how to apply commonly used quantitative analytical methods?",
+   "stratum": "its",
+   "intent": "ambiguous",
+   "openalex": "https://openalex.org/W2607058967",
+   "year": 2017
+  },
+  {
+   "id": "D105",
+   "question": "Do juvenile curfew laws work? A time-series analysis of the New Orleans law",
+   "stratum": "its",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W2058612145",
+   "year": 2000
+  },
+  {
+   "id": "D106",
+   "question": "Has the incidence of total joint arthroplasty in rheumatoid arthritis decreased in the era of biologics use? A population-based cohort study",
+   "stratum": "its",
+   "intent": "ambiguous",
+   "openalex": "https://openalex.org/W3190423118",
+   "year": 2021
+  },
+  {
+   "id": "D107",
+   "question": "A behavioural approach to specifying interventions: what insights can be gained for the reporting and implementation of interventions to reduce antibiotic use in hospitals?",
+   "stratum": "its",
+   "intent": "ambiguous",
+   "openalex": "https://openalex.org/W3006612895",
+   "year": 2020
+  },
+  {
+   "id": "D108",
+   "question": "Protecting the poor? Impact of the national health equity fund on utilization of government health services in Cambodia, 2006-2013",
+   "stratum": "its",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W2983829119",
+   "year": 2019
+  },
+  {
+   "id": "D109",
+   "question": "Promoting Stair Climbing in a Worksite and Public Setting: Are Footprints Enough?",
+   "stratum": "its",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W2523458098",
+   "year": 2017
+  },
+  {
+   "id": "D110",
+   "question": "Did Pre-Affordable Care Act Medicaid Expansion Increase Access to Surgical Cancer Care?",
+   "stratum": "its",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W2581619679",
+   "year": 2017
+  },
+  {
+   "id": "D111",
+   "question": "Has the Emergence of Community-Associated Methicillin-Resistant Staphylococcus aureus Increased Trimethoprim-Sulfamethoxazole Use and Resistance?: a 10-Year Time Series Analysis",
+   "stratum": "its",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W1975122042",
+   "year": 2012
+  },
+  {
+   "id": "D112",
+   "question": "Does Political Incorporation Matter?",
+   "stratum": "its",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W2080614230",
+   "year": 2000
+  },
+  {
+   "id": "D113",
+   "question": "Can volunteer community health workers manage multiple roles? An interrupted time-series analysis of combined HIV and maternal and child health promotion in Iringa, Tanzania",
+   "stratum": "its",
+   "intent": "ambiguous",
+   "openalex": "https://openalex.org/W2906924731",
+   "year": 2018
+  },
+  {
+   "id": "D114",
+   "question": "What happens when performance-based financing meets free healthcare? Evidence from an interrupted time-series analysis",
+   "stratum": "its",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W3040255266",
+   "year": 2020
+  },
+  {
+   "id": "D115",
+   "question": "Does the disbursement of income increase psychiatric emergencies involving drugs and alcohol?",
+   "stratum": "its",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W1606339557",
+   "year": 2000
+  },
+  {
+   "id": "D116",
+   "question": "Does a new case-based payment system promote the construction of the ordered health delivery system? Evidence from a pilot city in China",
+   "stratum": "its",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W4392808759",
+   "year": 2024
+  },
+  {
+   "id": "D117",
+   "question": "Tourism in marine protected areas: Can it be considered as an alternative livelihood for local communities?",
+   "stratum": "matching",
+   "intent": "ambiguous",
+   "openalex": "https://openalex.org/W3010302990",
+   "year": 2020
+  },
+  {
+   "id": "D118",
+   "question": "Aspirin: An Alternative for Pulmonary Embolism Prophylaxis After Arthroplasty?",
+   "stratum": "matching",
+   "intent": "ambiguous",
+   "openalex": "https://openalex.org/W2075215741",
+   "year": 2013
+  },
+  {
+   "id": "D119",
+   "question": "From Colors and Guns to Caps and Gowns? The Effects of Gang Membership on Educational Attainment",
+   "stratum": "matching",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W2171366744",
+   "year": 2013
+  },
+  {
+   "id": "D120",
+   "question": "Is Functional Outcome Different in Posterior and Anterior Circulation Stroke?",
+   "stratum": "matching",
+   "intent": "ambiguous",
+   "openalex": "https://openalex.org/W2896040850",
+   "year": 2018
+  },
+  {
+   "id": "D121",
+   "question": "Do the Poor Benefit from Devolution Policies? Evidence from Malawi's Forest Co-Management Program",
+   "stratum": "matching",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W2161303225",
+   "year": 2006
+  },
+  {
+   "id": "D122",
+   "question": "Impact of credit access on farm performance: Does source of credit matter?",
+   "stratum": "matching",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W4386567691",
+   "year": 2023
+  },
+  {
+   "id": "D123",
+   "question": "Does managerial ownership influence corporate social responsibility (CSR)? The role of economic policy uncertainty",
+   "stratum": "matching",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W2996026277",
+   "year": 2019
+  },
+  {
+   "id": "D124",
+   "question": "Do Enterprise Zones Work?",
+   "stratum": "matching",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W2156184043",
+   "year": 2008
+  },
+  {
+   "id": "D125",
+   "question": "Does the Internet Use Improve the Mental Health of Chinese Older Adults?",
+   "stratum": "matching",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W3183867073",
+   "year": 2021
+  },
+  {
+   "id": "D126",
+   "question": "Propensity Score Matching of Children in Kinship and Nonkinship Foster Care: Do Permanency Outcomes Differ?",
+   "stratum": "matching",
+   "intent": "ambiguous",
+   "openalex": "https://openalex.org/W1965328544",
+   "year": 2008
+  },
+  {
+   "id": "D127",
+   "question": "ESG and firm performance: do stakeholder engagement, financial constraints and religiosity matter?",
+   "stratum": "matching",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W4402391393",
+   "year": 2024
+  },
+  {
+   "id": "D128",
+   "question": "Do Temporary Workers Receive Risk Premiums? Assessing the Wage Effects of Fixed–term Contracts in West Germany by a Matching Estimator Compared with Parametric Approaches",
+   "stratum": "matching",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W3122469817",
+   "year": 2002
+  },
+  {
+   "id": "D129",
+   "question": "Do Differences in the Scale of Irrigation Projects Generate Different Impacts on Poverty and Production?",
+   "stratum": "matching",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W1903515318",
+   "year": 2010
+  },
+  {
+   "id": "D130",
+   "question": "Do everyday problems of people with chronic illness interfere with their disease management?",
+   "stratum": "matching",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W2109541990",
+   "year": 2015
+  },
+  {
+   "id": "D131",
+   "question": "ALPPS for Locally Advanced Intrahepatic Cholangiocarcinoma: Did Aggressive Surgery Lead to the Oncological Benefit? An International Multi-center Study",
+   "stratum": "matching",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W3004366889",
+   "year": 2020
+  },
+  {
+   "id": "D132",
+   "question": "Does the completeness of revascularization affect early survival after coronary artery bypass grafting in elderly patients?",
+   "stratum": "matching",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W2043511382",
+   "year": 2001
+  },
+  {
+   "id": "D133",
+   "question": "Is it my cancer or am i just getting older?: Impact of cancer on age‐related health conditions of older cancer survivors",
+   "stratum": "matching",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W2356580523",
+   "year": 2016
+  },
+  {
+   "id": "D134",
+   "question": "Does Teacher Encouragement Influence Students’ Educational Progress? A Propensity-Score Matching Analysis",
+   "stratum": "matching",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W2574019012",
+   "year": 2017
+  },
+  {
+   "id": "D135",
+   "question": "Does obfuscating excessive CEO pay work? The influence of remuneration report readability on say-on-pay votes",
+   "stratum": "matching",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W2588195263",
+   "year": 2017
+  },
+  {
+   "id": "D136",
+   "question": "Real world evidence (RWE) - Are we (RWE) ready?",
+   "stratum": "matching",
+   "intent": "ambiguous",
+   "openalex": "https://openalex.org/W2800123898",
+   "year": 2018
+  },
+  {
+   "id": "D137",
+   "question": "To Predict and Serve?",
+   "stratum": "predictive",
+   "intent": "predictive",
+   "openalex": "https://openalex.org/W2529251251",
+   "year": 2016
+  },
+  {
+   "id": "D138",
+   "question": "Does self-control predict financial behavior and financial well-being?",
+   "stratum": "predictive",
+   "intent": "predictive",
+   "openalex": "https://openalex.org/W2611897740",
+   "year": 2017
+  },
+  {
+   "id": "D139",
+   "question": "Are Phillips Curves Useful for Forecasting Inflation?",
+   "stratum": "predictive",
+   "intent": "predictive",
+   "openalex": "https://openalex.org/W2991686893",
+   "year": 2001
+  },
+  {
+   "id": "D140",
+   "question": "How well do network models predict observations? On the importance of predictability in network models",
+   "stratum": "predictive",
+   "intent": "predictive",
+   "openalex": "https://openalex.org/W2543011599",
+   "year": 2017
+  },
+  {
+   "id": "D141",
+   "question": "Bleeding on probing. A predictor for the progression of periodontal disease?",
+   "stratum": "predictive",
+   "intent": "predictive",
+   "openalex": "https://openalex.org/W2019848149",
+   "year": 1986
+  },
+  {
+   "id": "D142",
+   "question": "Are Social Norms the Best Predictor of Outcomes Among Heavy-Drinking College Students?",
+   "stratum": "predictive",
+   "intent": "predictive",
+   "openalex": "https://openalex.org/W2134425595",
+   "year": 2007
+  },
+  {
+   "id": "D143",
+   "question": "Adolescent Depressive Symptoms as Predictors of Adult Depression: Moodiness or Mood Disorder?",
+   "stratum": "predictive",
+   "intent": "predictive",
+   "openalex": "https://openalex.org/W2119664141",
+   "year": 1999
+  },
+  {
+   "id": "D144",
+   "question": "Intelligence Predicts Health and Longevity, but Why?",
+   "stratum": "predictive",
+   "intent": "ambiguous",
+   "openalex": "https://openalex.org/W2140125999",
+   "year": 2004
+  },
+  {
+   "id": "D145",
+   "question": "Why is it difficult to accurately predict the COVID-19 epidemic?",
+   "stratum": "predictive",
+   "intent": "ambiguous",
+   "openalex": "https://openalex.org/W3012864042",
+   "year": 2020
+  },
+  {
+   "id": "D146",
+   "question": "Can We Screen for Problematic Back Pain? A Screening Questionnaire for Predicting Outcome in Acute and Subacute Back Pain",
+   "stratum": "predictive",
+   "intent": "predictive",
+   "openalex": "https://openalex.org/W1996595680",
+   "year": 1998
+  },
+  {
+   "id": "D147",
+   "question": "Why does working memory capacity predict variation in reading comprehension? On the influence of mind wandering and executive attention.",
+   "stratum": "predictive",
+   "intent": "ambiguous",
+   "openalex": "https://openalex.org/W2039517753",
+   "year": 2011
+  },
+  {
+   "id": "D148",
+   "question": "Marriage Delayed or Marriage Forgone? New Cohort Forecasts of First Marriage for U.S. Women",
+   "stratum": "predictive",
+   "intent": "predictive",
+   "openalex": "https://openalex.org/W2146377072",
+   "year": 2001
+  },
+  {
+   "id": "D149",
+   "question": "Continuity and change in early school engagement: Predictive of children's achievement trajectories from first to eighth grade?",
+   "stratum": "predictive",
+   "intent": "predictive",
+   "openalex": "https://openalex.org/W2085473198",
+   "year": 2009
+  },
+  {
+   "id": "D150",
+   "question": "Does Response on the PHQ-9 Depression Questionnaire Predict Subsequent Suicide Attempt or Suicide Death?",
+   "stratum": "predictive",
+   "intent": "predictive",
+   "openalex": "https://openalex.org/W2118343190",
+   "year": 2013
+  },
+  {
+   "id": "D151",
+   "question": "How Well Can Hybrid Density Functional Methods Predict Transition State Geometries and Barrier Heights?",
+   "stratum": "predictive",
+   "intent": "predictive",
+   "openalex": "https://openalex.org/W1979850841",
+   "year": 2001
+  },
+  {
+   "id": "D152",
+   "question": "Does childhood personality predict longevity?",
+   "stratum": "predictive",
+   "intent": "predictive",
+   "openalex": "https://openalex.org/W2117213722",
+   "year": 1993
+  },
+  {
+   "id": "D153",
+   "question": "The Lund‐Mackay staging system for chronic rhinosinusitis: How is it used and what does it predict?",
+   "stratum": "predictive",
+   "intent": "predictive",
+   "openalex": "https://openalex.org/W2062624963",
+   "year": 2007
+  },
+  {
+   "id": "D154",
+   "question": "Infant regulation of the vagal ?brake? predicts child behavior problems: A psychobiological model of social behavior",
+   "stratum": "predictive",
+   "intent": "predictive",
+   "openalex": "https://openalex.org/W2009097572",
+   "year": 1996
+  },
+  {
+   "id": "D155",
+   "question": "When and how is job embeddedness predictive of turnover? A meta-analytic investigation.",
+   "stratum": "predictive",
+   "intent": "predictive",
+   "openalex": "https://openalex.org/W2030870337",
+   "year": 2012
+  },
+  {
+   "id": "D156",
+   "question": "Can Serious Injury in Professional Football be Predicted by a Preseason Functional Movement Screen?",
+   "stratum": "predictive",
+   "intent": "predictive",
+   "openalex": "https://openalex.org/W72688963",
+   "year": 2007
+  },
+  {
+   "id": "D157",
+   "question": "What Is the Prevalence of Adult ADHD? Results of a Population Screen of 966 Adults",
+   "stratum": "descriptive",
+   "intent": "descriptive",
+   "openalex": "https://openalex.org/W2039980027",
+   "year": 2005
+  },
+  {
+   "id": "D158",
+   "question": "A population-based assessment of chronic unexplained vulvar pain: have we underestimated the prevalence of vulvodynia?",
+   "stratum": "descriptive",
+   "intent": "descriptive",
+   "openalex": "https://openalex.org/W53492312",
+   "year": 2003
+  },
+  {
+   "id": "D159",
+   "question": "Why do young women have a much higher prevalence of HIV than young men? A study in Kisumu, Kenya and Ndola, Zambia",
+   "stratum": "descriptive",
+   "intent": "ambiguous",
+   "openalex": "https://openalex.org/W2041095686",
+   "year": 2001
+  },
+  {
+   "id": "D160",
+   "question": "Are mental health awareness efforts contributing to the rise in reported mental health problems? A call to test the prevalence inflation hypothesis",
+   "stratum": "descriptive",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W4319878972",
+   "year": 2023
+  },
+  {
+   "id": "D161",
+   "question": "Trends in the prevalence and mortality of cognitive impairment in the United States: Is there evidence of a compression of cognitive morbidity?",
+   "stratum": "descriptive",
+   "intent": "descriptive",
+   "openalex": "https://openalex.org/W1969673584",
+   "year": 2008
+  },
+  {
+   "id": "D162",
+   "question": "What proportion of AQP4-IgG-negative NMO spectrum disorder patients are MOG-IgG positive? A cross sectional study of 132 patients",
+   "stratum": "descriptive",
+   "intent": "descriptive",
+   "openalex": "https://openalex.org/W2747647717",
+   "year": 2017
+  },
+  {
+   "id": "D163",
+   "question": "How common are behavioural changes in amyotrophic lateral sclerosis?",
+   "stratum": "descriptive",
+   "intent": "descriptive",
+   "openalex": "https://openalex.org/W1996958757",
+   "year": 2010
+  },
+  {
+   "id": "D164",
+   "question": "How Common Are Various Causes of Dizziness?",
+   "stratum": "descriptive",
+   "intent": "descriptive",
+   "openalex": "https://openalex.org/W1770088895",
+   "year": 2000
+  },
+  {
+   "id": "D165",
+   "question": "How Common Are Magnetars? The Consequences of Magnetic Field Decay",
+   "stratum": "descriptive",
+   "intent": "descriptive",
+   "openalex": "https://openalex.org/W2008425255",
+   "year": 1998
+  },
+  {
+   "id": "D166",
+   "question": "The small remnant liver after major liver resection: How common and how relevant?",
+   "stratum": "descriptive",
+   "intent": "descriptive",
+   "openalex": "https://openalex.org/W2000377807",
+   "year": 2003
+  },
+  {
+   "id": "D167",
+   "question": "What proportion of riverine nutrients reaches the open ocean?",
+   "stratum": "descriptive",
+   "intent": "descriptive",
+   "openalex": "https://openalex.org/W2560085714",
+   "year": 2016
+  },
+  {
+   "id": "D168",
+   "question": "How Common Is Cyberbullying Among Adults? Exploring Gender, Ethnic, and Age Differences in the Prevalence of Cyberbullying",
+   "stratum": "descriptive",
+   "intent": "descriptive",
+   "openalex": "https://openalex.org/W2983507560",
+   "year": 2019
+  },
+  {
+   "id": "D169",
+   "question": "How common is normal cerebrospinal fluid pressure in spontaneous intracranial hypotension?",
+   "stratum": "descriptive",
+   "intent": "descriptive",
+   "openalex": "https://openalex.org/W2279788281",
+   "year": 2015
+  },
+  {
+   "id": "D170",
+   "question": "What proportion of international travellers acquire a travel-related illness? A review of the literature",
+   "stratum": "descriptive",
+   "intent": "descriptive",
+   "openalex": "https://openalex.org/W2756819157",
+   "year": 2017
+  },
+  {
+   "id": "D171",
+   "question": "HOW COMMON ARE THE MAGELLANIC CLOUDS?",
+   "stratum": "descriptive",
+   "intent": "descriptive",
+   "openalex": "https://openalex.org/W2049036952",
+   "year": 2011
+  },
+  {
+   "id": "D172",
+   "question": "How common is childhood myasthenia? The UK incidence and prevalence of autoimmune and congenital myasthenia",
+   "stratum": "descriptive",
+   "intent": "descriptive",
+   "openalex": "https://openalex.org/W2098490349",
+   "year": 2014
+  },
+  {
+   "id": "D173",
+   "question": "How common are symptoms? Evidence from a New Zealand national telephone survey",
+   "stratum": "descriptive",
+   "intent": "descriptive",
+   "openalex": "https://openalex.org/W2115221289",
+   "year": 2014
+  },
+  {
+   "id": "D174",
+   "question": "How Common Is Diclofenac-Associated Liver Injury? Analysis of 17,289 Arthritis Patients in a Long-Term Prospective Clinical Trial",
+   "stratum": "descriptive",
+   "intent": "descriptive",
+   "openalex": "https://openalex.org/W2058139653",
+   "year": 2009
+  },
+  {
+   "id": "D175",
+   "question": "How common are polycystic ovaries and the polycystic ovarian syndrome in women with Cushing's syndrome?",
+   "stratum": "descriptive",
+   "intent": "descriptive",
+   "openalex": "https://openalex.org/W2021130753",
+   "year": 2000
+  },
+  {
+   "id": "D176",
+   "question": "How common is hip pain among older adults? Results from the Third National Health and Nutrition Examination Survey.",
+   "stratum": "descriptive",
+   "intent": "descriptive",
+   "openalex": "https://openalex.org/W63572075",
+   "year": 2002
+  },
+  {
+   "id": "D177",
+   "question": "Is expressive suppression always associated with poorer psychological functioning? A cross-cultural comparison between European Americans and Hong Kong Chinese.",
+   "stratum": "ambiguous",
+   "intent": "ambiguous",
+   "openalex": "https://openalex.org/W2128225438",
+   "year": 2011
+  },
+  {
+   "id": "D178",
+   "question": "Who are the multichannel shoppers and how do they perform?: Correlates of multichannel shopping behavior",
+   "stratum": "ambiguous",
+   "intent": "ambiguous",
+   "openalex": "https://openalex.org/W2113879048",
+   "year": 2005
+  },
+  {
+   "id": "D179",
+   "question": "Is Diabetes Associated With Cognitive Impairment and Cognitive Decline Among Older Women?",
+   "stratum": "ambiguous",
+   "intent": "ambiguous",
+   "openalex": "https://openalex.org/W2014788105",
+   "year": 2000
+  },
+  {
+   "id": "D180",
+   "question": "Are smoking and other lifestyle factors associated with female urinary incontinence? The Norwegian EPINCONT Study",
+   "stratum": "ambiguous",
+   "intent": "ambiguous",
+   "openalex": "https://openalex.org/W2012522120",
+   "year": 2003
+  },
+  {
+   "id": "D181",
+   "question": "Is There a Relationship Between Physical Fitness and Academic Achievement? Positive Results From Public School Children in the Northeastern United States",
+   "stratum": "ambiguous",
+   "intent": "ambiguous",
+   "openalex": "https://openalex.org/W2069216324",
+   "year": 2008
+  },
+  {
+   "id": "D182",
+   "question": "The Relationship Between Student Engagement and Academic Performance: Is It a Myth or Reality?",
+   "stratum": "ambiguous",
+   "intent": "ambiguous",
+   "openalex": "https://openalex.org/W1974544573",
+   "year": 2013
+  },
+  {
+   "id": "D183",
+   "question": "Medial Meniscus Extrusion on Knee MRI: Is Extent Associated with Severity of Degeneration or Type of Tear?",
+   "stratum": "ambiguous",
+   "intent": "ambiguous",
+   "openalex": "https://openalex.org/W2125321317",
+   "year": 2004
+  },
+  {
+   "id": "D184",
+   "question": "Is Patient Activation Associated With Outcomes of Care for Adults With Chronic Conditions?",
+   "stratum": "ambiguous",
+   "intent": "ambiguous",
+   "openalex": "https://openalex.org/W1976069158",
+   "year": 2007
+  },
+  {
+   "id": "D185",
+   "question": "Are essentialist beliefs associated with prejudice?",
+   "stratum": "ambiguous",
+   "intent": "ambiguous",
+   "openalex": "https://openalex.org/W2171620352",
+   "year": 2002
+  },
+  {
+   "id": "D186",
+   "question": "Are MRI-defined fat infiltrations in the multifidus muscles associated with low back pain?",
+   "stratum": "ambiguous",
+   "intent": "ambiguous",
+   "openalex": "https://openalex.org/W1749142932",
+   "year": 2007
+  },
+  {
+   "id": "D187",
+   "question": "Relationships Between Organ Weight and Body/Brain Weight in the Rat: What Is the Best Analytical Endpoint?",
+   "stratum": "ambiguous",
+   "intent": "ambiguous",
+   "openalex": "https://openalex.org/W2125483095",
+   "year": 2004
+  },
+  {
+   "id": "D188",
+   "question": "Is lower extremity strength gain associated with improvement in physical performance and disability in frail, community-dwelling elders?",
+   "stratum": "ambiguous",
+   "intent": "ambiguous",
+   "openalex": "https://openalex.org/W2055926774",
+   "year": 1998
+  },
+  {
+   "id": "D189",
+   "question": "ONE SIZE FITS ALL? RELATIONSHIPS BETWEEN THE SIZE AND DEGREE OF VARIATION IN GENITALIA AND OTHER BODY PARTS IN TWENTY SPECIES OF INSECTS AND SPIDERS",
+   "stratum": "ambiguous",
+   "intent": "ambiguous",
+   "openalex": "https://openalex.org/W2094186598",
+   "year": 1998
+  },
+  {
+   "id": "D190",
+   "question": "Is obesity associated with poor sleep quality in adolescents?",
+   "stratum": "ambiguous",
+   "intent": "ambiguous",
+   "openalex": "https://openalex.org/W2172000602",
+   "year": 2002
+  },
+  {
+   "id": "D191",
+   "question": "Are loneliness and social isolation associated with cognitive decline?",
+   "stratum": "ambiguous",
+   "intent": "ambiguous",
+   "openalex": "https://openalex.org/W2961148372",
+   "year": 2019
+  },
+  {
+   "id": "D192",
+   "question": "Why are residential and school moves associated with poor school performance?",
+   "stratum": "ambiguous",
+   "intent": "ambiguous",
+   "openalex": "https://openalex.org/W2067246717",
+   "year": 1999
+  },
+  {
+   "id": "D193",
+   "question": "An intraindividual process approach to the relationship between extraversion and positive affect: Is acting extraverted as \"good\" as being extraverted?",
+   "stratum": "ambiguous",
+   "intent": "ambiguous",
+   "openalex": "https://openalex.org/W2135105789",
+   "year": 2002
+  },
+  {
+   "id": "D194",
+   "question": "What is the relationship between the minimally important difference and health state utility values? The case of the SF-6D.",
+   "stratum": "ambiguous",
+   "intent": "ambiguous",
+   "openalex": "https://openalex.org/W2146192453",
+   "year": 2003
+  },
+  {
+   "id": "D195",
+   "question": "No Right to Speak? The Relationship between Object Naming and Semantic Impairment:Neuropsychological Evidence and a Computational Model",
+   "stratum": "ambiguous",
+   "intent": "ambiguous",
+   "openalex": "https://openalex.org/W2150645103",
+   "year": 2001
+  },
+  {
+   "id": "D196",
+   "question": "The relationship between cohabitation and divorce: Selectivity or causal influence?",
+   "stratum": "ambiguous",
+   "intent": "ambiguous",
+   "openalex": "https://openalex.org/W2063406726",
+   "year": 1992
+  },
+  {
+   "id": "D197",
+   "question": "A consensus protocol for the determination of the threshold doses for allergenic foods: how much is too much?",
+   "stratum": "threshold",
+   "intent": "ambiguous",
+   "openalex": "https://openalex.org/W2098084575",
+   "year": 2004
+  },
+  {
+   "id": "D198",
+   "question": "18F-FDG PET for Mediastinal Staging of Lung Cancer: Which SUV Threshold Makes Sense?",
+   "stratum": "threshold",
+   "intent": "ambiguous",
+   "openalex": "https://openalex.org/W2124173105",
+   "year": 2007
+  },
+  {
+   "id": "D199",
+   "question": "What Threshold for Adjuvant Therapy in Older Breast Cancer Patients?",
+   "stratum": "threshold",
+   "intent": "ambiguous",
+   "openalex": "https://openalex.org/W1759175391",
+   "year": 2000
+  },
+  {
+   "id": "D200",
+   "question": "Is there a threshold size regulating seaward migration of brown trout and Atlantic salmon?",
+   "stratum": "threshold",
+   "intent": "ambiguous",
+   "openalex": "https://openalex.org/W2118230033",
+   "year": 1993
+  },
+  {
+   "id": "D201",
+   "question": "Minimal Important Difference Thresholds and the Standard Error of Measurement: Is There a Connection?",
+   "stratum": "threshold",
+   "intent": "ambiguous",
+   "openalex": "https://openalex.org/W2085769025",
+   "year": 2004
+  },
+  {
+   "id": "D202",
+   "question": "Prenatal Alcohol Exposure and Neurobehavioral Development: Where Is the Threshold?",
+   "stratum": "threshold",
+   "intent": "ambiguous",
+   "openalex": "https://openalex.org/W242725524",
+   "year": 1994
+  },
+  {
+   "id": "D203",
+   "question": "Divergence thresholds and divergent biodiversity estimates: can metabarcoding reliably describe zooplankton communities?",
+   "stratum": "threshold",
+   "intent": "ambiguous",
+   "openalex": "https://openalex.org/W2141553059",
+   "year": 2015
+  },
+  {
+   "id": "D204",
+   "question": "Social Assistance and EU Poverty Thresholds 1990-2008. Are European Welfare Systems Providing Just and Fair Protection Against Low Income?",
+   "stratum": "threshold",
+   "intent": "ambiguous",
+   "openalex": "https://openalex.org/W2079039442",
+   "year": 2011
+  },
+  {
+   "id": "D205",
+   "question": "Blood Lactate Levels Cutoff and Mortality Prediction in Sepsis—Time for a Reappraisal? a Retrospective Cohort Study",
+   "stratum": "threshold",
+   "intent": "ambiguous",
+   "openalex": "https://openalex.org/W2463979167",
+   "year": 2016
+  },
+  {
+   "id": "D206",
+   "question": "Runaway Train? The Diffusion of State‐Level Reform in ADC/AFDC Eligibility Requirements, 1950–1967",
+   "stratum": "threshold",
+   "intent": "ambiguous",
+   "openalex": "https://openalex.org/W2034096398",
+   "year": 1997
+  },
+  {
+   "id": "D207",
+   "question": "Is there a meaningful serum hepatitis B virus DNA cutoff level for therapeutic decisions in hepatitis B e antigen–negative chronic hepatitis B virus infection?",
+   "stratum": "threshold",
+   "intent": "ambiguous",
+   "openalex": "https://openalex.org/W2049198494",
+   "year": 2008
+  },
+  {
+   "id": "D208",
+   "question": "Are There Standardized Cutoff Values for Neutrophil-Lymphocyte Ratios in Bacteremia or Sepsis?",
+   "stratum": "threshold",
+   "intent": "ambiguous",
+   "openalex": "https://openalex.org/W2328291564",
+   "year": 2015
+  },
+  {
+   "id": "D209",
+   "question": "What are the cut‐off levels for IL‐6 and CRP in neonatal sepsis?",
+   "stratum": "threshold",
+   "intent": "ambiguous",
+   "openalex": "https://openalex.org/W2089629244",
+   "year": 2010
+  },
+  {
+   "id": "D210",
+   "question": "Cutoff in the Lyman- α forest power spectrum: Warm IGM or warm dark matter?",
+   "stratum": "threshold",
+   "intent": "ambiguous",
+   "openalex": "https://openalex.org/W1845642430",
+   "year": 2017
+  },
+  {
+   "id": "D211",
+   "question": "How do 401(k)s Affect Saving? Evidence from Changes in 401(k) Eligibility",
+   "stratum": "threshold",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W2090725794",
+   "year": 2011
+  },
+  {
+   "id": "D212",
+   "question": "Impact of donor age in donation after circulatory death liver transplantation: Is the cutoff “60” still of relevance?",
+   "stratum": "threshold",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W2753627651",
+   "year": 2017
+  },
+  {
+   "id": "D213",
+   "question": "Enhanced frequency discrimination near the hearing loss cut-off: a consequence of central auditory plasticity induced by cochlear damage?",
+   "stratum": "threshold",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W2016035855",
+   "year": 2003
+  },
+  {
+   "id": "D214",
+   "question": "Where Does Telemedicine Fit into Otolaryngology? An Assessment of Telemedicine Eligibility among Otolaryngology Diagnoses",
+   "stratum": "threshold",
+   "intent": "ambiguous",
+   "openalex": "https://openalex.org/W2791445281",
+   "year": 2018
+  },
+  {
+   "id": "D215",
+   "question": "Has the Food Stamp program become more accessible? Impacts of recent changes in reporting requirements and asset eligibility limits",
+   "stratum": "threshold",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W2160715475",
+   "year": 2006
+  },
+  {
+   "id": "D216",
+   "question": "The ‘impact’ of force filtering cut-off frequency on the peak knee abduction moment during landing: artefact or ‘artifiction’?",
+   "stratum": "threshold",
+   "intent": "causal",
+   "openalex": "https://openalex.org/W2120613401",
+   "year": 2012
+  }
+ ]
+}

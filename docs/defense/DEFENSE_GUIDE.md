@@ -137,7 +137,7 @@ Two mismatches to state yourself:
 ### causal_engine/question_reading.py and question_analysis.py
 
 - **Purpose.** Read what a research question asks, before any method.
-- **Why it exists.** It is the project's stated contribution. A form alone led to answers that ignored the question: on 2026-11-01 a question about a scholarship cutoff got DiD.
+- **Why it exists.** It is an extension, not the claim (professor's decision, 2026-11-09): the front door that keeps the wrong method from being picked. A form alone led to answers that ignored the question: on 2026-11-01 a question about a scholarship cutoff got DiD. Always give both numbers, and the three sets: on the second set it was right 95% of the time when it said causal (18/19) but caught 0.60 of causal questions against a target of 0.70; versions 3 and 3.1, on a third and a fourth set, catch 0.83 (25/30) and 0.86 (24/28), but version 2 would catch 0.80 and 0.79 on those same sets, so most of the difference is the set.
 - **Inputs.** The question text, and the form (`ResearchDesignInput`).
 - **Outputs.** `QuestionAnalysis`: the intent (causal, predictive, descriptive, ambiguous), eight elements each with a status (stated, inferred, to confirm, unknown), the implied form fields, follow-up questions and what blocks a ranking.
 - **Logic.** Deterministic regular expressions in reusable families (verbs with inflections, auxiliaries, connectors), in English and French. The words behind each conclusion are kept. Rules are tried in a fixed order: strong causal structures, then explicit prediction, association, verb clauses, explicit description, comparisons and statements. Anything else is ambiguous.
@@ -266,10 +266,10 @@ Two mismatches to state yourself:
 ## Part 3. Twenty hard questions
 
 **1. In one sentence, what is the contribution?**
-It reads the research question before any method, separates what the question states from what is inferred or unknown, and refuses to recommend until the essentials are answered. It is an aid to research design and does not establish identification.
+A simulation study of difference-in-differences, 1,000 worlds per level with a known true effect, judged by a rule fixed in advance (at most 10% bias, at least 90% coverage): with low diverging pre-trends DiD is already 47% biased, and the pre-trend test warns in only 14.2% of those worlds. If asked about the question screen: it is an extension, the front door that keeps students from picking the wrong method. On the set the professor saw, it was right 95% of the time when it said "causal" but caught 0.60 of causal questions against a target of 0.70; the current version caught 0.83 and 0.86 on two later sets, where version 2 would have caught 0.80 and 0.79. This order is the professor's, in writing, on 2026-11-09.
 
 **2. Issue #1 asked for one method. Why are there eight?**
-Be factual. The README records that you built beyond the brief on 2026-10-25, knowing it departed from that advice. DiD remains the only method under the full simulation study with the decision rule. Then state what your professor has confirmed in writing. Do not claim more than that.
+Be factual. The README records that you built beyond the brief on 2026-10-25, knowing it departed from that advice. DiD remains the only method under the full simulation study with the decision rule. Then state what your professor confirmed in writing on 2026-11-09: the DiD bias study is the main contribution, the question analysis an extension. The other methods are what the front door needs to say "not DiD here". Do not claim more than that.
 
 **3. How much bias is too much?**
 Give the rule, say that it is a judgement fixed for this design, and give the two weaknesses from Part 1: dependence on precision, and that it is only partly pre-specified.
@@ -305,10 +305,10 @@ Yes, it is a claim, but an argued one that can be challenged, and it holds only 
 Conditional on their conditions holding, the randomisation creates comparability across the whole sample, while RDD only near a cutoff and relies on continuity. A broken RCT (attrition, non-compliance) can be worse than a good RDD, and an RCT in a small selected sample may have less external validity.
 
 **14. How do you know the analyser works?**
-Report both frozen evaluations (`docs/evaluation/REPORT.md`, `v2/REPORT.md`), failures included. On 114 published titles: causal recall fails its 0.70 bar both times (0.64, 0.60), precision 0.95 both times, one causal question called non-causal, ambiguous abstention 0.92 and 0.87, no wrong method. Then the limits: labels by a single rater who wrote the analyser, English titles only, no implicit threshold, and a method metric whose form already encodes the design. A title gave a design clue in 5 of 72 cases, so the form does most of the work. Say that before you are asked.
+Report the four frozen evaluations (`docs/evaluation/REPORT.md`, `v2/REPORT.md`, `v3/REPORT.md`, `v4/REPORT.md`), failures included. On 230 published titles: causal recall 0.64, 0.60, 0.83 and 0.86 for versions 1, 2, 3 and 3.1, each on its own set, so it fails its 0.70 bar twice and passes twice; precision 0.95, 0.95, 1.00 and 0.96; two causal questions called non-causal in all; no wrong method. Say at once that version 2 would score 0.80 and 0.79 on the last two sets: the passes are mostly the sets. Version 3 failed the threshold bar (3 false positives for 2); two were bugs, corrected in 3.1, which passes it on the fourth set, but so would version 3 there: that set held no such title. Then the limits: labels by a single rater who wrote the analyser, English titles only, no implicit threshold, and a method metric whose form already encodes the design. A title gave a design clue in 12 of 136 cases, so the form does most of the work. Say that before you are asked.
 
 **15. Couldn't you just tune it until the evaluation passes?**
-That would destroy the measure. Each set is frozen by hash before its single run. A correction needs a new set, and version 2 got one; it did no better on recall, because its verb list is closed. The 23 published-study cases and the tests were used for development and prove nothing about generalisation.
+That would destroy the measure. Each set is frozen by hash before its single run. A correction needs a new set, and each version got one. Version 3 was developed on 216 other titles only, frozen by commit, and only then were the test titles read; the test pool's hash was recorded before development. The same version 2 scores 0.60 on one set and 0.80 on another, which is why one run is never reported alone. The 23 published-study cases and the tests were used for development and prove nothing about generalisation.
 
 **16. Why does an untouched form give no recommendation?**
 Otherwise a question would receive DiD from defaults the researcher never gave, which is exactly a default method. A box lets you confirm that the defaults do describe your study.
