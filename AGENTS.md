@@ -9,6 +9,7 @@
 - **Evaluation:** `docs/evaluation/question_set.json`, `docs/evaluation/v2/question_set.json`, `docs/evaluation/v3/question_set.json` and `docs/evaluation/v4/question_set.json` are frozen, and `spike/evaluate_question_analysis.py` refuses to overwrite a result. Never add their questions to patterns or tests, and never change the analyser to score better on them. A corrected analyser needs a new set, with a declared protocol.
 - **Do not attribute a threshold to an author** without reading the source. Do not report a kappa from an incomplete sheet (`spike/compute_kappa.py` refuses one).
 - **Tests:** from `causal_lab/`, `../.venv/Scripts/python -m pytest` (about 6 minutes). CI also runs `openspec validate --specs`. Do not merge with a failing test, and do not merge without the user's approval.
+- **Page, video, slides (Session 8):** after each step, commit and add a row to `PROCESS.md`: the step, what the tool did, and what the author decided (never write a decision the author did not make; say "agent's choice, to be confirmed"). The page is `docs/index.html`, the slides `docs/slides/index.html` (reveal.js, one file, no speaker notes), published by GitHub Pages from `/docs` on `main`. Every screenshot from a real run; every number with its source. Dates: page 14 November 20:00, video 21 November, slides 28 November, demos 1 and 8 December.
 - **Deployment:** the online app is rebooted by the user at share.streamlit.io. Do not claim it is live until that has been verified.
 
 ## Planning log
