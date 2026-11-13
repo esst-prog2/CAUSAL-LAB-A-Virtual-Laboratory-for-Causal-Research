@@ -102,7 +102,7 @@ def _virtual_world_inputs(method: str, spec: MethodSpec, state: dict, L) -> None
         values[p.field] = cols[i % 3].number_input(L(f"mparam.{method}.{p.field}"), **widget_args)
     values["seed"] = int(st.number_input(L("common.seed"), min_value=0, value=42, step=1, key=f"mw_{method}_seed"))
 
-    if st.button(f"⚗️ {L('methods.generate')}", type="primary", key=f"mw_{method}_generate"):
+    if st.button(L("methods.generate"), icon=":material/science:", type="primary", key=f"mw_{method}_generate"):
         valid_fields = {f.name for f in fields(spec.config_cls)}
         config = spec.config_cls(**{k: v for k, v in values.items() if k in valid_fields})
         try:
@@ -379,7 +379,7 @@ def render(L) -> None:
     with st.expander(F("methods.preview", rows=len(state["df"]))):
         st.dataframe(state["df"].head(20), width="stretch")
 
-    if st.button(f"▶️ {L('methods.estimate')}", type="primary", key=f"mw_{method}_run"):
+    if st.button(L("methods.estimate"), icon=":material/play_arrow:", type="primary", key=f"mw_{method}_run"):
         with st.spinner(L("methods.estimating")):
             try:
                 state.update(result=run_method(method, state["df"], state["mapping"], state["options"]),
