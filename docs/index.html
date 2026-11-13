@@ -57,6 +57,9 @@ img { display: block; max-width: 100%; height: auto; }
 /* First viewport: the question as a data portrait */
 .portrait { padding: clamp(1.5rem, 4vh, 3rem) var(--gutter) clamp(2rem, 5vh, 3.5rem); }
 .promise { font-size: clamp(1.6rem, 2.6vw, 2.6rem); max-width: 52ch; margin: 0 0 clamp(1.5rem, 4vh, 2.75rem); }
+.promise .k1 { text-decoration: underline; text-decoration-color: color-mix(in oklch, var(--pink) 85%, transparent); text-decoration-thickness: 0.22em; text-underline-offset: 0.02em; text-decoration-skip-ink: none; }
+.promise .k2 { color: color-mix(in oklch, var(--blue) 85%, var(--ink)); }
+.promise .k3 { color: color-mix(in oklch, var(--crimson) 85%, var(--ink)); }
 .stage { display: grid; gap: clamp(1.25rem, 3vh, 2rem); }
 .question { display: grid; gap: clamp(0.5rem, 1.4vh, 1rem); margin: 0; font-size: clamp(2.4rem, 5.6vw, 6rem); }
 .question .line { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0.4rem clamp(0.5rem, 1.2vw, 1rem); }
@@ -194,7 +197,7 @@ footer p { margin: 0; max-width: 70ch; }
 
 <main>
   <section class="portrait" aria-labelledby="promise">
-    <h1 id="promise" class="promise lettered">Causal Lab reads your research question first, picks a method only once you confirm, and shows you where your design breaks.</h1>
+    <h1 id="promise" class="promise lettered"><span class="k k1">Causal Lab reads your research question first,</span> <span class="k k2">picks a method only once you confirm,</span> <span class="k k3">and shows you where your design breaks.</span></h1>
 
     <div class="stage">
       <p class="question lettered">
