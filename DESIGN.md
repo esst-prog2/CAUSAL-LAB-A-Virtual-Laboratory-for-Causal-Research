@@ -142,7 +142,7 @@ components:
     size: "1.2rem"
 ---
 
-> **Superseded for the page on 2026-11-13** (PROCESS.md, row 15): `docs/index.html` now uses the app's research style (navy, blue, Source Sans 3; tokens at the top of its stylesheet, taken from `.streamlit/config.toml` and `causal_lab/ui/style.py`). This file still describes the Du Bois look kept by the film (`video/`) and the slides (`docs/slides/`).
+> **Superseded for the page on 2026-11-13** (PROCESS.md, row 15): `docs/index.html` now uses the app's research style (navy, blue, Source Sans 3; tokens at the top of its stylesheet, taken from `.streamlit/config.toml` and `causal_lab/ui/style.py`). The film (`video/`) followed on the same day (row 16). This file now describes only the Du Bois look kept by the slides (`docs/slides/`).
 
 
 # Design System: Causal Lab
