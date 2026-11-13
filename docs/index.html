@@ -187,6 +187,9 @@ td.fails { color: var(--crimson); font-weight: 700; }
 @media (max-width: 40rem) { .v2 { display: none; } .v2-inline { display: inline; } th, td { white-space: normal; } }
 .not { font-family: var(--display); font-weight: 800; font-size: clamp(1.6rem, 2.8vw, 2.4rem); line-height: 1.12; max-width: 30ch; margin: 0; text-wrap: balance; }
 .not-body { max-width: 62ch; margin: 1.2rem 0 0; }
+.film { margin: 0; max-width: 64rem; border: var(--rule) solid var(--ink); }
+.film video { display: block; width: 100%; height: auto; background: var(--ink); }
+.film figcaption { font-size: 0.95rem; color: var(--ink-soft); padding: 0.6rem 0.8rem; border-top: 2px solid var(--ink); }
 .close { margin: 2rem 0 0; }
 
 footer { border-top: var(--rule) solid var(--ink); padding: 2rem var(--gutter) 3rem; display: grid; gap: 0.6rem; font-size: 1rem; }
@@ -300,6 +303,14 @@ footer p { margin: 0; max-width: 70ch; }
           <figcaption>Real run of Causal Lab (app code of PR #41, question reader version 3.1), 13 November 2026, Guided Demo screen. <a href="img/beat3-study.png">Open full size</a>.</figcaption>
         </figure>
       </div>
+    </section>
+
+    <section class="beat" aria-labelledby="film">
+      <h2 id="film" class="lettered">In 30 seconds</h2>
+      <figure class="film">
+        <video src="video/causal-lab-30s.mp4" poster="video/poster.jpg" width="1920" height="1080" controls muted playsinline preload="metadata" aria-describedby="film-text"></video>
+        <figcaption id="film-text">Silent, 30 seconds, made with HyperFrames from the page's own screenshots of real runs: it reads your question first; it picks a method only once you confirm; it shows you where your design breaks. Source of the film: <a href="https://github.com/esst-prog2/CAUSAL-LAB-A-Virtual-Laboratory-for-Causal-Research/tree/main/video">video/</a>.</figcaption>
+      </figure>
     </section>
 
     <section class="beat" aria-labelledby="checked">
