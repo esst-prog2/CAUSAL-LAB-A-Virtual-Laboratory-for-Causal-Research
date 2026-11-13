@@ -6,275 +6,289 @@
 <title>Causal Lab: it reads your research question before it picks a method</title>
 <meta name="description" content="Causal Lab reads your research question first, picks a method only once you confirm, and shows you where your design breaks. An MSc project, ELTE.">
 <style>
-@font-face { font-family: "Big Shoulders Display"; src: url("fonts/big-shoulders-display-latin.woff2") format("woff2"); font-weight: 100 900; font-display: swap; }
 @font-face { font-family: "Source Sans 3"; src: url("fonts/source-sans-3-latin.woff2") format("woff2"); font-weight: 200 900; font-style: normal; font-display: swap; }
 @font-face { font-family: "Source Sans 3"; src: url("fonts/source-sans-3-italic-latin.woff2") format("woff2"); font-weight: 200 900; font-style: italic; font-display: swap; }
 
+/* Tokens: the app's palette (.streamlit/config.toml, causal_lab/ui/style.py) */
 :root {
-  --ink: #1B2333;
-  --ink-soft: #3A4357;
-  --board: #FFFFFF;
-  --blue: #3451B2;     /* the action, and what is confirmed */
-  --gold: #F2B705;     /* unclear */
-  --pink: #F6C8D2;     /* to confirm */
-  --crimson: #D7263D;  /* failure, only */
-  --green: #2E9E83;    /* the true effect */
-  --magenta: #C2416B;  /* thresholds and dates */
-  --rule: 3px;
-  --display: "Big Shoulders Display", "Source Sans 3", sans-serif;
-  --body: "Source Sans 3", sans-serif;
-  --gutter: clamp(1.25rem, 4vw, 4rem);
-  --line-x: clamp(0.9rem, 2.2vw, 2.4rem);
+  --navy: #0F1B33;        /* institutional ground: masthead, hero, footer */
+  --navy-2: #172644;      /* panels on navy */
+  --ink: #1B2333;         /* text */
+  --ink-soft: #4A5368;    /* secondary text, 7.6:1 on white */
+  --surface: #FFFFFF;
+  --canvas: #F5F7FB;      /* analytical workspace */
+  --line: #DDE2EC;        /* borders */
+  --line-strong: #C3CAD8;
+  --blue: #3451B2;        /* action, confirmed */
+  --blue-tint: #E6EAF8;
+  --teal: #2E9E83;        /* the known true effect */
+  --amber: #8A5A12;       /* unclear (text), 6.4:1 on white */
+  --amber-tint: #FBEFD5;
+  --confirm-tint: #E3E8FA;/* to confirm */
+  --red: #B42335;         /* what fails, only */
+  --magenta: #C2416B;     /* a cutoff */
+  --on-navy: #E6E9F0;
+  --on-navy-soft: #AEB6C8;
+  --radius: 10px;
+  --shadow: 0 1px 2px rgba(15, 27, 51, 0.06), 0 8px 24px -12px rgba(15, 27, 51, 0.18);
+  --font: "Source Sans 3", system-ui, sans-serif;
+  --gutter: clamp(1.25rem, 5vw, 4rem);
+  --max: 72rem;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
-html { color-scheme: light; scrollbar-color: var(--ink) var(--board); -webkit-text-size-adjust: 100%; }
-body {
-  margin: 0; background: var(--board); color: var(--ink);
-  font-family: var(--body); font-size: 1.125rem; line-height: 1.55;
-  font-variant-numeric: tabular-nums;
-}
-::selection { background: var(--gold); color: var(--ink); }
-a { color: var(--blue); text-decoration-thickness: 2px; text-underline-offset: 0.2em; }
-a:hover { color: var(--ink); }
-:focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; }
+html { color-scheme: light; -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--surface); color: var(--ink); font-family: var(--font); font-size: 1.0625rem; line-height: 1.6; font-variant-numeric: tabular-nums; }
+::selection { background: rgba(52, 81, 178, 0.22); }
+a { color: var(--blue); text-decoration-thickness: 1px; text-underline-offset: 0.18em; }
+a:hover { text-decoration-thickness: 2px; }
+:focus-visible { outline: 2px solid #5B74E8; outline-offset: 3px; border-radius: 3px; }
 img { display: block; max-width: 100%; height: auto; }
-
-.lettered {
-  font-family: var(--display); font-weight: 800; text-transform: uppercase;
-  letter-spacing: 0.01em; line-height: 0.95; text-wrap: balance;
-}
-
-/* Top line */
-.topline {
-  display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; align-items: baseline; justify-content: space-between;
-  padding: 1rem var(--gutter); border-bottom: var(--rule) solid var(--ink);
-}
-.topline .name { font-size: 1.6rem; margin: 0; }
-.topline .author { margin: 0 auto 0 0; color: var(--ink-soft); font-size: 1rem; }
-.topline nav { display: flex; gap: 1.25rem; font-weight: 600; }
-
-/* First viewport: the question as a data portrait */
-.portrait { padding: clamp(1.5rem, 4vh, 3rem) var(--gutter) clamp(2rem, 5vh, 3.5rem); }
-.promise { line-height: 1.08; font-size: clamp(1.6rem, 2.6vw, 2.6rem); max-width: 52ch; margin: 0 0 clamp(1.5rem, 4vh, 2.75rem); }
-.promise .k1 { text-decoration: underline; text-decoration-color: var(--pink); text-decoration-thickness: 0.16em; text-underline-offset: 0.1em; text-decoration-skip-ink: none; }
-.promise .k2 { color: color-mix(in oklch, var(--blue) 85%, var(--ink)); }
-.promise .k3 { color: var(--crimson); }
-.stage { display: grid; gap: clamp(1.25rem, 3vh, 2rem); }
-.question { display: grid; gap: clamp(0.5rem, 1.4vh, 1rem); margin: 0; font-size: clamp(2.4rem, 5.6vw, 6rem); }
-.question .line { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0.4rem clamp(0.5rem, 1.2vw, 1rem); }
+.wrap { max-width: var(--max); margin: 0 auto; padding: 0 var(--gutter); }
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-.answer { display: grid; gap: 1.1rem; }
-.word { display: inline-flex; flex-direction: column; align-items: flex-start; }
-.word .w { position: relative; padding: 0.06em 0.14em 0.02em; z-index: 0; }
-.word.field .w::before {
-  content: ""; position: absolute; inset: 0; z-index: -1; background: var(--field);
-  transform-origin: left center;
-}
-.word .tag {
-  font-family: var(--display); font-weight: 800; font-size: clamp(0.85rem, 1.25vw, 1.05rem);
-  letter-spacing: 0.08em; text-transform: uppercase; line-height: 1;
-  padding: 0.45rem 0.14rem 0; border-top: 2px solid var(--ink); margin-top: 0.35rem; width: 100%;
-}
-.f-pink { --field: var(--pink); }
-.f-gold { --field: var(--gold); }
-.verdict { margin: 0; font-size: clamp(1.6rem, 2.6vw, 2.5rem); }
-.speaker { font-family: var(--display); font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; font-size: 0.95rem; color: var(--ink-soft); margin: 0 0 0.6rem; }
-.action { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 2rem; }
+.eyebrow { font-size: 0.8rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-soft); margin: 0 0 0.6rem; }
+
+/* Masthead */
+.masthead { background: var(--navy); color: var(--on-navy); border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
+.masthead .wrap { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1.5rem; padding-top: 0.9rem; padding-bottom: 0.9rem; }
+.brand { margin: 0; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; font-size: 1rem; color: #FFFFFF; display: flex; align-items: center; gap: 0.6rem; }
+.brand .mark { width: 1.4rem; height: 1.4rem; border-radius: 4px; background: linear-gradient(135deg, #4F68DF 0 50%, var(--teal) 50% 100%); }
+.masthead .author { margin: 0 auto 0 0; color: var(--on-navy-soft); font-size: 0.95rem; }
+.masthead nav { display: flex; gap: 1.4rem; font-weight: 600; font-size: 0.97rem; }
+.masthead nav a { color: var(--on-navy); text-decoration: none; }
+.masthead nav a:hover { color: #FFFFFF; text-decoration: underline; }
+
+/* Hero */
+.hero { background: var(--navy); color: var(--on-navy); padding: clamp(2.5rem, 7vh, 4.5rem) 0 clamp(2.5rem, 6vh, 4rem); }
+.hero .grid { display: grid; gap: 2.5rem; align-items: center; }
+@media (min-width: 60rem) { .hero .grid { grid-template-columns: minmax(0, 6fr) minmax(0, 5fr); gap: 3.5rem; } }
+.hero .eyebrow { color: var(--on-navy-soft); }
+.promise { margin: 0; font-size: clamp(1.9rem, 3.6vw, 3rem); line-height: 1.12; font-weight: 700; letter-spacing: -0.015em; color: #FFFFFF; text-wrap: balance; }
+.promise .k { display: block; }
+.promise .k2 { color: #C7D1FA; }
+.promise .k3 { color: var(--on-navy-soft); }
+.action { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 1.6rem; margin-top: 2rem; }
 .try {
-  display: inline-block; background: var(--blue); color: #FFFFFF; text-decoration: none;
-  font-family: var(--display); font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em;
-  font-size: 1.6rem; line-height: 1; padding: 0.85rem 1.6rem 0.75rem;
-  transition: background-color 160ms cubic-bezier(0.16, 1, 0.3, 1);
+  display: inline-flex; align-items: center; gap: 0.5rem; background: #4F68DF; color: #FFFFFF; text-decoration: none;
+  font-weight: 650; font-size: 1.05rem; line-height: 1; padding: 0.85rem 1.4rem; border-radius: 8px;
+  transition: background-color 160ms ease;
 }
-.try:hover { color: #FFFFFF; background: var(--ink); }
-.try:active { background: #0E131D; }
-.for-whom { margin: 0; max-width: 46ch; }
-.for-whom small { display: block; color: var(--ink-soft); font-size: 0.95rem; margin-top: 0.3rem; }
+.try:hover { background: #3F57CF; text-decoration: none; }
+.try:active { background: #3451B2; }
+.try::after { content: "→"; }
+.for-whom { margin: 0; max-width: 40ch; color: var(--on-navy); font-size: 1rem; line-height: 1.5; }
+.for-whom small { display: block; color: var(--on-navy-soft); font-size: 0.9rem; margin-top: 0.25rem; }
 
-@media (prefers-reduced-motion: no-preference) {
-  .word.field .w::before { animation: lay 900ms cubic-bezier(0.16, 1, 0.3, 1) both; animation-delay: var(--d, 0ms); }
-  .word .tag { animation: settle 700ms cubic-bezier(0.16, 1, 0.3, 1) both; animation-delay: calc(var(--d, 0ms) + 450ms); }
-  @keyframes lay { from { transform: scaleX(0); } to { transform: scaleX(1); } }
-  @keyframes settle { from { transform: translateY(-0.4rem); opacity: 0.35; } to { transform: none; opacity: 1; } }
-}
+/* The question panel: what the app does with your words */
+.panel { background: var(--surface); color: var(--ink); border-radius: 12px; box-shadow: 0 20px 50px -20px rgba(0, 0, 0, 0.55); overflow: hidden; }
+.panel .row-head { display: flex; justify-content: space-between; align-items: center; padding: 0.7rem 1.1rem; background: var(--canvas); border-bottom: 1px solid var(--line); font-size: 0.8rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); }
+.panel .body { padding: 1.2rem 1.1rem 1.3rem; }
+.question { margin: 0; font-size: clamp(1.35rem, 2.2vw, 1.7rem); font-weight: 600; line-height: 1.3; display: flex; flex-wrap: wrap; gap: 0.5rem 0.45rem; align-items: flex-start; }
+.word { display: inline-flex; flex-direction: column; align-items: flex-start; }
+.word .w { padding: 0.05em 0.3em; border-radius: 5px; }
+.word.confirm .w { background: var(--confirm-tint); box-shadow: inset 0 -2px 0 #8A9BE0; }
+.word.unclear .w { background: var(--amber-tint); box-shadow: inset 0 -2px 0 #E0B04F; }
+.word .tag { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; margin-top: 0.3rem; padding-left: 0.3em; }
+.word.confirm .tag { color: var(--blue); }
+.word.unclear .tag { color: var(--amber); }
+.answer { border-top: 1px solid var(--line); padding: 1rem 1.1rem 1.2rem; background: #FBFCFE; }
+.answer .eyebrow { margin-bottom: 0.35rem; }
+.verdict { margin: 0; font-size: 1.15rem; font-weight: 650; line-height: 1.4; }
+.verdict .status { display: inline-block; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.2rem 0.55rem; border-radius: 999px; background: var(--amber-tint); color: #8A5A12; margin-right: 0.5rem; vertical-align: 0.12em; }
 
-.key { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem 1.6rem; padding: 1rem var(--gutter); border-top: 2px solid var(--ink); border-bottom: 2px solid var(--ink); font-size: 0.98rem; }
-.key .lettered { font-size: 1.15rem; letter-spacing: 0.06em; }
-.key span { display: inline-flex; align-items: center; gap: 0.5rem; }
-.key i { display: inline-block; width: 1.6rem; height: 1rem; background: var(--c); }
+.main-line { margin: 2.6rem 0 0; padding: 1rem 1.2rem; border-radius: var(--radius); background: var(--navy-2); border: 1px solid rgba(255, 255, 255, 0.08); font-weight: 600; }
+.main-line a { color: #FFFFFF; text-decoration: none; display: flex; gap: 0.8rem; align-items: baseline; }
+.main-line a:hover span { text-decoration: underline; }
+.main-line .label { flex: none; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #F0A3AE; }
 
-.main-line { margin: clamp(1.5rem, 4vh, 2.5rem) 0 0; padding-top: 1rem; border-top: 2px solid var(--ink); font-weight: 600; font-size: 1.1rem; }
-.main-line a { color: var(--ink); text-decoration-color: var(--crimson); }
-.main-line a:hover { color: var(--crimson); }
-.evidence { margin: 1.2rem 0 0; padding-top: 0.8rem; border-top: 2px solid var(--ink); font-size: 0.98rem; color: var(--ink-soft); max-width: 62ch; }
-.evidence strong { color: var(--ink); }
+/* Legend */
+.key { border-bottom: 1px solid var(--line); background: var(--surface); }
+.key .wrap { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem 1.6rem; padding-top: 0.9rem; padding-bottom: 0.9rem; font-size: 0.93rem; color: var(--ink-soft); }
+.key .eyebrow { margin: 0; }
+.key span { display: inline-flex; align-items: center; gap: 0.45rem; }
+.key i { display: inline-block; width: 0.85rem; height: 0.85rem; border-radius: 3px; background: var(--c); }
 
-/* The one ruled line through the beats */
-.beats { position: relative; }
-.beats::before {
-  content: ""; position: absolute; top: 0; bottom: 0; left: var(--line-x); width: var(--rule); background: var(--ink);
-}
-.beat { position: relative; padding: clamp(3rem, 8vh, 5.5rem) var(--gutter) clamp(3rem, 8vh, 5.5rem) calc(var(--line-x) + var(--gutter)); }
-.beat::before {
-  content: ""; position: absolute; left: calc(var(--line-x) - 0.6rem + var(--rule) / 2); top: clamp(3.3rem, 8.5vh, 5.9rem);
-  width: 1.2rem; height: 1.2rem; border-radius: 50%; background: var(--ink); border: var(--rule) solid var(--board);
-}
-.beat h2 { font-size: clamp(2.2rem, 5.2vw, 4.4rem); margin: 0 0 1.4rem; max-width: 18ch; }
-.beat h2.wide { max-width: 27ch; }
-.beat .lede { max-width: 62ch; margin: 0 0 2rem; font-size: 1.2rem; text-wrap: pretty; }
-.beat .lede em { font-style: italic; }
+/* Sections */
+.section { padding: clamp(3rem, 8vh, 5rem) 0; }
+.section.alt { background: var(--canvas); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.section-head { display: grid; gap: 0.2rem; margin-bottom: 1.8rem; max-width: 52rem; }
+.section-head .num { font-size: 0.8rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--blue); }
+.section h2 { margin: 0; font-size: clamp(1.6rem, 2.6vw, 2.15rem); line-height: 1.2; font-weight: 700; letter-spacing: -0.01em; text-wrap: balance; }
+.lede { max-width: 62ch; margin: 0 0 1.6rem; font-size: 1.1rem; text-wrap: pretty; }
 .pair { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2rem; align-items: start; }
-@media (min-width: 64rem) { .pair { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 3rem; } }
-.shot { margin: 0; border: var(--rule) solid var(--ink); background: #FFFFFF; max-width: 40rem; }
-.shot figcaption { font-size: 0.95rem; color: var(--ink-soft); padding: 0.6rem 0.8rem; border-top: 2px solid var(--ink); }
+@media (min-width: 64rem) { .pair { grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 3rem; } }
 
-/* Beat 2: the route from the question to the method */
-.route { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.7rem; }
-.route li { display: grid; grid-template-columns: 1fr; }
-.route .bar { min-width: max-content; }
-.route .bar {
-  font-family: var(--display); font-weight: 800; text-transform: uppercase; letter-spacing: 0.02em;
-  font-size: clamp(1.15rem, 1.8vw, 1.55rem); line-height: 1.05; padding: 0.55rem 0.75rem 0.45rem;
-}
-.route .label { font-size: 0.95rem; color: var(--ink-soft); padding: 0.25rem 0.1rem 0; }
-.bar.causal { background: var(--blue); color: #FFFFFF; width: 55%; }
-.bar.cutoff { background: var(--magenta); color: #FFFFFF; width: 70%; }
-.bar.form { background: var(--blue); color: #FFFFFF; width: 85%; }
-.bar.method { background: var(--ink); color: #FFFFFF; width: 100%; }
+.evidence { margin: 0; padding: 1rem 1.1rem; border-radius: var(--radius); background: var(--blue-tint); border: 1px solid #C9D2F3; font-size: 0.97rem; max-width: 62ch; }
+.evidence strong { display: block; margin-bottom: 0.2rem; }
 
-/* Beat 3: the main result, on an ink field */
-.result { position: relative; background: var(--ink); color: #FFFFFF; }
-.beats .result::after {
-  content: ""; position: absolute; top: 0; bottom: 0; left: var(--line-x); width: var(--rule); background: var(--board);
+.shot { margin: 0; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; max-width: 40rem; }
+.shot img { border-bottom: 1px solid var(--line); }
+.shot figcaption { font-size: 0.9rem; color: var(--ink-soft); padding: 0.7rem 0.9rem; }
+.shot.wide { max-width: none; margin-top: 2rem; }
+
+/* Route from the question to the method */
+.route { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; counter-reset: step; }
+.route li { position: relative; padding: 0 0 1.2rem 2.6rem; counter-increment: step; }
+.route li::before {
+  content: counter(step); position: absolute; left: 0; top: 0.05rem; width: 1.75rem; height: 1.75rem; border-radius: 999px;
+  display: inline-flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 700;
+  background: var(--surface); border: 1.5px solid var(--c, var(--blue)); color: var(--c, var(--blue));
 }
-.result .beat::before { background: var(--board); border-color: var(--ink); }
-.result a { color: #B9C6FF; }
-.result a:hover { color: #FFFFFF; }
-.result .shot { border-color: #FFFFFF; max-width: none; }
-.result .shot figcaption { color: #D7DCE6; border-top-color: #FFFFFF; background: var(--ink); }
-.chart { margin: 0 0 2.5rem; max-width: 60rem; }
-.chart h3.second { margin-top: 1.6rem; }
-.chart h3 { font-family: var(--display); font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; font-size: 1.05rem; margin: 0 0 0.8rem; color: #D7DCE6; }
-.row { display: grid; grid-template-columns: minmax(9rem, 15rem) 1fr; gap: 0.4rem 1rem; align-items: center; margin-bottom: 0.65rem; }
-.row .k { font-family: var(--display); font-weight: 800; text-transform: uppercase; letter-spacing: 0.03em; line-height: 1.05; font-size: 1.15rem; }
-.track { position: relative; height: 2.6rem; }
-.fill { position: absolute; inset: 0 auto 0 0; display: flex; align-items: center; padding: 0 0.7rem; font-family: var(--display); font-weight: 800; font-size: 1.25rem; white-space: nowrap; }
-.fill.truth { background: var(--green); color: var(--ink); width: 100%; }
-.fill.estimate { background: var(--crimson); color: #FFFFFF; width: 52.8%; }
-.fill.quiet { background: #FFFFFF; color: var(--ink); width: 85.8%; }
-.fill.cover { background: var(--green); color: var(--ink); width: 31.6%; }
-.fill.miss { background: var(--crimson); color: #FFFFFF; width: 68.4%; }
-.split { display: flex; height: 2.6rem; }
+.route li:not(:last-child)::after { content: ""; position: absolute; left: 0.86rem; top: 1.9rem; bottom: 0.15rem; width: 1.5px; background: var(--line-strong); }
+.route .bar { display: block; font-weight: 700; font-size: 1.08rem; line-height: 1.35; }
+.route .label { display: block; font-size: 0.95rem; color: var(--ink-soft); }
+.route li.cutoff { --c: var(--magenta); }
+.route li.method::before { background: var(--blue); color: #FFFFFF; }
+.route li.method .bar { color: var(--blue); }
+
+/* Main result: a figure card */
+.figure { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); padding: clamp(1.2rem, 3vw, 2rem); max-width: 60rem; }
+.figure .fig-title { margin: 0 0 1.4rem; font-size: 1rem; font-weight: 700; }
+.figure .fig-title span { color: var(--ink-soft); font-weight: 600; }
+.figure h3 { margin: 0 0 0.8rem; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); }
+.figure h3.second { margin-top: 1.6rem; }
+.frow { display: grid; grid-template-columns: minmax(9rem, 15rem) 1fr; gap: 0.3rem 1rem; align-items: center; margin-bottom: 0.6rem; }
+.frow .k { font-weight: 600; line-height: 1.3; font-size: 0.98rem; }
+.track { position: relative; height: 2.3rem; background: var(--canvas); border-radius: 5px; overflow: hidden; }
+.fill { position: absolute; inset: 0 auto 0 0; display: flex; align-items: center; padding: 0 0.7rem; font-weight: 700; font-size: 1rem; white-space: nowrap; }
+.fill.truth { background: var(--teal); color: #FFFFFF; width: 100%; }
+.fill.estimate { background: var(--red); color: #FFFFFF; width: 52.8%; }
+.fill.quiet { background: #5B6880; color: #FFFFFF; width: 85.8%; }
+.split { display: flex; height: 2.3rem; border-radius: 5px; overflow: hidden; }
 .split .fill { position: static; }
-.split .cover { width: 31.6%; }
-.split .miss { width: 68.4%; }
-.chart .note { font-size: 0.95rem; color: #D7DCE6; margin: 0.4rem 0 0; max-width: 62ch; }
-@media (max-width: 40rem) { .row { grid-template-columns: 1fr; } }
+.fill.cover { background: var(--teal); color: #FFFFFF; width: 31.6%; }
+.fill.miss { background: var(--red); color: #FFFFFF; width: 68.4%; }
+.figure .note { font-size: 0.9rem; color: var(--ink-soft); margin: 1.2rem 0 0; padding-top: 1rem; border-top: 1px solid var(--line); }
+@media (max-width: 40rem) { .frow { grid-template-columns: 1fr; } }
 
-/* Checked and limits */
-.checked { list-style: none; margin: 0; padding: 0; max-width: 68rem; }
-.checked > li { padding: 1.4rem 0; border-top: 2px solid var(--ink); display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.6rem 2.5rem; }
-@media (min-width: 56rem) { .checked > li { grid-template-columns: 16rem minmax(0, 1fr); } }
-.checked > li:last-child { border-bottom: 2px solid var(--ink); }
-.checked .what { font-family: var(--display); font-weight: 800; text-transform: uppercase; font-size: 1.5rem; line-height: 1; letter-spacing: 0.01em; }
+/* Film */
+.film { margin: 0; max-width: 64rem; border-radius: 12px; overflow: hidden; border: 1px solid var(--line); box-shadow: var(--shadow); background: var(--surface); }
+.film video { display: block; width: 100%; height: auto; background: var(--navy); }
+.film figcaption { font-size: 0.9rem; color: var(--ink-soft); padding: 0.75rem 1rem; border-top: 1px solid var(--line); }
+
+/* How it was checked */
+.checked { list-style: none; margin: 0; padding: 0; display: grid; gap: 1rem; max-width: 68rem; }
+.checked > li { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 1.3rem 1.4rem; display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.5rem 2.5rem; }
+@media (min-width: 56rem) { .checked > li { grid-template-columns: 14rem minmax(0, 1fr); } }
+.checked .what { font-weight: 700; font-size: 1.1rem; line-height: 1.3; }
 .checked p { margin: 0 0 0.6rem; max-width: 66ch; }
-table { border-collapse: collapse; margin: 0.4rem 0 0.8rem; font-size: 1rem; }
-th, td { text-align: left; white-space: nowrap; padding: 0.4rem 1.1rem 0.4rem 0; border-bottom: 1px solid #C9CFDA; vertical-align: top; }
-thead th { border-bottom: 2px solid var(--ink); font-weight: 700; }
-td.fails { color: var(--crimson); font-weight: 700; }
+.checked p:last-child { margin-bottom: 0; }
+table { border-collapse: collapse; margin: 0.4rem 0 0.9rem; font-size: 0.97rem; }
+th, td { text-align: left; white-space: nowrap; padding: 0.5rem 1.2rem 0.5rem 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+thead th { font-size: 0.8rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); border-bottom: 1.5px solid var(--line-strong); }
+td.num, th.num { text-align: right; }
+td.fails { color: var(--red); font-weight: 700; }
 .table-wrap { overflow-x: auto; }
 .v2-inline { display: none; }
 @media (max-width: 40rem) { .v2 { display: none; } .v2-inline { display: inline; } th, td { white-space: normal; } }
-.not { font-family: var(--display); font-weight: 800; font-size: clamp(1.6rem, 2.8vw, 2.4rem); line-height: 1.12; max-width: 30ch; margin: 0; text-wrap: balance; }
-.not-body { max-width: 62ch; margin: 1.2rem 0 0; }
-.film { margin: 0; max-width: 64rem; border: var(--rule) solid var(--ink); }
-.film video { display: block; width: 100%; height: auto; background: var(--ink); }
-.film figcaption { font-size: 0.95rem; color: var(--ink-soft); padding: 0.6rem 0.8rem; border-top: 2px solid var(--ink); }
+
+/* Limits */
+.limits { background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--blue); border-radius: var(--radius); padding: 1.5rem 1.6rem; max-width: 52rem; }
+.not { font-size: clamp(1.3rem, 2.2vw, 1.65rem); font-weight: 700; line-height: 1.3; margin: 0; text-wrap: balance; }
+.not-body { max-width: 62ch; margin: 0.9rem 0 0; color: var(--ink-soft); }
 .close { margin: 2rem 0 0; }
 
-footer { border-top: var(--rule) solid var(--ink); padding: 2rem var(--gutter) 3rem; display: grid; gap: 0.6rem; font-size: 1rem; }
-footer .name { font-size: 1.9rem; margin: 0 0 0.4rem; }
+footer { background: var(--navy); color: var(--on-navy-soft); padding: 2.4rem 0 3rem; font-size: 0.95rem; }
+footer .wrap { display: grid; gap: 0.5rem; }
+footer .brand { margin-bottom: 0.4rem; }
 footer p { margin: 0; max-width: 70ch; }
+footer a { color: var(--on-navy); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .word .w { animation: mark 700ms cubic-bezier(0.16, 1, 0.3, 1) both; animation-delay: var(--d, 0ms); }
+  @keyframes mark { from { background-color: transparent; box-shadow: none; } }
+}
 </style>
 </head>
 <body>
 
-<header class="topline">
-  <p class="name lettered">Causal Lab</p>
-  <p class="author">Thierry Z. Barhame · MSc project, ELTE</p>
-  <nav aria-label="Project links">
-    <a href="https://causal-lab-a-virtual-laboratory-for-causal-research-busavtyebb.streamlit.app">Try the app</a>
-    <a href="https://github.com/esst-prog2/CAUSAL-LAB-A-Virtual-Laboratory-for-Causal-Research">Source code</a>
-  </nav>
+<header class="masthead">
+  <div class="wrap">
+    <p class="brand"><span class="mark" aria-hidden="true"></span>Causal Lab</p>
+    <p class="author">Thierry Z. Barhame · MSc project, ELTE</p>
+    <nav aria-label="Project links">
+      <a href="https://causal-lab-a-virtual-laboratory-for-causal-research-busavtyebb.streamlit.app">Try the app</a>
+      <a href="https://github.com/esst-prog2/CAUSAL-LAB-A-Virtual-Laboratory-for-Causal-Research">Source code</a>
+      <a href="slides/">Slides</a>
+    </nav>
+  </div>
 </header>
 
 <main>
-  <section class="portrait" aria-labelledby="promise">
-    <h1 id="promise" class="promise lettered"><span class="k k1">Causal Lab reads your research question first,</span> <span class="k k2">picks a method only once you confirm,</span> <span class="k k3">and shows you where your design breaks.</span></h1>
+  <section class="hero" aria-labelledby="promise">
+    <div class="wrap">
+      <div class="grid">
+        <div>
+          <p class="eyebrow">A virtual laboratory for causal research</p>
+          <h1 id="promise" class="promise"><span class="k k1">Causal Lab reads your research question first,</span> <span class="k k2">picks a method only once you confirm,</span> <span class="k k3">and shows you where your design breaks.</span></h1>
+          <div class="action">
+            <a class="try" href="https://causal-lab-a-virtual-laboratory-for-causal-research-busavtyebb.streamlit.app">Try it</a>
+            <p class="for-whom">For students and researchers with a causal question who are about to choose a method.
+              <small>Free hosting: if the app is asleep, wake it and wait about half a minute.</small></p>
+          </div>
+        </div>
 
-    <div class="stage">
-      <div>
-      <p class="speaker">You type</p>
-      <p class="question lettered">
-        <span class="visually-hidden">Is smoking associated with lung cancer? Smoking and lung cancer: to confirm. Associated with: unclear.</span>
-        <span class="line" aria-hidden="true">
-          <span class="word"><span class="w">Is</span></span>
-          <span class="word field f-pink" style="--d: 0ms"><span class="w">smoking</span><span class="tag">To confirm</span></span>
-        </span>
-        <span class="line" aria-hidden="true">
-          <span class="word field f-gold" style="--d: 180ms"><span class="w">associated with</span><span class="tag">Unclear</span></span>
-          <span class="word field f-pink" style="--d: 360ms"><span class="w">lung cancer?</span><span class="tag">To confirm</span></span>
-        </span>
-      </p>
-      </div>
-      <div class="answer">
-        <p class="speaker">Causal Lab answers</p>
-        <p class="verdict lettered">No method yet. First: do you want a causal effect?</p>
-        <div class="action">
-          <a class="try" href="https://causal-lab-a-virtual-laboratory-for-causal-research-busavtyebb.streamlit.app">Try it</a>
-          <p class="for-whom">For students and researchers with a causal question who are about to choose a method.
-            <small>Free hosting: if the app is asleep, wake it and wait about half a minute.</small></p>
+        <div class="panel">
+          <div class="row-head"><span>You type</span><span>Research question</span></div>
+          <div class="body">
+            <p class="question">
+              <span class="visually-hidden">Is smoking associated with lung cancer? Smoking and lung cancer: to confirm. Associated with: unclear.</span>
+              <span class="word" aria-hidden="true"><span class="w">Is</span></span>
+              <span class="word confirm" aria-hidden="true" style="--d: 150ms"><span class="w">smoking</span><span class="tag">To confirm</span></span>
+              <span class="word unclear" aria-hidden="true" style="--d: 350ms"><span class="w">associated with</span><span class="tag">Unclear</span></span>
+              <span class="word confirm" aria-hidden="true" style="--d: 550ms"><span class="w">lung cancer?</span><span class="tag">To confirm</span></span>
+            </p>
+          </div>
+          <div class="answer">
+            <p class="eyebrow">Causal Lab answers</p>
+            <p class="verdict"><span class="status">No method yet</span>First: do you want a causal effect?</p>
+          </div>
         </div>
       </div>
+
+      <p class="main-line"><a href="#b3"><span class="label">Main result</span><span>On simulated worlds where its pre-trend test stays quiet, difference-in-differences misses the true effect 68.4% of the time&nbsp;↓</span></a></p>
     </div>
-    <p class="main-line"><a href="#b3">The main result: on simulated worlds where its pre-trend test stays quiet, difference-in-differences misses the true effect 68.4% of the time&nbsp;↓</a></p>
   </section>
 
   <div class="key" role="note" aria-label="Colour key">
-    <span class="lettered">Key</span>
-    <span><i style="--c: var(--pink)"></i>To confirm</span>
-    <span><i style="--c: var(--gold)"></i>Unclear</span>
-    <span><i style="--c: var(--blue)"></i>Confirmed, and the action</span>
-    <span><i style="--c: var(--magenta)"></i>A cutoff</span>
-    <span><i style="--c: var(--green)"></i>The true effect</span>
-    <span><i style="--c: var(--crimson)"></i>What fails</span>
+    <div class="wrap">
+      <p class="eyebrow">Key</p>
+      <span><i style="--c: #8A9BE0"></i>To confirm</span>
+      <span><i style="--c: #E0B04F"></i>Unclear</span>
+      <span><i style="--c: var(--blue)"></i>Confirmed, and the action</span>
+      <span><i style="--c: var(--magenta)"></i>A cutoff</span>
+      <span><i style="--c: var(--teal)"></i>The true effect</span>
+      <span><i style="--c: var(--red)"></i>What fails</span>
+    </div>
   </div>
 
-  <div class="beats">
-    <section class="beat" aria-labelledby="b1">
-      <h2 id="b1" class="lettered">It reads your question first.</h2>
+  <section class="section" aria-labelledby="b1">
+    <div class="wrap">
+      <div class="section-head"><span class="num">01 · The question</span><h2 id="b1">It reads your question first.</h2></div>
       <div class="pair">
-        <div><p class="lede">Type <em>Is smoking associated with lung cancer?</em> Causal Lab says the question is unclear, marks <em>smoking</em> and <em>lung cancer</em> “to confirm”, and asks whether you want a causal effect. It does not pick a method until it knows what you want to know.</p>
-        <p class="evidence"><strong>How well the question reader does</strong>, on frozen sets of published titles: precision 0.95 and recall 0.60 (fails its 0.70 target) on set 2; 1.00 and 0.83 on set 3, where version 2 scores 0.80; 0.96 and 0.86 on set 4, where version 2 scores 0.79. <a href="#checked">All four evaluations ↓</a></p>
+        <div>
+          <p class="lede">Type <em>Is smoking associated with lung cancer?</em> Causal Lab says the question is unclear, marks <em>smoking</em> and <em>lung cancer</em> “to confirm”, and asks whether you want a causal effect. It does not pick a method until it knows what you want to know.</p>
+          <p class="evidence"><strong>How well the question reader does</strong>On frozen sets of published titles: precision 0.95 and recall 0.60 (fails its 0.70 target) on set 2; 1.00 and 0.83 on set 3, where version 2 scores 0.80; 0.96 and 0.86 on set 4, where version 2 scores 0.79. <a href="#checked">All four evaluations ↓</a></p>
         </div>
         <figure class="shot">
           <a href="img/beat1-question.png"><img src="img/beat1-question.png" width="601" height="700" alt="The Research Question screen of the live app: What the question asks: unclear, based on the words 'associated with'. Treatment smoking and outcome lung cancer are marked 'to confirm'."></a>
           <figcaption>The live app, 13 November 2026, Research Question screen, cropped. <a href="img/beat1-question.png">Open full size</a>.</figcaption>
         </figure>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <section class="beat" aria-labelledby="b2">
-      <h2 id="b2" class="lettered">It picks a method only once you confirm.</h2>
+  <section class="section alt" aria-labelledby="b2">
+    <div class="wrap">
+      <div class="section-head"><span class="num">02 · The method</span><h2 id="b2">It picks a method only once you confirm.</h2></div>
       <div class="pair">
         <div>
           <p class="lede">Ask <em>What is the causal effect of receiving a scholarship on university enrollment among students whose entrance exam scores are near the scholarship eligibility cutoff?</em> It reads a causal effect, quotes the treatment and the outcome, and labels the cutoff as an inference, not a fact. Once you confirm the form, it recommends regression discontinuity and says why difference-in-differences would estimate something else.</p>
           <ol class="route" aria-label="From the question to the method">
-            <li><span class="bar causal">A causal effect is asked</span><span class="label">Stated: “the causal effect of receiving a scholarship on university enrollment”.</span></li>
-            <li><span class="bar cutoff">A cutoff decides who is treated</span><span class="label">Inferred from “near the scholarship eligibility cutoff”, and asked back to you.</span></li>
-            <li><span class="bar form">You confirm the form</span><span class="label">Before this, no method is recommended.</span></li>
-            <li><span class="bar method">Regression discontinuity</span><span class="label">A local effect at the cutoff. Difference-in-differences would estimate a different quantity (the ATT).</span></li>
+            <li><span class="bar">A causal effect is asked</span><span class="label">Stated: “the causal effect of receiving a scholarship on university enrollment”.</span></li>
+            <li class="cutoff"><span class="bar">A cutoff decides who is treated</span><span class="label">Inferred from “near the scholarship eligibility cutoff”, and asked back to you.</span></li>
+            <li><span class="bar">You confirm the form</span><span class="label">Before this, no method is recommended.</span></li>
+            <li class="method"><span class="bar">Regression discontinuity</span><span class="label">A local effect at the cutoff. Difference-in-differences would estimate a different quantity (the ATT).</span></li>
           </ol>
         </div>
         <figure class="shot">
@@ -282,40 +296,45 @@ footer p { margin: 0; max-width: 70ch; }
           <figcaption>The live app, 13 November 2026, Method Recommendation screen, cropped. <a href="img/beat2-method.png">Open full size</a>.</figcaption>
         </figure>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <section class="result" aria-labelledby="b3">
-      <div class="beat">
-        <h2 id="b3" class="lettered wide">The main result: difference-in-differences can fail while its test stays quiet.</h2>
-        <p class="lede">Difference-in-differences on 1,000 simulated worlds with a known effect of −0.50. With low diverging pre-trends, the estimate is off, on average, by 47% of the true effect (bias +0.236), and the 95% interval covers the truth in only 31.3% of all 1,000 worlds. The usual pre-trend test warns in just 14.2% of them. This is a known problem (<a href="https://doi.org/10.1257/aeri.20210236">Roth, 2022</a>); Causal Lab lets you watch it happen.</p>
+  <section class="section" aria-labelledby="b3">
+    <div class="wrap">
+      <div class="section-head"><span class="num">03 · The main result</span><h2 id="b3">Difference-in-differences can fail while its test stays quiet.</h2></div>
+      <p class="lede">Difference-in-differences on 1,000 simulated worlds with a known effect of −0.50. With low diverging pre-trends, the estimate is off, on average, by 47% of the true effect (bias +0.236), and the 95% interval covers the truth in only 31.3% of all 1,000 worlds. The usual pre-trend test warns in just 14.2% of them. This is a known problem (<a href="https://doi.org/10.1257/aeri.20210236">Roth, 2022</a>); Causal Lab lets you watch it happen.</p>
 
-        <div class="chart" role="img" aria-label="Average estimate against the true effect: the true effect is −0.50, the average estimate is −0.264. Of 1,000 worlds, 858 pass the pre-trend test; among them, 31.6% of intervals cover the truth and 68.4% miss it.">
-          <h3>Effect size: bar length is the size relative to the true effect</h3>
-          <div class="row"><span class="k">True effect</span><div class="track"><span class="fill truth">−0.50</span></div></div>
-          <div class="row"><span class="k">Average estimate</span><div class="track"><span class="fill estimate">−0.264</span></div></div>
-          <h3 class="second">Worlds: bar length is a share of worlds</h3>
-          <div class="row"><span class="k">Test stays quiet</span><div class="track"><span class="fill quiet">858 of 1,000 worlds</span></div></div>
-          <div class="row"><span class="k">In those 858 quiet worlds, the 95% interval</span><div class="split"><span class="fill cover">covers 31.6%</span><span class="fill miss">misses 68.4%</span></div></div>
-          <p class="note">Diverging pre-trends, low level, 1,000 simulated worlds. Both groups are drawn to scale: the first against the true effect; in the second, the top bar against all 1,000 worlds and the bottom bar against the 858 quiet ones (31.6% of them cover the truth; over all 1,000 worlds, 31.3% do). The average estimate is the mean of the 1,000 estimates. Source: the stored study, <a href="https://github.com/esst-prog2/CAUSAL-LAB-A-Virtual-Laboratory-for-Causal-Research/blob/main/docs/DEMO_DETAILS.md">DEMO_DETAILS.md</a> and <a href="https://github.com/esst-prog2/CAUSAL-LAB-A-Virtual-Laboratory-for-Causal-Research/blob/main/causal_lab/data/demo_study/results.json">results.json</a>.</p>
-        </div>
-
-        <figure class="shot">
-          <a href="img/beat3-study.png"><img src="img/beat3-study.png" width="1070" height="580" alt="The Guided Demo screen: table for diverging pre-trends by level. At low, bias +0.236, coverage 31.3%, the pre-trend test warns in 14.2% of worlds, and coverage when the test does not warn is 31.6% (n = 858). Below, a chart: coverage of the 95% interval falls from 94.9% to 0% as the violation grows, while the test's warning rate rises."></a>
-          <figcaption>Real run of Causal Lab, 13 November 2026, Guided Demo screen. <a href="img/beat3-study.png">Open full size</a>.</figcaption>
-        </figure>
+      <div class="figure" role="img" aria-label="Average estimate against the true effect: the true effect is −0.50, the average estimate is −0.264. Of 1,000 worlds, 858 pass the pre-trend test; among them, 31.6% of intervals cover the truth and 68.4% miss it.">
+        <p class="fig-title">Figure 1. <span>Diverging pre-trends, low level, 1,000 simulated worlds</span></p>
+        <h3>Effect size: bar length is the size relative to the true effect</h3>
+        <div class="frow"><span class="k">True effect</span><div class="track"><span class="fill truth">−0.50</span></div></div>
+        <div class="frow"><span class="k">Average estimate</span><div class="track"><span class="fill estimate">−0.264</span></div></div>
+        <h3 class="second">Worlds: bar length is a share of worlds</h3>
+        <div class="frow"><span class="k">Test stays quiet</span><div class="track"><span class="fill quiet">858 of 1,000 worlds</span></div></div>
+        <div class="frow"><span class="k">In those 858 quiet worlds, the 95% interval</span><div class="split"><span class="fill cover">covers 31.6%</span><span class="fill miss">misses 68.4%</span></div></div>
+        <p class="note">Both groups are drawn to scale: the first against the true effect; in the second, the top bar against all 1,000 worlds and the bottom bar against the 858 quiet ones (31.6% of them cover the truth; over all 1,000 worlds, 31.3% do). The average estimate is the mean of the 1,000 estimates. Source: the stored study, <a href="https://github.com/esst-prog2/CAUSAL-LAB-A-Virtual-Laboratory-for-Causal-Research/blob/main/docs/DEMO_DETAILS.md">DEMO_DETAILS.md</a> and <a href="https://github.com/esst-prog2/CAUSAL-LAB-A-Virtual-Laboratory-for-Causal-Research/blob/main/causal_lab/data/demo_study/results.json">results.json</a>.</p>
       </div>
-    </section>
 
-    <section class="beat" aria-labelledby="film">
-      <h2 id="film" class="lettered">In 30 seconds</h2>
+      <figure class="shot wide">
+        <a href="img/beat3-study.png"><img src="img/beat3-study.png" width="1070" height="580" alt="The Guided Demo screen: table for diverging pre-trends by level. At low, bias +0.236, coverage 31.3%, the pre-trend test warns in 14.2% of worlds, and coverage when the test does not warn is 31.6% (n = 858). Below, a chart: coverage of the 95% interval falls from 94.9% to 0% as the violation grows, while the test's warning rate rises."></a>
+        <figcaption>Real run of Causal Lab, 13 November 2026, Guided Demo screen. <a href="img/beat3-study.png">Open full size</a>.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="section alt" aria-labelledby="film">
+    <div class="wrap">
+      <div class="section-head"><span class="num">04 · The film</span><h2 id="film">In 30 seconds</h2></div>
       <figure class="film">
         <video src="video/causal-lab-30s.mp4" poster="video/poster.jpg" width="1920" height="1080" controls muted playsinline preload="metadata" aria-describedby="film-text"></video>
         <figcaption id="film-text">Silent, 30 seconds, made with HyperFrames from screens of the live app: it reads your question first; it picks a method only once you confirm; it shows you where your design breaks. Source of the film: <a href="https://github.com/esst-prog2/CAUSAL-LAB-A-Virtual-Laboratory-for-Causal-Research/tree/main/video">video/</a>.</figcaption>
       </figure>
-    </section>
+    </div>
+  </section>
 
-    <section class="beat" aria-labelledby="checked">
-      <h2 id="checked" class="lettered">How it was checked</h2>
+  <section class="section" aria-labelledby="checked">
+    <div class="wrap">
+      <div class="section-head"><span class="num">05 · Evidence</span><h2 id="checked">How it was checked</h2></div>
       <ul class="checked">
         <li>
           <span class="what">Tests</span>
@@ -331,12 +350,12 @@ footer p { margin: 0; max-width: 70ch; }
             <p>Four frozen evaluations on 230 published article titles, failures included. It never recommended a method from the question alone. Recall is the share of causal questions it reads as causal (target 0.70); precision is how often it is right when it says causal.</p>
             <div class="table-wrap">
               <table>
-                <thead><tr><th scope="col">Set</th><th scope="col">Version</th><th scope="col">Precision</th><th scope="col">Recall</th><th scope="col" class="v2">Version 2, same set</th></tr></thead>
+                <thead><tr><th scope="col">Set</th><th scope="col">Version</th><th scope="col" class="num">Precision</th><th scope="col" class="num">Recall</th><th scope="col" class="v2 num">Version 2, same set</th></tr></thead>
                 <tbody>
-                  <tr><td>1 (56 titles)</td><td>1</td><td>0.95</td><td class="fails">0.64, fails</td><td class="v2"></td></tr>
-                  <tr><td>2 (58 titles)</td><td>2</td><td>0.95</td><td class="fails">0.60, fails</td><td class="v2"></td></tr>
-                  <tr><td>3 (58 titles)</td><td>3</td><td>1.00</td><td>0.83<span class="v2-inline"> (v2 0.80)</span></td><td class="v2">0.80</td></tr>
-                  <tr><td>4 (58 titles)</td><td>3.1</td><td>0.96</td><td>0.86<span class="v2-inline"> (v2 0.79)</span></td><td class="v2">0.79</td></tr>
+                  <tr><td>1 (56 titles)</td><td>1</td><td class="num">0.95</td><td class="num fails">0.64, fails</td><td class="v2"></td></tr>
+                  <tr><td>2 (58 titles)</td><td>2</td><td class="num">0.95</td><td class="num fails">0.60, fails</td><td class="v2"></td></tr>
+                  <tr><td>3 (58 titles)</td><td>3</td><td class="num">1.00</td><td class="num">0.83<span class="v2-inline"> (v2 0.80)</span></td><td class="v2 num">0.80</td></tr>
+                  <tr><td>4 (58 titles)</td><td>3.1</td><td class="num">0.96</td><td class="num">0.86<span class="v2-inline"> (v2 0.79)</span></td><td class="v2 num">0.79</td></tr>
                 </tbody>
               </table>
             </div>
@@ -344,21 +363,27 @@ footer p { margin: 0; max-width: 70ch; }
           </div>
         </li>
       </ul>
-    </section>
+    </div>
+  </section>
 
-    <section class="beat" aria-labelledby="not">
-      <h2 id="not" class="lettered">What it is not</h2>
-      <p class="not">It helps you choose and understand a design. It does not establish causal identification.</p>
-      <p class="not-body">Identification rests on assumptions about the world that data can sometimes refute and never prove. Causal Lab tells you which assumptions your design needs, and shows what happens when they fail.</p>
+  <section class="section alt" aria-labelledby="not">
+    <div class="wrap">
+      <div class="section-head"><span class="num">06 · Limits</span><h2 id="not">What it is not</h2></div>
+      <div class="limits">
+        <p class="not">It helps you choose and understand a design. It does not establish causal identification.</p>
+        <p class="not-body">Identification rests on assumptions about the world that data can sometimes refute and never prove. Causal Lab tells you which assumptions your design needs, and shows what happens when they fail.</p>
+      </div>
       <p class="close"><a class="try" href="https://causal-lab-a-virtual-laboratory-for-causal-research-busavtyebb.streamlit.app">Try it</a></p>
-    </section>
-  </div>
+    </div>
+  </section>
 </main>
 
 <footer>
-  <p class="name lettered">Causal Lab</p>
-  <p>Thierry Z. Barhame · MSc Statistics and Data Analytics · Advanced Programming, ELTE, 2026 · <a href="https://github.com/esst-prog2/CAUSAL-LAB-A-Virtual-Laboratory-for-Causal-Research">Repository</a> · <a href="slides/">Slides</a></p>
-  <p>Visual language after W. E. B. Du Bois’s data portraits for the 1900 Paris Exposition. Fonts: Big Shoulders Display and Source Sans 3, under the SIL Open Font License.</p>
+  <div class="wrap">
+    <p class="brand"><span class="mark" aria-hidden="true"></span>Causal Lab</p>
+    <p>Thierry Z. Barhame · MSc Statistics and Data Analytics · Advanced Programming, ELTE, 2026 · <a href="https://github.com/esst-prog2/CAUSAL-LAB-A-Virtual-Laboratory-for-Causal-Research">Repository</a> · <a href="slides/">Slides</a></p>
+    <p>Palette and type shared with the Causal Lab app. Font: Source Sans 3, under the SIL Open Font License.</p>
+  </div>
 </footer>
 
 </body>
