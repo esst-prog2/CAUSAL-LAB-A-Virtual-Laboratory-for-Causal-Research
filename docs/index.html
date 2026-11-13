@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Causal Lab: it reads your research question before it picks a method</title>
+<meta name="description" content="Causal Lab reads your research question first, picks a method only once you confirm, and shows you where your design breaks. An MSc project, ELTE.">
+<style>
+@font-face { font-family: "Big Shoulders Display"; src: url("fonts/big-shoulders-display-latin.woff2") format("woff2"); font-weight: 100 900; font-display: swap; }
+@font-face { font-family: "Source Sans 3"; src: url("fonts/source-sans-3-latin.woff2") format("woff2"); font-weight: 200 900; font-style: normal; font-display: swap; }
+@font-face { font-family: "Source Sans 3"; src: url("fonts/source-sans-3-italic-latin.woff2") format("woff2"); font-weight: 200 900; font-style: italic; font-display: swap; }
+
+:root {
+  --ink: #1B2333;
+  --ink-soft: #3A4357;
+  --board: #FFFFFF;
+  --blue: #3451B2;     /* the action, and what is confirmed */
+  --gold: #F2B705;     /* unclear */
+  --pink: #F6C8D2;     /* to confirm */
+  --crimson: #D7263D;  /* failure, only */
+  --green: #2E9E83;    /* the true effect */
+  --magenta: #C2416B;  /* thresholds and dates */
+  --rule: 3px;
+  --display: "Big Shoulders Display", "Source Sans 3", sans-serif;
+  --body: "Source Sans 3", sans-serif;
+  --gutter: clamp(1.25rem, 4vw, 4rem);
+  --line-x: clamp(0.9rem, 2.2vw, 2.4rem);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { color-scheme: light; scrollbar-color: var(--ink) var(--board); -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--board); color: var(--ink);
+  font-family: var(--body); font-size: 1.125rem; line-height: 1.55;
+  font-variant-numeric: tabular-nums;
+}
+::selection { background: var(--gold); color: var(--ink); }
+a { color: var(--blue); text-decoration-thickness: 2px; text-underline-offset: 0.2em; }
+a:hover { color: var(--ink); }
+:focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; }
+img { display: block; max-width: 100%; height: auto; }
+
+.lettered {
+  font-family: var(--display); font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.01em; line-height: 0.95; text-wrap: balance;
+}
+
+/* Top line */
+.topline {
+  display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; align-items: baseline; justify-content: space-between;
+  padding: 1rem var(--gutter); border-bottom: var(--rule) solid var(--ink);
+}
+.topline .name { font-size: 1.6rem; margin: 0; }
+.topline nav { display: flex; gap: 1.25rem; font-weight: 600; }
+
+/* First viewport: the question as a data portrait */
+.portrait { padding: clamp(1.5rem, 4vh, 3rem) var(--gutter) clamp(2rem, 5vh, 3.5rem); }
+.promise { font-size: clamp(1.6rem, 2.9vw, 2.75rem); max-width: 34ch; margin: 0 0 clamp(1.5rem, 4vh, 2.75rem); }
+.stage { display: grid; grid-template-columns: minmax(0, 1fr); gap: clamp(1.5rem, 3vw, 3rem); align-items: end; }
+@media (min-width: 64rem) { .stage { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); } }
+.question { display: grid; gap: clamp(0.5rem, 1.4vh, 1rem); margin: 0; font-size: clamp(2.6rem, 6.4vw, 6rem); }
+.question .line { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0.4rem clamp(0.5rem, 1.2vw, 1rem); }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.answer { padding-bottom: 0.4rem; }
+.word { display: inline-flex; flex-direction: column; align-items: flex-start; }
+.word .w { position: relative; padding: 0.06em 0.14em 0.02em; z-index: 0; }
+.word.field .w::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; background: var(--field);
+  transform-origin: left center;
+}
+.word .tag {
+  font-family: var(--display); font-weight: 800; font-size: clamp(0.85rem, 1.25vw, 1.05rem);
+  letter-spacing: 0.08em; text-transform: uppercase; line-height: 1;
+  padding: 0.45rem 0.14rem 0; border-top: 2px solid var(--ink); margin-top: 0.35rem; width: 100%;
+}
+.f-pink { --field: var(--pink); }
+.f-gold { --field: var(--gold); }
+.verdict { margin: 0; font-size: clamp(1.6rem, 2.8vw, 2.6rem); max-width: 20ch; }
+.verdict span { color: var(--blue); }
+.action { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 2rem; margin-top: clamp(1.5rem, 4vh, 2.5rem); }
+.try {
+  display: inline-block; background: var(--blue); color: #FFFFFF; text-decoration: none;
+  font-family: var(--display); font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em;
+  font-size: 1.6rem; line-height: 1; padding: 0.85rem 1.6rem 0.75rem;
+  box-shadow: 0 6px 14px -6px rgba(27, 35, 51, 0.55);
+  transition: transform 160ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 160ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.try:hover { color: #FFFFFF; transform: translateY(-2px); box-shadow: 0 10px 20px -8px rgba(27, 35, 51, 0.6); }
+.try:active { transform: translateY(1px); box-shadow: 0 3px 8px -4px rgba(27, 35, 51, 0.6); }
+.for-whom { margin: 0; max-width: 46ch; }
+.for-whom small { display: block; color: var(--ink-soft); font-size: 0.95rem; margin-top: 0.3rem; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .word.field .w::before { animation: lay 900ms cubic-bezier(0.16, 1, 0.3, 1) both; animation-delay: var(--d, 0ms); }
+  .word .tag { animation: settle 700ms cubic-bezier(0.16, 1, 0.3, 1) both; animation-delay: calc(var(--d, 0ms) + 450ms); }
+  @keyframes lay { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+  @keyframes settle { from { transform: translateY(-0.4rem); opacity: 0.35; } to { transform: none; opacity: 1; } }
+}
+
+/* The one ruled line through the beats */
+.beats { position: relative; }
+.beats::before {
+  content: ""; position: absolute; top: 0; bottom: 0; left: var(--line-x); width: var(--rule); background: var(--ink);
+}
+.beat { position: relative; padding: clamp(3rem, 8vh, 5.5rem) var(--gutter) clamp(3rem, 8vh, 5.5rem) calc(var(--line-x) + var(--gutter)); }
+.beat::before {
+  content: ""; position: absolute; left: calc(var(--line-x) - 0.6rem + var(--rule) / 2); top: clamp(3.3rem, 8.5vh, 5.9rem);
+  width: 1.2rem; height: 1.2rem; border-radius: 50%; background: var(--ink); border: var(--rule) solid var(--board);
+}
+.beat h2 { font-size: clamp(2.2rem, 5.2vw, 4.4rem); margin: 0 0 1.4rem; max-width: 18ch; }
+.beat .lede { max-width: 62ch; margin: 0 0 2rem; font-size: 1.2rem; }
+.beat .lede em { font-style: italic; }
+.pair { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2rem; align-items: start; }
+@media (min-width: 64rem) { .pair { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 3rem; } }
+.shot { margin: 0; border: var(--rule) solid var(--ink); background: #FFFFFF; }
+.shot figcaption { font-size: 0.95rem; color: var(--ink-soft); padding: 0.6rem 0.8rem; border-top: 2px solid var(--ink); }
+
+/* Beat 2: the route from the question to the method */
+.route { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.7rem; }
+.route li { display: grid; grid-template-columns: 1fr; }
+.route .bar {
+  font-family: var(--display); font-weight: 800; text-transform: uppercase; letter-spacing: 0.02em;
+  font-size: clamp(1.15rem, 1.8vw, 1.55rem); line-height: 1.05; padding: 0.55rem 0.75rem 0.45rem;
+}
+.route .label { font-size: 0.95rem; color: var(--ink-soft); padding: 0.25rem 0.1rem 0; }
+.bar.causal { background: var(--blue); color: #FFFFFF; width: 92%; }
+.bar.cutoff { background: var(--magenta); color: #FFFFFF; width: 70%; }
+.bar.form { background: var(--blue); color: #FFFFFF; width: 82%; }
+.bar.method { background: var(--ink); color: #FFFFFF; width: 100%; }
+
+/* Beat 3: the main result, on an ink field */
+.result { position: relative; background: var(--ink); color: #FFFFFF; }
+.beats .result::after {
+  content: ""; position: absolute; top: 0; bottom: 0; left: var(--line-x); width: var(--rule); background: var(--board);
+}
+.result .beat::before { background: var(--board); border-color: var(--ink); }
+.result a { color: #B9C6FF; }
+.result a:hover { color: #FFFFFF; }
+.result .shot { border-color: #FFFFFF; }
+.result .shot figcaption { color: #D7DCE6; border-top-color: #FFFFFF; background: var(--ink); }
+.chart { margin: 0 0 2.5rem; max-width: 60rem; }
+.chart h3 { font-family: var(--display); font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; font-size: 1.05rem; margin: 0 0 0.8rem; color: #D7DCE6; }
+.row { display: grid; grid-template-columns: minmax(9rem, 15rem) 1fr; gap: 0.4rem 1rem; align-items: center; margin-bottom: 0.65rem; }
+.row .k { font-family: var(--display); font-weight: 800; text-transform: uppercase; letter-spacing: 0.03em; line-height: 1.05; font-size: 1.15rem; }
+.track { position: relative; height: 2.6rem; }
+.fill { position: absolute; inset: 0 auto 0 0; display: flex; align-items: center; padding: 0 0.7rem; font-family: var(--display); font-weight: 800; font-size: 1.25rem; white-space: nowrap; }
+.fill.truth { background: var(--green); color: var(--ink); width: 100%; }
+.fill.estimate { background: var(--crimson); color: #FFFFFF; width: 52.8%; }
+.fill.quiet { background: #FFFFFF; color: var(--ink); width: 85.8%; }
+.fill.cover { background: var(--green); color: var(--ink); width: 31.6%; }
+.fill.miss { background: var(--crimson); color: #FFFFFF; width: 68.4%; }
+.split { display: flex; height: 2.6rem; }
+.split .fill { position: static; }
+.split .cover { width: 31.6%; }
+.split .miss { width: 68.4%; }
+.chart .note { font-size: 0.95rem; color: #D7DCE6; margin: 0.4rem 0 0; max-width: 62ch; }
+@media (max-width: 40rem) { .row { grid-template-columns: 1fr; } }
+
+/* Checked and limits */
+.checked { list-style: none; margin: 0; padding: 0; max-width: 68rem; }
+.checked > li { padding: 1.4rem 0; border-top: 2px solid var(--ink); display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.6rem 2.5rem; }
+@media (min-width: 56rem) { .checked > li { grid-template-columns: 16rem minmax(0, 1fr); } }
+.checked > li:last-child { border-bottom: 2px solid var(--ink); }
+.checked .what { font-family: var(--display); font-weight: 800; text-transform: uppercase; font-size: 1.5rem; line-height: 1; letter-spacing: 0.01em; }
+.checked p { margin: 0 0 0.6rem; max-width: 66ch; }
+table { border-collapse: collapse; margin: 0.4rem 0 0.8rem; font-size: 1rem; }
+th, td { text-align: left; white-space: nowrap; padding: 0.4rem 1.1rem 0.4rem 0; border-bottom: 1px solid #C9CFDA; vertical-align: top; }
+thead th { border-bottom: 2px solid var(--ink); font-weight: 700; }
+td.fails { color: var(--crimson); font-weight: 700; }
+.table-wrap { overflow-x: auto; }
+.not { font-family: var(--display); font-weight: 800; font-size: clamp(1.6rem, 2.8vw, 2.4rem); line-height: 1.12; max-width: 30ch; margin: 0; text-wrap: balance; }
+.not-body { max-width: 62ch; margin: 1.2rem 0 0; }
+
+footer { border-top: var(--rule) solid var(--ink); padding: 2rem var(--gutter) 3rem; display: grid; gap: 0.6rem; font-size: 1rem; }
+footer .name { font-size: 1.9rem; margin: 0 0 0.4rem; }
+footer p { margin: 0; max-width: 70ch; }
+</style>
+</head>
+<body>
+
+<header class="topline">
+  <p class="name lettered">Causal Lab</p>
+  <nav aria-label="Project links">
+    <a href="https://causal-lab-a-virtual-laboratory-for-causal-research-busavtyebb.streamlit.app">The app</a>
+    <a href="https://github.com/esst-prog2/CAUSAL-LAB-A-Virtual-Laboratory-for-Causal-Research">Source code</a>
+  </nav>
+</header>
+
+<main>
+  <section class="portrait" aria-labelledby="promise">
+    <h1 id="promise" class="promise lettered">Causal Lab reads your research question first, picks a method only once you confirm, and shows you where your design breaks.</h1>
+
+    <div class="stage">
+      <p class="question lettered">
+        <span class="visually-hidden">Is smoking associated with lung cancer? Smoking and lung cancer: to confirm. Associated with: unclear.</span>
+        <span class="line" aria-hidden="true">
+          <span class="word"><span class="w">Is</span></span>
+          <span class="word field f-pink" style="--d: 0ms"><span class="w">smoking</span><span class="tag">To confirm</span></span>
+        </span>
+        <span class="line" aria-hidden="true">
+          <span class="word field f-gold" style="--d: 180ms"><span class="w">associated with</span><span class="tag">Unclear</span></span>
+        </span>
+        <span class="line" aria-hidden="true">
+          <span class="word field f-pink" style="--d: 360ms"><span class="w">lung cancer?</span><span class="tag">To confirm</span></span>
+        </span>
+      </p>
+      <div class="answer">
+        <p class="verdict lettered">No method yet. <span>First: do you want a causal effect?</span></p>
+        <div class="action">
+          <a class="try" href="https://causal-lab-a-virtual-laboratory-for-causal-research-busavtyebb.streamlit.app">Try it</a>
+          <p class="for-whom">For students and researchers with a causal question who are about to choose a method.
+            <small>Free hosting: if the app is asleep, wake it and wait about half a minute.</small></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="beats">
+    <section class="beat" aria-labelledby="b1">
+      <h2 id="b1" class="lettered">It reads your question first.</h2>
+      <div class="pair">
+        <p class="lede">Type <em>Is smoking associated with lung cancer?</em> Causal Lab says the question is unclear, marks <em>smoking</em> and <em>lung cancer</em> “to confirm”, and asks whether you want a causal effect. It does not pick a method until it knows what you want to know.</p>
+        <figure class="shot">
+          <img src="img/beat1-question.png" width="980" height="866" alt="The Research Question screen of Causal Lab: What the question asks: unclear, based on the words 'associated with'. Treatment smoking and outcome lung cancer are marked 'to confirm'; population, comparison, estimand, assignment and data are unknown. A note says a method cannot be chosen before it is settled whether a causal effect is asked for.">
+          <figcaption>Screenshot from a real run of Causal Lab, Research Question screen.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="beat" aria-labelledby="b2">
+      <h2 id="b2" class="lettered">It picks a method only once you confirm.</h2>
+      <div class="pair">
+        <div>
+          <p class="lede">Ask <em>What is the causal effect of receiving a scholarship on university enrollment among students whose entrance exam scores are near the scholarship eligibility cutoff?</em> It reads a causal effect, quotes the treatment and the outcome, and labels the cutoff as an inference, not a fact. Once you confirm the form, it recommends regression discontinuity and says why difference-in-differences would estimate something else.</p>
+          <ol class="route" aria-label="From the question to the method">
+            <li><span class="bar causal">A causal effect is asked</span><span class="label">Stated: “the causal effect of receiving a scholarship on university enrollment”.</span></li>
+            <li><span class="bar cutoff">A cutoff decides who is treated</span><span class="label">Inferred from “near the scholarship eligibility cutoff”, and asked back to you.</span></li>
+            <li><span class="bar form">You confirm the form</span><span class="label">Before this, no method is recommended.</span></li>
+            <li><span class="bar method">Regression discontinuity</span><span class="label">A local effect at the cutoff. Difference-in-differences would estimate a different quantity (the ATT).</span></li>
+          </ol>
+        </div>
+        <figure class="shot">
+          <img src="img/beat2-method.png" width="1010" height="560" alt="The Method Recommendation screen: Recommended method: Regression Discontinuity, for the effect of receiving a scholarship on university enrollment near the eligibility cutoff, with the causal estimand, why it fits, the identification strategy, key assumptions, and threats and diagnostics.">
+          <figcaption>Screenshot from a real run of Causal Lab, Method Recommendation screen.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="result" aria-labelledby="b3">
+      <div class="beat">
+        <h2 id="b3" class="lettered">The main result: difference-in-differences can fail while its test stays quiet.</h2>
+        <p class="lede">Difference-in-differences on 1,000 simulated worlds with a known effect of −0.50. With low diverging pre-trends, the estimate is off, on average, by 47% of the true effect (bias +0.236), and the 95% interval covers the truth in only 31.3% of worlds. The usual pre-trend test warns in just 14.2% of them. This is a known problem (<a href="https://doi.org/10.1257/aeri.20210236">Roth, 2022</a>); Causal Lab lets you watch it happen.</p>
+
+        <div class="chart" role="img" aria-label="Average estimate against the true effect: the true effect is −0.50, the average estimate is −0.264. Of 1,000 worlds, 858 pass the pre-trend test; among them, 31.6% of intervals cover the truth and 68.4% miss it.">
+          <h3>Diverging pre-trends, low level, 1,000 worlds</h3>
+          <div class="row"><span class="k">True effect</span><div class="track"><span class="fill truth">−0.50</span></div></div>
+          <div class="row"><span class="k">Average estimate</span><div class="track"><span class="fill estimate">−0.264</span></div></div>
+          <div class="row"><span class="k">Test stays quiet</span><div class="track"><span class="fill quiet">858 of 1,000 worlds</span></div></div>
+          <div class="row"><span class="k">Of those, the interval…</span><div class="split"><span class="fill cover">covers 31.6%</span><span class="fill miss">misses 68.4%</span></div></div>
+          <p class="note">Bars drawn to scale: the estimate’s length is its size relative to the true effect. Source: the stored study, <a href="https://github.com/esst-prog2/CAUSAL-LAB-A-Virtual-Laboratory-for-Causal-Research/blob/main/docs/DEMO_DETAILS.md">DEMO_DETAILS.md</a> and <a href="https://github.com/esst-prog2/CAUSAL-LAB-A-Virtual-Laboratory-for-Causal-Research/blob/main/causal_lab/data/demo_study/results.json">results.json</a>.</p>
+        </div>
+
+        <figure class="shot">
+          <img src="img/beat3-study.png" width="1010" height="580" alt="The Guided Demo screen: table for diverging pre-trends by level. At low, bias +0.236, coverage 31.3%, the pre-trend test warns in 14.2% of worlds, and coverage when the test does not warn is 31.6% (n = 858). Below, a chart: coverage of the 95% interval falls from 94.9% to 0% as the violation grows, while the test's warning rate rises.">
+          <figcaption>Screenshot from a real run of Causal Lab, Guided Demo screen.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="beat" aria-labelledby="checked">
+      <h2 id="checked" class="lettered">How it was checked</h2>
+      <ul class="checked">
+        <li>
+          <span class="what">Tests</span>
+          <div><p>The full test suite runs on every push and pull request, with the newest and the oldest supported versions of its dependencies (<a href="https://github.com/esst-prog2/CAUSAL-LAB-A-Virtual-Laboratory-for-Causal-Research/tree/main/.github/workflows">GitHub Actions</a>).</p></div>
+        </li>
+        <li>
+          <span class="what">The simulation study</span>
+          <div><p>Four threats × five levels × 1,000 worlds, every replication stored with its seed. Difference-in-differences is judged acceptable when its bias is at most 10% of the true effect and its 95% interval covers the truth in at least 90% of worlds. That rule was fixed on 2026-10-30, after the pre-trends results were seen and before the three other threats were simulated (<a href="https://github.com/esst-prog2/CAUSAL-LAB-A-Virtual-Laboratory-for-Causal-Research/blob/main/docs/DEMO_DETAILS.md">details</a>).</p></div>
+        </li>
+        <li>
+          <span class="what">The question reader</span>
+          <div>
+            <p>Four frozen evaluations on 230 published article titles, failures included. It never recommended a method from the question alone. Recall is the share of causal questions it reads as causal (target 0.70); precision is how often it is right when it says causal.</p>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th scope="col">Set</th><th scope="col">Version</th><th scope="col">Precision</th><th scope="col">Recall</th><th scope="col">Version 2, same set</th></tr></thead>
+                <tbody>
+                  <tr><td>1 (56 titles)</td><td>1</td><td>0.95</td><td class="fails">0.64, fails</td><td></td></tr>
+                  <tr><td>2 (58 titles)</td><td>2</td><td>0.95</td><td class="fails">0.60, fails</td><td></td></tr>
+                  <tr><td>3 (58 titles)</td><td>3</td><td>1.00</td><td>0.83</td><td>0.80</td></tr>
+                  <tr><td>4 (58 titles)</td><td>3.1</td><td>0.96</td><td>0.86</td><td>0.79</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p>Most of the later gain is the set, not the code: version 2 scores 0.80 and 0.79 on the last two sets. The labels come from one rater. <a href="https://github.com/esst-prog2/CAUSAL-LAB-A-Virtual-Laboratory-for-Causal-Research/tree/main/docs/evaluation">All four reports</a>.</p>
+          </div>
+        </li>
+      </ul>
+    </section>
+
+    <section class="beat" aria-labelledby="not">
+      <h2 id="not" class="lettered">What it is not</h2>
+      <p class="not">It helps you choose and understand a design. It does not establish causal identification.</p>
+      <p class="not-body">Identification rests on assumptions about the world that data can sometimes refute and never prove. Causal Lab tells you which assumptions your design needs, and shows what happens when they fail.</p>
+    </section>
+  </div>
+</main>
+
+<footer>
+  <p class="name lettered">Causal Lab</p>
+  <p>Thierry Z. Barhame · MSc Statistics and Data Analytics · Advanced Programming, ELTE, 2026 · <a href="https://github.com/esst-prog2/CAUSAL-LAB-A-Virtual-Laboratory-for-Causal-Research">Repository</a></p>
+  <p>Visual language after W. E. B. Du Bois’s data portraits for the 1900 Paris Exposition. Fonts: Big Shoulders Display and Source Sans 3, under the SIL Open Font License.</p>
+</footer>
+
+</body>
+</html>
