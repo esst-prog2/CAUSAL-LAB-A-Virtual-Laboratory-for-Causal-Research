@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Causal Lab: five slides</title>
+<link rel="stylesheet" href="reveal/reveal.css">
+<style>
+@font-face { font-family: "Big Shoulders Display"; src: url("../fonts/big-shoulders-display-latin.woff2") format("woff2"); font-weight: 100 900; font-display: swap; }
+@font-face { font-family: "Source Sans 3"; src: url("../fonts/source-sans-3-latin.woff2") format("woff2"); font-weight: 200 900; font-display: swap; }
+@font-face { font-family: "Source Sans 3"; src: url("../fonts/source-sans-3-italic-latin.woff2") format("woff2"); font-weight: 200 900; font-style: italic; font-display: swap; }
+
+:root {
+  --ink: #1B2333; --ink-soft: #3A4357; --board: #FFFFFF;
+  --blue: #3451B2; --gold: #F2B705; --pink: #F6C8D2;
+  --crimson: #D7263D; --green: #2E9E83; --magenta: #C2416B;
+  --display: "Big Shoulders Display", "Source Sans 3", sans-serif;
+  --body: "Source Sans 3", sans-serif;
+}
+html, body { background: var(--board); }
+.reveal { font-family: var(--body); font-size: 30px; color: var(--ink); font-variant-numeric: tabular-nums; }
+.reveal .slides { text-align: left; }
+.reveal .slides section { height: 100%; padding: 0; box-sizing: border-box; }
+.reveal ::selection { background: var(--gold); color: var(--ink); }
+.reveal a { color: var(--blue); text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 0.18em; }
+.reveal h1, .reveal h2 {
+  font-family: var(--display); font-weight: 800; text-transform: uppercase; line-height: 0.95;
+  letter-spacing: 0.01em; margin: 0 0 0.5em; text-wrap: balance; color: var(--ink);
+}
+.reveal h1 { font-size: 2.6em; }
+.reveal h2 { font-size: 1.9em; }
+.reveal p { margin: 0 0 0.6em; line-height: 1.4; }
+.lab { font-family: var(--display); font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.62em; color: var(--ink-soft); margin: 0 0 0.3em; }
+.rule { border-top: 3px solid var(--ink); padding-top: 0.5em; }
+.small { font-size: 0.6em; color: var(--ink-soft); }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2em; align-items: start; }
+.shot { margin: 0; border: 3px solid var(--ink); }
+.shot img { display: block; width: 100%; height: auto; margin: 0; }
+.shot figcaption { font-size: 0.5em; color: var(--ink-soft); padding: 0.35em 0.5em; border-top: 2px solid var(--ink); }
+
+/* slide 1 */
+.portrait { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0.25em 0.35em; font-family: var(--display); font-weight: 800; text-transform: uppercase; font-size: 1.9em; line-height: 0.95; margin: 0.4em 0 0.2em; }
+.word { display: inline-flex; flex-direction: column; }
+.word .w { padding: 0.05em 0.12em 0.01em; }
+.word .tag { font-size: 0.32em; letter-spacing: 0.08em; border-top: 2px solid var(--ink); margin-top: 0.25em; padding-top: 0.3em; }
+.f-pink .w { background: var(--pink); }
+.f-gold .w { background: var(--gold); }
+
+/* slide 3: the known answer */
+.ink { background: var(--ink); color: #FFFFFF; height: 100%; padding: 0.9em 1.1em; box-sizing: border-box; }
+.ink h2 { color: #FFFFFF; }
+.ink .lab, .ink .small { color: #D7DCE6; }
+.ink a { color: #B9C6FF; }
+.row { display: grid; grid-template-columns: 8.5em 1fr; gap: 0.6em; align-items: center; margin: 0 0 0.35em; }
+.row .k { font-family: var(--display); font-weight: 800; text-transform: uppercase; font-size: 0.72em; letter-spacing: 0.02em; line-height: 1.05; }
+.track { height: 1.35em; position: relative; }
+.fill { position: absolute; inset: 0 auto 0 0; display: flex; align-items: center; padding: 0 0.4em; font-family: var(--display); font-weight: 800; font-size: 0.8em; white-space: nowrap; }
+.truth { background: var(--green); color: var(--ink); width: 100%; }
+.est-ok { background: #FFFFFF; color: var(--ink); width: 100.8%; }
+.est-bad { background: var(--crimson); color: #FFFFFF; width: 52.8%; }
+.cov-ok { background: var(--green); color: var(--ink); width: 94.9%; }
+.cov-bad { background: var(--crimson); color: #FFFFFF; width: 31.3%; }
+.warn { background: #FFFFFF; color: var(--ink); width: 14.2%; }
+.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 1.4em; }
+.cols h3 { font-family: var(--display); font-weight: 800; text-transform: uppercase; font-size: 0.85em; letter-spacing: 0.04em; margin: 0 0 0.5em; color: #FFFFFF; border-bottom: 2px solid #FFFFFF; padding-bottom: 0.2em; }
+
+/* slide 4 */
+.table { border-collapse: collapse; font-size: 0.72em; margin: 0.3em 0 0.6em; }
+.table th, .table td { text-align: left; padding: 0.25em 1em 0.25em 0; border-bottom: 1px solid #C9CFDA; }
+.table thead th { border-bottom: 2px solid var(--ink); }
+.fails { color: var(--crimson); font-weight: 700; }
+
+/* slide 5 */
+.next { list-style: none; margin: 0; padding: 0; }
+.next li { border-top: 2px solid var(--ink); padding: 0.45em 0; display: grid; grid-template-columns: 9em 1fr; gap: 1em; }
+.next li:last-child { border-bottom: 2px solid var(--ink); }
+.next .what { font-family: var(--display); font-weight: 800; text-transform: uppercase; font-size: 0.85em; line-height: 1; }
+
+.reveal .progress { color: var(--crimson); height: 4px; }
+.reveal .controls { color: var(--ink); }
+.reveal .slide-number { background: transparent; color: var(--ink-soft); font-family: var(--body); font-size: 16px; }
+</style>
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+
+  <!-- 1. Who it is for, and why -->
+  <section>
+    <p class="lab">Thierry Z. Barhame · MSc Statistics and Data Analytics · Advanced Programming, ELTE</p>
+    <h1>Causal Lab reads your research question before it picks a method</h1>
+    <div class="portrait" aria-label="Is smoking associated with lung cancer? Smoking and lung cancer: to confirm. Associated with: unclear.">
+      <span class="word"><span class="w">Is</span></span>
+      <span class="word f-pink"><span class="w">smoking</span><span class="tag">To confirm</span></span>
+      <span class="word f-gold"><span class="w">associated with</span><span class="tag">Unclear</span></span>
+      <span class="word f-pink"><span class="w">lung cancer?</span><span class="tag">To confirm</span></span>
+    </div>
+    <p class="rule"><strong>For</strong> students and researchers with a causal question who are about to choose a method.<br>
+      <strong>Why:</strong> a form alone gave answers that ignored the question. On 2026-11-01 a question about a scholarship cutoff got difference-in-differences.</p>
+    <p class="small">Source of the 2026-11-01 case: docs/defense/DEFENSE_GUIDE.md.</p>
+  </section>
+
+  <!-- 2. The demo: what goes in, what comes out -->
+  <section>
+    <h2>In: a question. Out: a method, only once it is clear.</h2>
+    <div class="grid2">
+      <div>
+        <p class="lab">In: “Is smoking associated with lung cancer?”</p>
+        <figure class="shot">
+          <img src="../img/beat1-question.png" width="980" height="671" alt="Research Question screen: unclear, smoking and lung cancer to confirm, no method.">
+          <figcaption>Real run, 13 Nov 2026. Out: unclear, both terms “to confirm”, no method.</figcaption>
+        </figure>
+      </div>
+      <div>
+        <p class="lab">In: the effect of a scholarship near its eligibility cutoff, form confirmed</p>
+        <figure class="shot">
+          <img src="../img/beat2-method.png" width="660" height="236" alt="Method Recommendation screen: Regression Discontinuity, local average treatment effect at the cutoff.">
+          <figcaption>Real run, 13 Nov 2026. Out: regression discontinuity; difference-in-differences would estimate the ATT, another quantity.</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. Why it works: a known answer -->
+  <section>
+    <div class="ink">
+      <h2>The check: 1,000 worlds where I know the answer</h2>
+      <p class="lab">True effect −0.50 · difference-in-differences · diverging pre-trends</p>
+      <div class="cols">
+        <div>
+          <h3>Parallel trends hold</h3>
+          <div class="row"><span class="k">True effect</span><div class="track"><span class="fill truth">−0.50</span></div></div>
+          <div class="row"><span class="k">Average estimate</span><div class="track"><span class="fill est-ok">−0.504</span></div></div>
+          <div class="row"><span class="k">95% interval covers</span><div class="track"><span class="fill cov-ok">94.9%</span></div></div>
+        </div>
+        <div>
+          <h3>Low divergence</h3>
+          <div class="row"><span class="k">True effect</span><div class="track"><span class="fill truth">−0.50</span></div></div>
+          <div class="row"><span class="k">Average estimate</span><div class="track"><span class="fill est-bad">−0.264</span></div></div>
+          <div class="row"><span class="k">95% interval covers</span><div class="track"><span class="fill cov-bad">31.3%</span></div></div>
+          <div class="row"><span class="k">Pre-trend test warns</span><div class="track"><span class="fill warn">14.2%</span></div></div>
+        </div>
+      </div>
+      <p>The method works when it should, and fails by 47% of the effect while its usual test stays quiet in 858 of 1,000 worlds. The rule (at most 10% bias, at least 90% coverage) was fixed after the pre-trends run, before the three other threats.</p>
+      <p class="small">Bars to scale. Source: docs/DEMO_DETAILS.md and causal_lab/data/demo_study/results.json; a known problem (Roth, 2022).</p>
+    </div>
+  </section>
+
+  <!-- 4. What I learned -->
+  <section>
+    <h2>What I learned: a better score was not a better tool</h2>
+    <p>The agent improved the question reader and it passed its recall target on a new set. Running the old version on that same set showed most of the gain was the set, not the code.</p>
+    <table class="table">
+      <thead><tr><th>Set</th><th>Version</th><th>Precision</th><th>Recall (target 0.70)</th><th>Version 2, same set</th></tr></thead>
+      <tbody>
+        <tr><td>2</td><td>2</td><td>0.95</td><td class="fails">0.60, fails</td><td></td></tr>
+        <tr><td>3</td><td>3</td><td>1.00</td><td>0.83</td><td>0.80</td></tr>
+        <tr><td>4</td><td>3.1</td><td>0.96</td><td>0.86</td><td>0.79</td></tr>
+      </tbody>
+    </table>
+    <p class="rule">So every evaluation set is frozen by hash before its single run, and no number is reported alone.</p>
+    <p class="small">Source: docs/evaluation/v3/REPORT.md and docs/evaluation/v4/REPORT.md (commits 9880fcb, 14b3db1).</p>
+  </section>
+
+  <!-- 5. What's next -->
+  <section>
+    <h2>What’s next</h2>
+    <ul class="next">
+      <li><span class="what">A second rater</span><span>Every label of the four evaluation sets comes from one rater. A classmate fills the blank sheet; then a kappa.</span></li>
+      <li><span class="what">Real questions</span><span>No question written by a student has been tested yet, and French is not evaluated.</span></li>
+      <li><span class="what">Assignment thresholds</span><span>None of the 230 published titles described one, so how well the app finds them is not measured.</span></li>
+      <li><span class="what">Heterogeneity</span><span>Effects that differ across units: whether the study should cover them is still an open question to the teacher.</span></li>
+    </ul>
+    <p class="small" style="margin-top:0.8em">Try it: causal-lab-a-virtual-laboratory-for-causal-research-busavtyebb.streamlit.app · Page: esst-prog2.github.io/CAUSAL-LAB-A-Virtual-Laboratory-for-Causal-Research</p>
+  </section>
+
+</div>
+</div>
+<script src="reveal/reveal.js"></script>
+<script>
+  Reveal.initialize({ hash: true, slideNumber: "c/t", controls: true, progress: true, center: false, transition: "none", width: 1280, height: 720, margin: 0.06 });
+</script>
+</body>
+</html>
