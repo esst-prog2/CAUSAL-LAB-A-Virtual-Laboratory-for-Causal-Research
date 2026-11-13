@@ -296,7 +296,7 @@ elif page == "research_question":
     page_title("research_question")
     d = st.session_state.design
 
-    st.subheader(L("step1.title"))
+    style.wizard_step(1, 6, L("step1.title"))
     previous_question = d.research_question
     d.research_question = bound(st.text_area, "form_question", d.research_question, L("step1.question"), height=100,
                                 placeholder=L("step1.placeholder"))
@@ -309,7 +309,7 @@ elif page == "research_question":
         with st.container(border=True):
             question_panel.render(analyze(d), d, L, editable=True)
 
-    st.subheader(L("step2.title"))
+    style.wizard_step(2, 6, L("step2.title"))
     c1, c2, c3 = st.columns(3)
     d.treatment_type = option_select(c1, "wizard.treatment_type", ["binary", "continuous", "multiple"],
                                      d.treatment_type)
@@ -319,17 +319,17 @@ elif page == "research_question":
                                            ["random", "policy", "geographic", "self_selected", "threshold"],
                                            d.assignment_mechanism)
 
-    st.subheader(L("step3.title"))
+    style.wizard_step(3, 6, L("step3.title"))
     d.outcome_type = option_select(st, "wizard.outcome_type",
                                    ["continuous", "binary", "count", "survival", "categorical"], d.outcome_type)
 
-    st.subheader(L("step4.title"))
+    style.wizard_step(4, 6, L("step4.title"))
     d.unit_of_analysis = option_select(st, "wizard.unit_of_analysis",
                                        ["individual", "household", "firm", "municipality", "territory",
                                         "district", "country", "region", "spatial_cell", "time_series"],
                                        d.unit_of_analysis)
 
-    st.subheader(L("step5.title"))
+    style.wizard_step(5, 6, L("step5.title"))
     c1, c2 = st.columns(2)
     d.data_structure = option_select(c1, "wizard.data_structure",
                                      ["cross_section", "panel", "repeated_cross_section", "time_series",
@@ -343,7 +343,7 @@ elif page == "research_question":
                             disabled=not d.has_pre_treatment_periods)
     d.n_post_periods = bound(c3.number_input, "form_n_post", d.n_post_periods, L("wizard.n_post"), min_value=0)
 
-    st.subheader(L("step6.title"))
+    style.wizard_step(6, 6, L("step6.title"))
     st.caption(L("step6.intro"))
     c1, c2 = st.columns(2)
     d.has_control_group = bound(c1.checkbox, "form_control", d.has_control_group, L("wizard.control_group"))

@@ -87,13 +87,44 @@ _BASE_CSS = """
 
 ::selection { background: rgba(52, 81, 178, 0.28); }
 
+/* Type scale: page title, section, sub-section, each a clear step down
+   (Streamlit's defaults, 44, 36 and 28 px, are too close to read as levels). */
+[data-testid="stMain"] [data-testid="stHeading"] h1 {
+  font-size: 2.2rem; font-weight: 750; letter-spacing: -0.01em; line-height: 1.15; padding-bottom: 0.2rem;
+}
+[data-testid="stMain"] [data-testid="stHeading"] h2 {
+  font-size: 1.5rem; font-weight: 700; line-height: 1.25; padding-top: 1.4rem; margin-top: 0.6rem;
+  border-top: 1px solid rgba(127, 140, 170, 0.28);
+}
+[data-testid="stMain"] [data-testid="stHeading"] h3 { font-size: 1.2rem; font-weight: 650; line-height: 1.3; }
+
+/* The sentence under a page title reads as its lead, not as a footnote. */
+[data-testid="stMain"] .stElementContainer:has([data-testid="stHeading"] h1)
+  + .stElementContainer [data-testid="stCaptionContainer"] {
+  font-size: 1.05rem; line-height: 1.55; opacity: 0.9 !important;
+}
+
+/* Tables: figures line up in their columns. */
+[data-testid="stDataFrame"], [data-testid="stTable"] { font-variant-numeric: tabular-nums; }
+
+/* Wizard steps: a numbered rail, so the researcher sees where they are. */
+.cl-wstep { display: flex; align-items: center; gap: 0.75rem; margin: 1.6rem 0 0.2rem; }
+.cl-wstep .cl-n {
+  flex: none; width: 2rem; height: 2rem; border-radius: 999px; display: inline-flex;
+  align-items: center; justify-content: center; font-weight: 700; font-size: 0.95rem;
+  background: #3451B2; color: #FFFFFF; font-variant-numeric: tabular-nums;
+}
+.cl-wstep h3 { margin: 0; padding: 0; font-size: 1.25rem; font-weight: 650; line-height: 1.3; }
+.cl-wstep .cl-of { margin-left: auto; font-size: 0.85rem; font-weight: 600; opacity: 0.75; font-variant-numeric: tabular-nums; }
+
 /* Sidebar brand */
 .cl-brand { font-size: 1.15rem; font-weight: 700; letter-spacing: 0.04em; line-height: 1.2; }
 
 /* Sidebar navigation: a list of links, not radio buttons.
    In Streamlit 1.64 each option is a div with data-selected, holding the
    stRadioOption label. (No markup in these comments: st.html sanitizes it.) */
-.st-key-nav [data-testid="stRadio"], .st-key-nav [data-testid="stRadio"] > div { width: 100%; }
+.st-key-nav .stElementContainer,
+.st-key-nav [data-testid="stRadio"], .st-key-nav [data-testid="stRadio"] > div { width: 100% !important; }
 .st-key-nav [role="radiogroup"] { gap: 2px !important; row-gap: 2px !important; width: 100%; }
 .st-key-nav [role="radiogroup"] > div { width: 100%; position: relative; }
 .st-key-nav [data-testid="stRadioOption"] {
@@ -103,7 +134,7 @@ _BASE_CSS = """
 .st-key-nav [data-testid="stRadioOption"] [data-testid="stIconMaterial"] { opacity: 0.72; }
 .st-key-nav [data-testid="stRadioOption"]:hover { background: rgba(127, 140, 170, 0.14); }
 .st-key-nav [role="radiogroup"] > div[data-selected="true"] > [data-testid="stRadioOption"] {
-  background: rgba(79, 104, 223, 0.18);
+  background: rgba(79, 104, 223, 0.16); box-shadow: inset 3px 0 0 #4F68DF;
 }
 .st-key-nav [role="radiogroup"] > div[data-selected="true"] p { font-weight: 650; }
 .st-key-nav [role="radiogroup"] > div[data-selected="true"] [data-testid="stIconMaterial"] { opacity: 1; }
@@ -194,6 +225,15 @@ def finding(title: str, text: str) -> None:
     parts = escape(text).split("**")
     body = "".join(f"<strong>{p}</strong>" if i % 2 else p for i, p in enumerate(parts))
     st.html(f'<div class="cl-finding"><div class="cl-finding-title">{escape(title)}</div>{body}</div>')
+
+
+def wizard_step(n: int, total: int, title: str) -> None:
+    """A wizard step heading: its number in a disc, its name, and "n / total".
+    `title` is the translated "Step n — name"; the number is drawn, not repeated."""
+    name = title.split(" — ", 1)[-1]
+    st.html(f'<div class="cl-wstep"><span class="cl-n" aria-hidden="true">{n}</span>'
+            f'<h3>{escape(title if name == title else name)}</h3>'
+            f'<span class="cl-of">{n} / {total}</span></div>')
 
 
 def progress_cards(title: str, steps: list[tuple[str, str, bool, str]]) -> None:
