@@ -2,6 +2,8 @@
 
 **Author:** Thierry Z. BARHAME · MSc Statistics and Data Analytics, ELTE · Live demo: https://causal-lab-a-virtual-laboratory-for-causal-research-busavtyebb.streamlit.app
 
+**Project page:** https://esst-prog2.github.io/CAUSAL-LAB-A-Virtual-Laboratory-for-Causal-Research/ (the 30-second film and the slides are linked from it).
+
 A small tool that lets someone with a panel dataset and a treatment date find out — with real numbers, not a guess — whether a difference-in-differences design is even appropriate for their data, and if so, run it correctly. It has since grown: it reads the research question first and considers eight designs. How that relates to the original one-method brief (issue #1) is set out in [the scope note](docs/SCOPE_CLARIFICATION.md), and is **pending the professor's written confirmation**.
 
 **For the December defense:** [the guide](docs/defense/DEFENSE_GUIDE.md) and [an oral simulation](docs/defense/ORAL_DEFENSE.md). The DiD study behind the demo, in full: [docs/DEMO_DETAILS.md](docs/DEMO_DETAILS.md).

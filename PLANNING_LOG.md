@@ -4,6 +4,7 @@ One line per decision about this project — a requirement, a number, a name, a 
 
 ---
 
+- 2026-11-16: The website serves the promo page only (index, images, fonts, film, slides) through a Pages workflow; the notes in docs/ stay in the repository but leave github.io; README links the page; repository website field set (user chose "page only" after a review pointed out the published notes).
 - 2026-11-13: Film redone in the page's research style; same beats, words, numbers and screenshots; slides keep the Du Bois look (user asked for the video).
 - 2026-11-13: Promo page redesigned in the app's research style, replacing the Du Bois look; text, numbers, sources and screenshots unchanged; film and slides keep the earlier look (user chose option 1, the full redesign).
 - 2026-11-13: App design pass, not a rebuild (user: a "master prompt" asking for a complete visual transformation of the app; agent's choice, to be confirmed). The app already had a design system (`.streamlit/config.toml` theme, `ui/style.py`), so it was refined, not replaced: a type scale with clear steps between page, section and sub-section titles; page intros read as a lead; numbered wizard steps (1 / 6 … 6 / 6); the selected sidebar page highlighted across the full width; two colour emoji on buttons replaced by Material icons. No estimator, gate, number or wording changed. Branch `app-design-pass`, not merged: merging redeploys the online app.
