@@ -29,7 +29,7 @@ NAV_SECTIONS = (
 PAGE_ICONS = {
     "dashboard": ":material/home:", "demo": ":material/school:",
     "research_question": ":material/edit_note:", "diagnosis": ":material/troubleshoot:",
-    "recommendation": ":material/recommend:", "virtual_lab": ":material/science:",
+    "recommendation": ":material/recommend:", "method_guide": ":material/menu_book:", "virtual_lab": ":material/science:",
     "data_sources": ":material/public:", "estimation": ":material/query_stats:",
     "methods": ":material/account_tree:", "theory": ":material/function:",
     "break_my_design": ":material/bolt:", "robustness": ":material/shield:",
@@ -116,6 +116,11 @@ _BASE_CSS = """
 }
 .cl-wstep h3 { margin: 0; padding: 0; font-size: 1.25rem; font-weight: 650; line-height: 1.3; }
 .cl-wstep .cl-of { margin-left: auto; font-size: 0.85rem; font-weight: 600; opacity: 0.75; font-variant-numeric: tabular-nums; }
+
+/* Method Guide: section titles one step under the design's name (h2) */
+.st-key-guide [data-testid="stMarkdownContainer"] h4 {
+  font-size: 1.15rem; font-weight: 700; margin: 1.5rem 0 0.4rem; padding: 0;
+}
 
 /* Sidebar brand */
 .cl-brand { font-size: 1.15rem; font-weight: 700; letter-spacing: 0.04em; line-height: 1.2; }
