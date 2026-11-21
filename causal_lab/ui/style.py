@@ -119,6 +119,7 @@ _BASE_CSS = """
 
 /* Sidebar brand */
 .cl-brand { font-size: 1.15rem; font-weight: 700; letter-spacing: 0.04em; line-height: 1.2; }
+.cl-tagline { font-size: 0.95rem; font-weight: 600; line-height: 1.35; margin: 0.35rem 0 0.15rem; text-wrap: balance; }
 
 /* Sidebar navigation: a list of links, not radio buttons.
    In Streamlit 1.64 each option is a div with data-selected, holding the
@@ -148,7 +149,11 @@ _BASE_CSS = """
 .cl-head h1 {
   font-size: 2.6rem; font-weight: 750; letter-spacing: 0.02em; line-height: 1.1; margin: 0; padding: 0;
 }
-.cl-head .cl-sub { font-size: 1.2rem; font-weight: 600; margin-top: 0.4rem; }
+/* The tagline keeps the text colour (the primary colour as text is under 4.5:1 on
+   the dark background); a short primary rule under the name carries the accent. */
+.cl-head h1::after { content: ""; display: block; width: 3rem; height: 3px; border-radius: 2px; background: #4F68DF; margin-top: 0.6rem; }
+.cl-head .cl-sub { font-size: 1.45rem; font-weight: 600; line-height: 1.3; letter-spacing: -0.005em; margin-top: 0.7rem; text-wrap: balance; }
+.cl-head .cl-desc { font-size: 0.95rem; font-weight: 600; letter-spacing: 0.02em; opacity: 0.7; margin-top: 0.45rem; }
 .cl-head .cl-mission { margin: 0.7rem 0 0; max-width: 64ch; line-height: 1.55; font-size: 1.05rem; }
 
 /* Dashboard: the demo's main finding */
@@ -184,7 +189,7 @@ _BASE_CSS = """
 @media (max-width: 640px) {
   .block-container { padding-top: 3.6rem; }
   .cl-head h1 { font-size: 2rem; }
-  .cl-head .cl-sub { font-size: 1.05rem; }
+  .cl-head .cl-sub { font-size: 1.2rem; }
   .cl-head .cl-mission { font-size: 1rem; }
   .cl-step { padding: 0.65rem 0.8rem; }
 }
@@ -211,13 +216,16 @@ def inject(headings: dict[str, str], pages: list[str]) -> None:
     st.html(f"<style>{_BASE_CSS}\n{_section_css(headings, pages)}</style>")
 
 
-def brand(title: str) -> None:
-    st.html(f'<div class="cl-brand">{escape(title)}</div>')
+def brand(title: str, tagline: str = "") -> None:
+    tag = f'<div class="cl-tagline">{escape(tagline)}</div>' if tagline else ""
+    st.html(f'<div class="cl-brand">{escape(title)}</div>{tag}')
 
 
-def header(title: str, subtitle: str, mission: str) -> None:
+def header(title: str, subtitle: str, mission: str, descriptor: str = "") -> None:
+    """The home heading: the name, its tagline, what the lab is, and its mission."""
+    desc = f'<div class="cl-desc">{escape(descriptor)}</div>' if descriptor else ""
     st.html(f'<div class="cl-head"><h1>{escape(title)}</h1>'
-            f'<div class="cl-sub">{escape(subtitle)}</div><p class="cl-mission">{escape(mission)}</p></div>')
+            f'<div class="cl-sub">{escape(subtitle)}</div>{desc}<p class="cl-mission">{escape(mission)}</p></div>')
 
 
 def finding(title: str, text: str) -> None:

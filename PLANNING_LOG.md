@@ -4,6 +4,7 @@ One line per decision about this project — a requirement, a number, a name, a 
 
 ---
 
+- 2026-11-21: App tagline under the name, sidebar and home: "Question first. Design second. Break it before you trust it." / "D'abord la question. Puis la méthode. Et l'épreuve, avant d'y croire." The descriptor "A Virtual Laboratory for Causal Research" stays below it (user asked for a striking subtitle; wording is the agent's choice, to be confirmed).
 - 2026-11-21: Pages workflow split into build and deploy jobs, as GitHub's starter workflow, after a deploy failed to find its just-uploaded artifact (run 44928167334); a manual re-run succeeded (user asked to fix it).
 - 2026-11-21: Promo page restyled as a research-lab working-paper page, with Figure 2 and Table 1 drawn from results.json; no claim added beyond the stored study, README and evaluation reports (user asked for a research-centre look; chose the web page).
 - 2026-11-21: Professor's feedback on the promo page (received 2026-11-16) recorded verbatim in docs/SCOPE_CLARIFICATION.md, with what was done (user asked for it to be inserted).
