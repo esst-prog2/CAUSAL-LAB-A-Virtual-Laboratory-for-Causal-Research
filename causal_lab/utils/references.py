@@ -274,6 +274,64 @@ _ENTRIES = [
     _a("bulow_geanakoplos_klemperer_1985", ["Bulow, J. I.", "Geanakoplos, J. D.", "Klemperer, P. D."], 1985,
        "Multimarket oligopoly: Strategic substitutes and complements", "Journal of Political Economy", 93, 3,
        "488–511", "10.1086/261312"),
+    # ------------------------------------------- key readings of the Method Guide
+    # Peer-reviewed journal articles only; metadata checked against Crossref on 2026-11-21.
+    _a("bruhn_mckenzie_2009", ["Bruhn, M.", "McKenzie, D."], 2009,
+       "In pursuit of balance: Randomization in practice in development field experiments",
+       "American Economic Journal: Applied Economics", 1, 4, "200–232", "10.1257/app.1.4.200"),
+    _a("imbens_lemieux_2008", ["Imbens, G. W.", "Lemieux, T."], 2008,
+       "Regression discontinuity designs: A guide to practice", "Journal of Econometrics", 142, 2, "615–635",
+       "10.1016/j.jeconom.2007.05.001"),
+    _a("lee_lemieux_2010", ["Lee, D. S.", "Lemieux, T."], 2010, "Regression discontinuity designs in economics",
+       "Journal of Economic Literature", 48, 2, "281–355", "10.1257/jel.48.2.281"),
+    _a("mccrary_2008", ["McCrary, J."], 2008,
+       "Manipulation of the running variable in the regression discontinuity design: A density test",
+       "Journal of Econometrics", 142, 2, "698–714", "10.1016/j.jeconom.2007.05.005"),
+    _a("cattaneo_jansson_ma_2020", ["Cattaneo, M. D.", "Jansson, M.", "Ma, X."], 2020,
+       "Simple local polynomial density estimators", "Journal of the American Statistical Association", 115, 531,
+       "1449–1455", "10.1080/01621459.2019.1635480"),
+    _a("rambachan_roth_2023", ["Rambachan, A.", "Roth, J."], 2023, "A more credible approach to parallel trends",
+       "Review of Economic Studies", 90, 5, "2555–2591", "10.1093/restud/rdad018"),
+    _a("roth_santanna_bilinski_poe_2023", ["Roth, J.", "Sant'Anna, P. H. C.", "Bilinski, A.", "Poe, J."], 2023,
+       "What's trending in difference-in-differences? A synthesis of the recent econometrics literature",
+       "Journal of Econometrics", 235, 2, "2218–2244", "10.1016/j.jeconom.2023.03.008"),
+    _a("sun_abraham_2021", ["Sun, L.", "Abraham, S."], 2021,
+       "Estimating dynamic treatment effects in event studies with heterogeneous treatment effects",
+       "Journal of Econometrics", 225, 2, "175–199", "10.1016/j.jeconom.2020.09.006"),
+    _a("freyaldenhoven_hansen_shapiro_2019", ["Freyaldenhoven, S.", "Hansen, C.", "Shapiro, J. M."], 2019,
+       "Pre-event trends in the panel event-study design", "American Economic Review", 109, 9, "3307–3338",
+       "10.1257/aer.20180609"),
+    _a("borusyak_jaravel_spiess_2024", ["Borusyak, K.", "Jaravel, X.", "Spiess, J."], 2024,
+       "Revisiting event-study designs: Robust and efficient estimation", "Review of Economic Studies", 91, 6,
+       "3253–3285", "10.1093/restud/rdae007"),
+    _a("abadie_diamond_hainmueller_2015", ["Abadie, A.", "Diamond, A.", "Hainmueller, J."], 2015,
+       "Comparative politics and the synthetic control method", "American Journal of Political Science", 59, 2,
+       "495–510", "10.1111/ajps.12116"),
+    _a("abadie_2021", ["Abadie, A."], 2021,
+       "Using synthetic controls: Feasibility, data requirements, and methodological aspects",
+       "Journal of Economic Literature", 59, 2, "391–425", "10.1257/jel.20191450"),
+    _a("arkhangelsky_et_al_2021", ["Arkhangelsky, D.", "Athey, S.", "Hirshberg, D. A.", "Imbens, G. W.",
+                                   "Wager, S."], 2021,
+       "Synthetic difference-in-differences", "American Economic Review", 111, 12, "4088–4118",
+       "10.1257/aer.20190159"),
+    _a("angrist_imbens_rubin_1996", ["Angrist, J. D.", "Imbens, G. W.", "Rubin, D. B."], 1996,
+       "Identification of causal effects using instrumental variables",
+       "Journal of the American Statistical Association", 91, 434, "444–455", "10.1080/01621459.1996.10476902"),
+    _a("kontopantelis_et_al_2015", ["Kontopantelis, E.", "Doran, T.", "Springate, D. A.", "Buchan, I.",
+                                    "Reeves, D."], 2015,
+       "Regression based quasi-experimental approach when randomisation is not an option: Interrupted time series "
+       "analysis", "BMJ", 350, "", "h2750", "10.1136/bmj.h2750"),
+    _a("stuart_2010", ["Stuart, E. A."], 2010, "Matching methods for causal inference: A review and a look forward",
+       "Statistical Science", 25, 1, "1–21", "10.1214/09-STS313"),
+    _a("imbens_2004", ["Imbens, G. W."], 2004,
+       "Nonparametric estimation of average treatment effects under exogeneity: A review",
+       "Review of Economics and Statistics", 86, 1, "4–29", "10.1162/003465304323023651"),
+    _a("austin_2011", ["Austin, P. C."], 2011,
+       "An introduction to propensity score methods for reducing the effects of confounding in observational "
+       "studies", "Multivariate Behavioral Research", 46, 3, "399–424", "10.1080/00273171.2011.568786"),
+    _a("belloni_chernozhukov_hansen_2014", ["Belloni, A.", "Chernozhukov, V.", "Hansen, C."], 2014,
+       "Inference on treatment effects after selection among high-dimensional controls",
+       "Review of Economic Studies", 81, 2, "608–650", "10.1093/restud/rdt044"),
 ]
 
 REFERENCES: dict[str, Reference] = {r.key: r for r in _ENTRIES}
@@ -306,6 +364,26 @@ METHOD_REFERENCES: dict[str, tuple[str, ...]] = {
     "demo_replication": ("card_krueger_1994",),
 }
 
+
+# Key readings of the Method Guide page, per design: peer-reviewed journal articles only.
+METHOD_READINGS: dict[str, tuple[str, ...]] = {
+    "rct": ("lin_2013", "bruhn_mckenzie_2009"),
+    "rdd": ("hahn_todd_vanderklaauw_2001", "imbens_lemieux_2008", "lee_lemieux_2010",
+            "calonico_cattaneo_titiunik_2014", "mccrary_2008", "cattaneo_jansson_ma_2020"),
+    "did": ("bertrand_duflo_mullainathan_2004", "callaway_santanna_2021", "goodman_bacon_2021",
+            "dechaisemartin_dhaultfoeuille_2020", "roth_2022", "rambachan_roth_2023",
+            "roth_santanna_bilinski_poe_2023"),
+    "event_study": ("sun_abraham_2021", "freyaldenhoven_hansen_shapiro_2019", "borusyak_jaravel_spiess_2024",
+                    "roth_2022"),
+    "synthetic_control": ("abadie_gardeazabal_2003", "abadie_diamond_hainmueller_2010",
+                          "abadie_diamond_hainmueller_2015", "abadie_2021", "arkhangelsky_et_al_2021"),
+    "iv": ("imbens_angrist_1994", "angrist_imbens_rubin_1996", "staiger_stock_1997", "andrews_stock_sun_2019",
+           "lee_mccrary_moreira_porter_2022"),
+    "its": ("kontopantelis_et_al_2015",),
+    "matching": ("rosenbaum_rubin_1983", "abadie_imbens_2006", "abadie_imbens_2016", "imbens_2004", "stuart_2010",
+                 "austin_2011"),
+    "dml": ("robinson_1988", "belloni_chernozhukov_hansen_2014", "chernozhukov_et_al_2018"),
+}
 
 def _split(item: str) -> tuple[str, str]:
     """"persson_tabellini_2000:ch. 3" -> ("persson_tabellini_2000", "ch. 3")."""

@@ -4,6 +4,7 @@ One line per decision about this project — a requirement, a number, a name, a 
 
 ---
 
+- 2026-11-21: Method Guide page (EN/FR): for each of the 8 designs and DML, the idea, estimand, assumptions, what Causal Lab does, failure modes, and key readings. Readings are peer-reviewed journal articles only, 19 added to utils/references.py and checked against Crossref; the existing books stay cited where the code uses them (user chose a Q1/Q2 readings section over replacing the bibliography). SJR quartiles could not be checked from here (scimagojr.com blocks automated access), so the page does not claim Q1/Q2; the author is to confirm them.
 - 2026-11-21: App tagline under the name, sidebar and home: "Question first. Design second. Break it before you trust it." / "D'abord la question. Puis la méthode. Et l'épreuve, avant d'y croire." The descriptor "A Virtual Laboratory for Causal Research" stays below it (user asked for a striking subtitle; wording is the agent's choice, to be confirmed).
 - 2026-11-21: Pages workflow split into build and deploy jobs, as GitHub's starter workflow, after a deploy failed to find its just-uploaded artifact (run 44928167334); a manual re-run succeeded (user asked to fix it).
 - 2026-11-21: Promo page restyled as a research-lab working-paper page, with Figure 2 and Table 1 drawn from results.json; no claim added beyond the stored study, README and evaluation reports (user asked for a research-centre look; chose the web page).

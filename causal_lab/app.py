@@ -47,6 +47,7 @@ from ui.methods_page import render as render_methods_page
 from ui import question_panel, style
 from ui.page_text import F, R, error_text, references_caption
 from ui.theory_page import render as render_theory_page
+from ui.guide_page import render as render_guide_page
 from utils.i18n import LocalizedError, t, tf
 from utils.project_file import EXTENSION, apply_project, load_project, project_file_name, save_project
 from utils import deployment, reproducibility, session_data
@@ -89,7 +90,7 @@ if "connectors_enabled" not in st.session_state:
 lang = st.session_state.lang
 
 PAGES = [
-    "dashboard", "demo", "research_question", "diagnosis", "recommendation",
+    "dashboard", "demo", "research_question", "diagnosis", "recommendation", "method_guide",
     "virtual_lab", "data_sources", "estimation", "methods", "theory", "break_my_design",
     "robustness", "code", "report", "settings",
 ]
@@ -731,6 +732,10 @@ elif page == "demo":
 # --------------------------------------------------------------------------
 # CAUSAL METHODS (RCT, Matching, IV, RDD, Synthetic Control, DML)
 # --------------------------------------------------------------------------
+elif page == "method_guide":
+    page_title("method_guide")
+    render_guide_page(L, lang)
+
 elif page == "methods":
     render_methods_page(L)
 
