@@ -231,7 +231,7 @@ def no_design(message_key: str) -> None:
 style.inject({section: L(f"nav.group.{section}") for section, _ in style.NAV_SECTIONS}, PAGES)
 
 with st.sidebar:
-    style.brand(L("app.title"))
+    style.brand(L("app.title"), L("app.tagline"))
     st.caption(L("app.subtitle"))
 
     lang_choice = st.radio("Language / Langue", ["en", "fr"],
@@ -260,7 +260,7 @@ with st.sidebar:
 # DASHBOARD
 # --------------------------------------------------------------------------
 if page == "dashboard":
-    style.header(L("app.title"), L("app.subtitle"), L("home.mission"))
+    style.header(L("app.title"), L("app.tagline"), L("home.mission"), L("app.subtitle"))
 
     # The guided demo's main finding, computed from the stored simulation study.
     headline = pretest_headline()

@@ -1,6 +1,7 @@
 {
   "app.title": "CAUSAL LAB",
   "app.subtitle": "Laboratoire virtuel pour la recherche causale",
+  "app.tagline": "D'abord la question. Puis la méthode. Et l'épreuve, avant d'y croire.",
   "nav.dashboard": "Tableau de bord",
   "nav.research_question": "Question de recherche",
   "nav.diagnosis": "Diagnostic causal",
