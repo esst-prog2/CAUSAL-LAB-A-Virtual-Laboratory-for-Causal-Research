@@ -7,7 +7,11 @@ Instrumental Variables estimator: two-stage least squares (2SLS).
 Valid when the instrument Z is relevant (moves D) and excludable
 (affects Y only through D). Relevance is checked with the first-stage
 F statistic of the excluded instruments (rule of thumb: F >= 10;
-Staiger & Stock 1997). Exclusion cannot be tested and must be argued.
+Staiger & Stock 1997). With one instrument that rule is not enough for the
+usual t-test: Lee, McCrary, Moreira & Porter (2022) show that a 5% test on the
+2SLS t-ratio keeps its size only when F > 104.7, so between 10 and 104.7 the
+result says to read the Anderson-Rubin set instead. Exclusion cannot be tested
+and must be argued.
 
 Estimated with linearmodels' IV2SLS and heteroskedasticity-robust
 standard errors; the naive OLS coefficient is reported for comparison.
@@ -32,6 +36,8 @@ from estimators.common import MethodResult, format_summary
 from utils.i18n import LocalizedError, Msg
 
 WEAK_INSTRUMENT_F = 10.0
+# One instrument: below this F the 5% t-test over-rejects (Lee et al. 2022, Table 1).
+TF_CRITICAL_F = 104.7
 AR_LEVEL = 0.95
 
 
@@ -130,6 +136,8 @@ def estimate_iv(df: pd.DataFrame, outcome_col: str = "Y", treatment_col: str = "
     warnings: list[str] = []
     if first_stage_f < WEAK_INSTRUMENT_F:
         warnings.append(Msg("warn.weak_instrument", f=first_stage_f, threshold=WEAK_INSTRUMENT_F))
+    elif len(instrument_cols) == 1 and first_stage_f < TF_CRITICAL_F:
+        warnings.append(Msg("warn.iv_tf", f=first_stage_f, threshold=TF_CRITICAL_F))
 
     result = MethodResult(
         method="Instrumental Variables (2SLS)", key="iv",

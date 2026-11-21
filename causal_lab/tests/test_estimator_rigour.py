@@ -1,7 +1,8 @@
 """Corrections made after the estimator validation study (spike/estimator_validation.py).
 
 - IV: the Anderson-Rubin confidence set, robust to weak instruments, equals an
-  independent inversion of the heteroskedasticity-robust test (statsmodels).
+  independent inversion of the heteroskedasticity-robust test (statsmodels);
+  with one instrument and 10 < F < 104.7 the result points to it (Lee et al. 2022).
 - RDD: the app reports robust bias-corrected inference by default.
 - Synthetic control: with fewer than 19 donors the placebo test cannot reject at
   5%, and the result says so.
@@ -60,6 +61,22 @@ def test_anderson_rubin_set_is_unbounded_when_the_instrument_is_useless():
     assert result.details["first_stage_f"] < 10 and result.details["ar_kind"] in ("line", "rays")
     assert any(w.key == "warn.weak_instrument" for w in result.warnings)
     assert result.summary_lines[-1].key.startswith("summary.iv.ar_")
+
+
+def test_iv_t_ratio_warning_between_10_and_104_7():
+    # Lee, McCrary, Moreira & Porter (2022): with one instrument the 5% t-test
+    # keeps its size only when F > 104.7. Between 10 and 104.7 the result says
+    # to read the Anderson-Rubin set; above it, or with two instruments, it does not.
+    middle = estimate_iv(_iv_world(n=500, instrument_strength=1.0, seed=3), "Y", "D", ["Z"], ["X"])
+    assert 10 < middle.details["first_stage_f"] < 104.7
+    assert [w.key for w in middle.warnings] == ["warn.iv_tf"]
+    strong = estimate_iv(_iv_world(n=5000, instrument_strength=1.0, seed=3), "Y", "D", ["Z"], ["X"])
+    assert strong.details["first_stage_f"] > 104.7
+    assert not any(w.key == "warn.iv_tf" for w in strong.warnings)
+    df = _iv_world(n=500, instrument_strength=1.0, seed=3)
+    df["Z2"] = 0.5 * df["Z"] + np.random.default_rng(0).normal(size=len(df))
+    two = estimate_iv(df, "Y", "D", ["Z", "Z2"], ["X"])
+    assert not any(w.key == "warn.iv_tf" for w in two.warnings)
 
 
 def test_rdd_reports_robust_inference_by_default():
