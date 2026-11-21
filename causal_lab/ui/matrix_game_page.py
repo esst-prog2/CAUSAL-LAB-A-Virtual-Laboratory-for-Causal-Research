@@ -12,6 +12,7 @@ import plotly.graph_objects as go
 import streamlit as st
 
 from theory_engine.finite_games import MAX_ACTIONS, BimatrixGame, logit_qre, matrix_catalogue, nash_equilibria
+from theory_engine.optimization import mangasarian_stone, zero_sum_solution
 from ui.page_text import F, R, error_text, references_caption
 from utils.i18n import LocalizedError
 from utils.references import cite
@@ -52,6 +53,35 @@ def _mix(probabilities: np.ndarray, actions) -> str:
     return ", ".join(f"{R(a)} {p:.3f}" for a, p in zip(actions, probabilities) if p > 1e-12)
 
 
+def _optimisation(game: BimatrixGame, n_enumerated: int, L) -> None:
+    """Equilibria as the solutions of the Mangasarian-Stone quadratic program, and
+    the linear program of a zero-sum game (theory_engine/optimization.py)."""
+    st.subheader(L("matrix.opt_title"))
+    st.caption(L("matrix.opt_intro"))
+    st.latex(r"\max_{x,\,y,\,p,\,q}\; x^\top (A+B)\, y - p - q \quad \text{s.t.}\quad A y \le p\,\mathbf{1},\;"
+             r" B^\top x \le q\,\mathbf{1},\; x \in \Delta_m,\; y \in \Delta_n")
+    qp = mangasarian_stone(game)
+    if qp.equilibria:
+        st.dataframe(pd.DataFrame([{
+            R(game.row_player): _mix(e.row, game.row_actions),
+            R(game.col_player): _mix(e.col, game.col_actions),
+            F("matrix.col.payoff", player=R(game.row_player)): round(e.row_payoff, 4),
+            F("matrix.col.payoff", player=R(game.col_player)): round(e.col_payoff, 4),
+            L("matrix.opt.objective"): f"{e.objective:.1e}",
+            L("matrix.opt.gain"): f"{e.gain:.1e}",
+        } for e in qp.equilibria]), width="stretch", hide_index=True)
+    st.caption(F("matrix.opt_summary", found=len(qp.equilibria), enumerated=n_enumerated, converged=qp.converged,
+                 starts=qp.starts))
+    zs = zero_sum_solution(game)
+    if zs is not None:
+        st.markdown(f"**{L('matrix.zs_title')}**")
+        st.latex(r"v = \max_{x \in \Delta_m} \min_{j}\, (x^\top A)_j = \min_{y \in \Delta_n} \max_{i}\, (A y)_i")
+        st.markdown(F("matrix.zs_result", value=zs.value, row=_mix(zs.row, game.row_actions),
+                      col=_mix(zs.col, game.col_actions), row_player=R(game.row_player),
+                      col_player=R(game.col_player)))
+    references_caption("mangasarian_stone", "zero_sum_lp")
+
+
 def render(L) -> None:
     source = st.radio(L("theory.source"), ["catalogue", "editor"], horizontal=True, key="mx_source",
                       format_func=lambda m: L("theory.catalogue") if m == "catalogue" else L("theory.editor"))
@@ -83,6 +113,7 @@ def render(L) -> None:
     } for e in equilibria]), width="stretch", hide_index=True)
     st.caption(L("matrix.method_note"))
     references_caption("nash_enumeration", "qre")
+    _optimisation(game, len(equilibria), L)
 
     st.subheader(L("matrix.qre_title"))
     st.caption(L("matrix.qre_intro"))

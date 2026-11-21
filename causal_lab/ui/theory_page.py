@@ -31,6 +31,7 @@ from theory_engine.calibration import (STATISTICS, CalibrationError, ParameterSo
 from theory_engine.catalogue import CATALOGUE, build
 from theory_engine.game import (Equilibrium, Game, best_responses, build_custom_game, first_order_conditions,
                                 solve_equilibrium)
+from theory_engine.optimization import GAP_METHOD, solve_by_gap_minimisation
 from theory_engine.predictions import compare_with_estimate, delta_from_data, predict_shift
 from ui.page_text import F, R, error_text
 from utils.i18n import LocalizedError
@@ -45,7 +46,7 @@ def _state() -> dict:
 
 
 def _reset_downstream(state: dict) -> None:
-    for k in ("values", "baseline", "equilibria", "table", "prediction", "curve", "solve_message", "gmm"):
+    for k in ("values", "baseline", "equilibria", "table", "prediction", "curve", "solve_message", "gmm", "gap_runs"):
         state.pop(k, None)
 
 
@@ -328,13 +329,19 @@ def _equilibrium_step(state: dict, L) -> None:
     st.markdown(f"**{L('theory.parameter_sources')}**")
     sources = _source_widgets(game, df, sig, L)
 
+    solver = st.radio(L("theory.solver"), ["best_response", "gap"], horizontal=True, key=f"th_{sig}_solver",
+                      format_func=lambda m: L(f"theory.solver.{m}"))
     if st.button(f"⚖️ {L('theory.solve')}", type="primary", key=f"th_{sig}_solve"):
         _reset_downstream(state)
         try:
             values = calibrate(df, sources)
-            result = solve_equilibrium(game, values)
+            if solver == "gap":
+                with st.spinner(L("theory.solving_gap")):
+                    result = solve_by_gap_minimisation(game, values)
+            else:
+                result = solve_equilibrium(game, values)
             state.update(values=values, sources=sources, solve_message=result.message,
-                         equilibria=result.equilibria)
+                         equilibria=result.equilibria, gap_runs=getattr(result, "runs", None))
             if scope != "pooled" and df is not None:
                 with st.spinner(L("theory.solving_units")):
                     state["table"] = solve_by_scope(game, df, sources, scope, scope_col)
@@ -356,8 +363,11 @@ def _equilibrium_step(state: dict, L) -> None:
         eq = equilibria[idx]
         state["baseline"] = eq
         st.dataframe(_equilibrium_table(eq, L).round(6), width="stretch", hide_index=True)
-        method = L("theory.method.closed") if eq.method == "closed form" else L("theory.method.numeric")
+        method = {"closed form": L("theory.method.closed"), GAP_METHOD: L("theory.method.gap")}.get(
+            eq.method, L("theory.method.numeric"))
         st.caption(F("theory.method_caption", method=method, gain=eq.max_gain))
+    if state.get("gap_runs"):
+        _gap_details(game, state["gap_runs"], L)
 
     table = state.get("table")
     if table is not None:
@@ -379,6 +389,29 @@ def _equilibrium_step(state: dict, L) -> None:
 
     if state.get("baseline") is not None:
         _outcome_curve(state, game, sig, L)
+
+
+def _gap_details(game: Game, runs, L) -> None:
+    """The optimisation problem and how each start went (theory_engine/optimization.py)."""
+    with st.expander(L("theory.gap.title"), expanded=True):
+        st.markdown(L("theory.gap.intro"))
+        st.latex(r"\min_{s \in S}\; V(s) = \sum_{i=1}^{n} \Big[\max_{y_i \in S_i} u_i(y_i, s_{-i}) - u_i(s)\Big]"
+                 r"\qquad V(s) \ge 0,\quad V(s^*) = 0 \iff s^* \text{ is a Nash equilibrium}")
+        names = [str(a.strategy) for a in game.agents]
+        st.dataframe(pd.DataFrame([{
+            L("theory.gap.start"): i + 1,
+            **{f"{n} ({L('theory.gap.from')})": round(r.start[k], 4) for k, n in enumerate(names)},
+            **{f"{n} ({L('theory.gap.to')})": round(r.end[k], 6) for k, n in enumerate(names)},
+            L("theory.gap.final"): f"{r.gap:.2e}",
+            L("theory.gap.evaluations"): r.evaluations,
+        } for i, r in enumerate(runs)]), width="stretch", hide_index=True)
+        fig = go.Figure()
+        for i, r in enumerate(runs):
+            fig.add_trace(go.Scatter(y=np.maximum(r.path, 1e-16), mode="lines", name=F("theory.gap.start_n", i=i + 1)))
+        fig.update_layout(height=320, yaxis_type="log", xaxis_title=L("theory.gap.iteration"),
+                          yaxis_title="V(s)", margin=dict(t=20, b=30))
+        st.plotly_chart(fig, width="stretch")
+        st.caption(F("theory.references", refs=cite("nikaido_isoda_1955", "von_heusinger_kanzow_2009")))
 
 
 def _outcome_curve(state: dict, game: Game, sig: str, L) -> None:

@@ -332,6 +332,15 @@ _ENTRIES = [
     _a("belloni_chernozhukov_hansen_2014", ["Belloni, A.", "Chernozhukov, V.", "Hansen, C."], 2014,
        "Inference on treatment effects after selection among high-dimensional controls",
        "Review of Economic Studies", 81, 2, "608–650", "10.1093/restud/rdt044"),
+    # ------------------------------------------- equilibria by optimisation
+    _a("nikaido_isoda_1955", ["Nikaidô, H.", "Isoda, K."], 1955, "Note on non-cooperative convex games",
+       "Pacific Journal of Mathematics", 5, 5, "807–815", "10.2140/pjm.1955.5.807"),
+    _a("mangasarian_stone_1964", ["Mangasarian, O. L.", "Stone, H."], 1964,
+       "Two-person nonzero-sum games and quadratic programming", "Journal of Mathematical Analysis and Applications",
+       9, 3, "348–355", "10.1016/0022-247X(64)90021-6"),
+    _a("von_heusinger_kanzow_2009", ["von Heusinger, A.", "Kanzow, C."], 2009,
+       "Optimization reformulations of the generalized Nash equilibrium problem using Nikaido-Isoda-type "
+       "functions", "Computational Optimization and Applications", 43, 3, "353–377", "10.1007/s10589-007-9145-6"),
 ]
 
 REFERENCES: dict[str, Reference] = {r.key: r for r in _ENTRIES}
@@ -356,6 +365,9 @@ METHOD_REFERENCES: dict[str, tuple[str, ...]] = {
     "dml": ("robinson_1988", "chernozhukov_et_al_2018"),
     "nash_enumeration": ("avis_et_al_2010",),
     "qre": ("mckelvey_palfrey_1995",),
+    "gap_minimisation": ("nikaido_isoda_1955", "von_heusinger_kanzow_2009"),
+    "mangasarian_stone": ("mangasarian_stone_1964",),
+    "zero_sum_lp": ("von_neumann_morgenstern_1944",),
     "gmm": ("hansen_1982", "hansen_singleton_1982"),
     "stackelberg": ("von_stackelberg_1934", "dixit_1987"),
     "bargaining": ("nash_1950", "rubinstein_1982", "binmore_rubinstein_wolinsky_1986"),
