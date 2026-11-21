@@ -1,6 +1,11 @@
 # Publishes the promo page and nothing else from docs/.
 # The notes in docs/ (scope note, defense guide, reviews, evaluation files)
 # stay in the repository but are not served on github.io.
+#
+# Two jobs, as in GitHub's own Pages starter workflow: the deploy job starts
+# only once the build job has finished, so the uploaded artifact is visible to
+# it. With one job, deploy-pages sometimes looked for the artifact a fraction of
+# a second after its upload and did not find it (run 44928167334, 2026-11-21).
 name: Pages
 
 on:
@@ -22,14 +27,11 @@ permissions:
 
 concurrency:
   group: pages
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
       - name: Copy only the page and its assets
@@ -40,5 +42,13 @@ jobs:
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
       - id: deployment
         uses: actions/deploy-pages@v4
