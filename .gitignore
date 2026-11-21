@@ -10,3 +10,6 @@ __pycache__/
 
 # Impeccable design-critique snapshots (local working notes)
 .impeccable/
+
+# HyperFrames local preview state and cache
+video/.hyperframes/

@@ -12,6 +12,12 @@ from the influence function psi = (u - theta * v) * v.
 
 Unlike OLS with linear controls, this stays consistent when the
 covariates affect treatment and outcome non-linearly.
+
+theta is the effect only if it is the same for everyone. When it varies with
+X, theta is a variance-weighted average of the conditional effects, weighting
+each X by Var(D | X); it is then not the ATE (the interactive model of
+Chernozhukov et al. 2018, Section 5.1, targets the ATE). The estimand label
+says so.
 """
 from __future__ import annotations
 
