@@ -1,6 +1,7 @@
 {
   "app.title": "CAUSAL LAB",
   "app.subtitle": "A Virtual Laboratory for Causal Research",
+  "app.tagline": "Question first. Design second. Break it before you trust it.",
   "nav.dashboard": "Dashboard",
   "nav.research_question": "Research Question",
   "nav.diagnosis": "Causal Diagnosis",
