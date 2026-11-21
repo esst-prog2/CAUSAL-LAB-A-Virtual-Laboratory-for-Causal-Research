@@ -4,6 +4,7 @@ One line per decision about this project — a requirement, a number, a name, a 
 
 ---
 
+- 2026-11-21: Promo page restyled as a research-lab working-paper page, with Figure 2 and Table 1 drawn from results.json; no claim added beyond the stored study, README and evaluation reports (user asked for a research-centre look; chose the web page).
 - 2026-11-21: Professor's feedback on the promo page (received 2026-11-16) recorded verbatim in docs/SCOPE_CLARIFICATION.md, with what was done (user asked for it to be inserted).
 - 2026-11-21: Expert-level inference notes (user: make the project usable by senior causal-inference researchers; agent's choice of items, to be confirmed). IV: with one instrument and 10 < F < 104.7 the result points to the Anderson-Rubin set, since the 5% t-test keeps its size only above 104.7 (Lee, McCrary, Moreira & Porter 2022, checked on Crossref). DML: the estimand label says theta is a variance-weighted average of effects, not the ATE, when effects vary. No estimate changes. Not done: the Cattaneo-Jansson-Ma density test for RD (needs the rddensity package; installing it was not permitted) and Rambachan-Roth sensitivity for DiD (no validated Python implementation).
 - 2026-11-16: The website serves the promo page only (index, images, fonts, film, slides) through a Pages workflow; the notes in docs/ stay in the repository but leave github.io; README links the page; repository website field set (user chose "page only" after a review pointed out the published notes).
