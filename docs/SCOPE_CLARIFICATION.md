@@ -16,6 +16,21 @@ So:
 
 Still open, not answered by that feedback: effect heterogeneity across units, what exactly is assessed in December beyond the demo, and whether issue #2 can be closed.
 
+## Feedback on the promo page (Homework 9), received 2026-11-16
+
+In writing:
+
+> "Thierry, every number on the page traces back to results.json and the evaluation reports, and I found none that doesn't match.
+>
+> One question first: did you mean your course notes to be on the web? Pages publishes the whole docs/ folder of main, so besides index.html it also serves docs/SCOPE_CLARIFICATION.md, which quotes my written feedback together with your points, and docs/defense/, with your defense guide and the oral-defense simulation, each at its own github.io address. They could already be read in the public repository, but the page puts them on a separate site that search engines can index. If that wasn't the plan, move those files out of docs/, to a notes/ folder for example, or publish the page from a gh-pages branch that holds only the page with its images and fonts. Whether they stay in the public repository at all is your call.
+>
+> One small thing: the README doesn't link the page yet, and the repository's website field is empty. One line fixes the README, and the website field takes a moment in the repository settings."
+
+Done the same day (PR #51, PROCESS.md row 17):
+
+- **The notes were not meant for the web.** A Pages workflow (`.github/workflows/pages.yml`) now publishes only the page, its images and fonts, the film and the slides. This note, `docs/defense/`, the reviews and the evaluation files return 404 on github.io; they stay in the public repository (the author's choice).
+- **README** links the page; the repository's **website field** points to it.
+
 ## What is written
 
 - **Issue #1 (2026-09-11).** Status "not yet". "Write the brief about one method, not ten modules": difference-in-differences, a simulated world where the true effect is known, a measurement of under what conditions the estimator goes wrong and by how much, varying confounding, staggered adoption and effect heterogeneity. The hard part is deciding "how much bias is too much" and defending that number in December. The existing code "is not your starting point".
