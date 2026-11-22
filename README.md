@@ -4,13 +4,13 @@
 
 **Project page:** https://esst-prog2.github.io/CAUSAL-LAB-A-Virtual-Laboratory-for-Causal-Research/ (the 30-second film and the slides are linked from it).
 
-A small tool that lets someone with a panel dataset and a treatment date find out — with real numbers, not a guess — whether a difference-in-differences design is even appropriate for their data, and if so, run it correctly. It has since grown: it reads the research question first and considers eight designs. How that relates to the original one-method brief (issue #1) is set out in [the scope note](docs/SCOPE_CLARIFICATION.md), and is **pending the professor's written confirmation**.
+A small tool that lets someone with a panel dataset and a treatment date find out — with real numbers, not a guess — whether a difference-in-differences design is even appropriate for their data, and if so, run it correctly. It has since grown: it reads the research question first and considers eight designs. **The claim is the DiD bias study** (section 1); the question analysis is an extension. The professor set this in writing on 2026-11-09 and confirmed on issue #1, on 2026-11-22, that the study answers the one-method brief; see [the scope note](docs/SCOPE_CLARIFICATION.md).
 
 **For the December defense:** [the guide](docs/defense/DEFENSE_GUIDE.md) and [an oral simulation](docs/defense/ORAL_DEFENSE.md). The DiD study behind the demo, in full: [docs/DEMO_DETAILS.md](docs/DEMO_DETAILS.md).
 
 ## 1. The demo
 
-I open Causal Lab on the **Research Question** screen and type "Is smoking associated with lung cancer?": the analysis says the question is unclear, marks *smoking* and *lung cancer* "to confirm", and asks whether I want a causal effect instead of picking a method. I replace it with "What is the causal effect of receiving a scholarship on university enrollment among students whose entrance exam scores are near the scholarship eligibility cutoff?": it now reads a causal effect, quotes the treatment and the outcome, and labels the cutoff as an inference, not a fact. I click **Use what the question implies in the form**, then **Run Causal Diagnosis**, and the **Method Recommendation** screen answers Regression Discontinuity and says that difference-in-differences would estimate a different quantity. On the **Guided Demo** screen, the study stored in `causal_lab/data/demo_study/results.json` runs difference-in-differences on 1,000 simulated worlds per level, with a true effect of −0.50. With low diverging pre-trends, the bias is +0.236 (47% of the effect) and the 95% interval covers the truth in 31.3% of the worlds, which breaks my rule of at most 10% bias and at least 90% coverage, while the pre-trend test warns in only 14.2% of them.
+I open Causal Lab on the **Research Question** screen and type "Is smoking associated with lung cancer?": the analysis says the question is unclear, marks *smoking* and *lung cancer* "to confirm", and asks whether I want a causal effect instead of picking a method. I replace it with "What is the causal effect of receiving a scholarship on university enrollment among students whose entrance exam scores are near the scholarship eligibility cutoff?": it now reads a causal effect, quotes the treatment and the outcome, and labels the cutoff as an inference, not a fact. I click **Use what the question implies in the form**, then **Run Causal Diagnosis**, and the **Method Recommendation** screen answers Regression Discontinuity and says that difference-in-differences would estimate a different quantity. On the **Guided Demo** screen, the study stored in `causal_lab/data/demo_study/results.json` runs difference-in-differences on 1,000 simulated worlds per level, with a true effect of −0.50. With low diverging pre-trends, the bias is +0.236 (47% of the effect) and the 95% interval covers the truth in 31.3% of the worlds, which breaks my rule of at most 10% bias and at least 90% coverage, while the pre-trend test warns in only 14.2% of them. A supplement varies the effect across units instead, with one adoption date: the bias stays at −0.004, as with no threat, because unequal effects bias two-way fixed effects only when they meet staggered timing ([docs/DEMO_DETAILS.md](docs/DEMO_DETAILS.md)).
 
 ## 2. The shape
 
@@ -40,7 +40,7 @@ The app helps a researcher choose and understand a causal design. **It does not 
 
 ### The question analyser
 
-**Why it exists.** A form alone answers the wrong question. On 2026-11-01 a question about students near a scholarship cutoff received DiD, because the form said "policy" and "panel". The analyser reads what is asked before any method is considered. The author presents it as the project's principal contribution; see [the scope note](docs/SCOPE_CLARIFICATION.md), since this is **pending the professor's written confirmation**.
+**Why it exists.** A form alone answers the wrong question. On 2026-11-01 a question about students near a scholarship cutoff received DiD, because the form said "policy" and "panel". The analyser reads what is asked before any method is considered. It is an extension, not the project's claim: the front door that keeps the wrong method from being picked. It is careful but not yet complete: when it reads a question as causal it is right 18 times in 19 (precision 0.95), but it catches 18 of 30 causal questions (recall 0.60) against a target of 0.70 (`docs/evaluation/v2/REPORT.md`; [the scope note](docs/SCOPE_CLARIFICATION.md)).
 
 **How it reads a question** (`causal_engine/question_reading.py`, `question_analysis.py`). It is local and deterministic: regular expressions in reusable families (verbs with their inflections, auxiliaries, connectors), in English and French. Each conclusion keeps the words that produced it, and no data leave the machine.
 
@@ -152,7 +152,7 @@ Double machine learning is also estimated on the Causal Methods page. It is not 
     - RCT: joint balance test, arm size;
     - Matching: support, balance after matching, extreme scores, agreement with IPW;
     - IV: F ≥ 10, robust overidentification;
-    - RDD: manipulation, Hausman-type bandwidth comparison, placebo cutoffs;
+    - RDD: manipulation (since 2026-11-22 the Cattaneo–Jansson–Ma density test, see below), Hausman-type bandwidth comparison, placebo cutoffs;
     - Synthetic control: pre-fit, leave-one-out donor, in-time placebo;
     - DML: treatment predictability, stability across sample splits.
 
@@ -208,6 +208,14 @@ Double machine learning is also estimated on the Causal Methods page. It is not 
     - QRE, inspection game, 200 choices per player: LR 95.6% and Wald 95.3% at λ = 1; LR 94.8% and Wald 93.9% at λ = 3.
     - QRE, stag hunt at λ = 2: 37% of samples put every choice on one action, so λ has only a lower bound. The LR interval still covers 98.4%, but the Wald interval only 61.7%. The page therefore leads with the LR interval.
     - Nonlinear GMM (constant-elasticity Cournot, 300 markets): coverage 93.7–94.3%, slightly below 95% as expected for two-step GMM in small samples (Windmeijer 2005). The J test has size 4.9%.
+
+**Added for researchers (2026-11-21 and 2026-11-22).** Each item is recorded in `PLANNING_LOG.md` with its validation:
+- **Method Guide page** (EN/FR): for each of the eight designs and DML, the idea, the estimand, the assumptions, what Causal Lab does, the failure modes, and readings: reference books and journal articles, each checked against Crossref or its ISBN record.
+- **Sensitivity to violations of parallel trends** (Estimation page, event study with one treatment date): the fixed-length interval of Rambachan & Roth (2023) under their smoothness restriction Δ^SD(M), with the breakdown value of M (`estimators/honest_did.py`). Worst-case coverage 95.0%; on worlds with linear diverging pre-trends, 94.9% where the DiD interval covers 31.3% and 0% (`spike/honest_did_validation.py`). One documented deviation from the paper: the weights are chosen with a working covariance, because choosing them on the estimated one under-covered (88.5%).
+- **RD manipulation check**: the Cattaneo, Jansson & Ma (2020) density test through the authors' `rddensity` package, with the earlier binomial count test kept as a fallback. On 500 worlds per scenario: size 4.0%, power 35.2% and 93.4%, against 5.0%, 22.2% and 77.8% for the count test (`spike/rd_density_validation.py`).
+- **Weak instruments**: with one instrument and 10 ≤ F < 104.7, the IV result points to the Anderson–Rubin set, since the 5% t-test keeps its size only above 104.7 (Lee, McCrary, Moreira & Porter 2022).
+- **DML estimand**: the label says that θ of the partially linear model is a variance-weighted average of effects, not the ATE, when effects differ.
+- **Equilibria by optimisation** (Theoretical Model page): continuous games by minimising the Nikaido–Isoda gap, next to best-response iteration; matrix games by the Mangasarian–Stone quadratic program, next to vertex enumeration; zero-sum games by linear programming.
 
 A person with a messy panel CSV and a treatment date can use this version alone: upload, see whether parallel trends look reasonable, get a DiD estimate. Nothing else needs to exist for that to be useful — everything above it is additional, not a prerequisite for it.
 
