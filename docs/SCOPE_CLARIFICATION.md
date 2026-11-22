@@ -1,6 +1,6 @@
 # Academic scope: what is written, what was built, what is unconfirmed
 
-**Status: the contribution is decided (professor's written feedback on Homework 7 and 8, received 2026-11-09). Three points remain open.** The note below kept the facts and a proposal while the answer was pending; the proposal on the contribution was not the one chosen.
+**Status: the contribution is decided (professor's written feedback on Homework 7 and 8, received 2026-11-09). The three points it left open were answered on issue #1 on 2026-11-22: nothing remains open.** The note below kept the facts and a proposal while the answer was pending; the proposal on the contribution was not the one chosen.
 
 ## The decision, 2026-11-09
 
@@ -15,6 +15,24 @@ So:
 - **The demo order stays**: question screen first, simulation last. The presentation says which part is the claim.
 
 Still open, not answered by that feedback: effect heterogeneity across units, what exactly is assessed in December beyond the demo, and whether issue #2 can be closed.
+
+## Answer on the brief (issue #1), received 2026-11-22
+
+In writing, on issue #1:
+
+> "Thank you. This answers the brief: one method, a known effect, a rule for how much bias is too much, and you set that rule yourself.
+>
+> 1. The across-units supplement is enough, and it can stay a supplement. Effects that differ across units do not bias two-way fixed effects on their own, which is why you get −0.004, the same as in the world with no threat. The bias appears when heterogeneity meets staggered timing, and your main study already measures that in the staggered-adoption threat. Be ready to say this in one sentence in December: why the across-units result is clean and the staggered one is not.
+> 2. I will present the assessment in Tuesday's session.
+> 3. Yes, see #2."
+
+So:
+
+- **Heterogeneity across units stays a supplement** (`docs/DEMO_DETAILS.md`); the four threats and their figures are unchanged. The one-sentence answer for December is question 10 of `docs/defense/ORAL_DEFENSE.md`.
+- **What is assessed in December**: to be presented by the professor in Tuesday's session; not yet known here.
+- **Issue #2**: closed on 2026-11-22 by the author, on the professor's comment there the same day:
+
+  > "Checked: the rule has been in `AGENTS.md` since 26 September, and the log has entries from early October onwards with no long gaps. You can close this one."
 
 ## Feedback on the film (Homework 10), received 2026-11-22
 
