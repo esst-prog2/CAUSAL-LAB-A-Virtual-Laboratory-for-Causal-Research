@@ -108,3 +108,20 @@ if __name__ == "__main__":
         if name.startswith("test_"):
             test()
     print("test_rdd: OK")
+
+
+def test_density_test_is_cattaneo_jansson_ma_with_a_binomial_fallback():
+    from estimators.rdd import density_test
+    df, _ = rdd_world(RDDWorldConfig(n=2000, seed=6))
+    x = df["X"].to_numpy()
+    clean = density_test(x, 0.0, 0.3)
+    assert clean["test"] == "cjm" and clean["p_value"] > 0.05 and clean["h_left"] > 0
+    rng = np.random.default_rng(1)
+    below = np.flatnonzero((x < 0) & (x >= -0.1))
+    moved = x.copy()
+    moved[rng.choice(below, size=len(below) // 2, replace=False)] = rng.uniform(0, 0.05, len(below) // 2)
+    sorted_ = density_test(moved, 0.0, 0.3)
+    assert sorted_["test"] == "cjm" and sorted_["p_value"] < 0.01
+    # Too few points for rddensity: the binomial count test answers instead, and says so.
+    few = density_test(np.array([-0.2, -0.1, 0.05, 0.1, 0.15]), 0.0, 0.5)
+    assert few["test"] == "binomial" and few["count_below"] == 2 and few["count_above"] == 3

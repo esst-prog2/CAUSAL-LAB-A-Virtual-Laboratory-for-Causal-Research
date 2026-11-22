@@ -166,7 +166,8 @@ def _rdd(df, m, options, result: MethodResult) -> list[MethodCheck]:
     d = result.details
     man = d["manipulation"]
     manipulation = (_check("rdd_manipulation", man["p_value"] < LEVEL, p_value=man["p_value"],
-                           below=man["count_below"], above=man["count_above"], p=man["p_value"])
+                           test=Msg(f"test.{man['test']}"), below=man["count_below"], above=man["count_above"],
+                           p=man["p_value"])
                     if np.isfinite(man["p_value"]) else _na("rdd_manipulation"))
     # Hausman-type comparison of nested bandwidths: under no bias the smaller
     # bandwidth's estimate only adds noise, so Var(diff) ~ |se_small^2 - se_large^2|.

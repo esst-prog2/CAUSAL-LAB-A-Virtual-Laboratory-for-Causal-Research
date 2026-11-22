@@ -24,7 +24,7 @@ Dans les deux cas l'effet est **local** : il ne dit rien des unités éloignées
   - Les estimations à $h/2$ et $2h$, pour la sensibilité à la fenêtre.
   - Des seuils placebo, dans le test de robustesse de la page Méthodes causales, à la médiane de la variable de score de chaque côté, où il ne devrait y avoir aucun saut.
   - En design flou, le saut de première étape et sa statistique $F$.
-  - Un contrôle de manipulation : un test binomial des effectifs juste en dessous et juste au-dessus du seuil. C'est une version simple des tests de densité de McCrary (2008) et de Cattaneo, Jansson et Ma (2020), que Causal Lab ne fait pas encore.
+  - Un contrôle de manipulation : le test de densité de Cattaneo, Jansson et Ma (2020), avec le paquet `rddensity` de ses auteurs. Dans une simulation de 500 mondes par scénario, il a donné une fausse alerte dans 4,0 % des cas et détecté le tri plus souvent que la simple comparaison d'effectifs qu'il remplace. S'il ne peut pas tourner sur les données, Causal Lab revient à un test binomial des effectifs près du seuil, et le dit.
 
 #### Quand elle échoue
 

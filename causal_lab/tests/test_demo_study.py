@@ -67,6 +67,26 @@ def test_the_stored_study_is_what_the_code_computes():
                 assert same(replicate(threat, level, r), levels[level][r]), (threat, level, r)
 
 
+def test_the_stored_supplement_is_what_the_code_computes():
+    from simulation_engine.demo_study import SUPPLEMENT, SUPPLEMENT_FILE
+    stored = load_study(SUPPLEMENT_FILE)
+    assert stored is not None, "run python spike/demo_study_supplement.py"
+    meta, study = stored
+    assert list(study) == list(SUPPLEMENT) and meta["seed_base"] == SEED_BASE
+    for threat, levels in study.items():
+        assert list(levels) == list(LEVELS)
+        assert all(len(levels[level]) == meta["replications_per_level"] >= 1000 for level in LEVELS)
+        for level in ("low", "severe"):
+            for r in (0, meta["replications_per_level"] - 1):
+                assert same(replicate(threat, level, r), levels[level][r]), (threat, level, r)
+        # The claims of DEMO_DETAILS.md: unbiased and acceptable at every level.
+        for level, reps in levels.items():
+            s = summarize(level, reps)
+            assert s.acceptable and abs(s.bias) < 3 * s.bias_mcse, (level, s.bias)
+    # The four threats are untouched.
+    assert list(load_study()[1]) == list(THREATS)
+
+
 def test_same_ignores_floating_point_noise_only():
     a = Replication(seed=1, true_att=-0.5, estimate=-0.49, se=0.1, ci_low=-0.69, ci_high=-0.29, p_value=1e-6,
                     pretest_p=0.4, pretest_flag=False)
@@ -130,8 +150,11 @@ def test_the_demo_page_renders_in_both_languages():
         assert not at.exception, [e.message for e in at.exception]
         text = " ".join(str(m.value) for m in at.markdown)
         assert ("17 of 18" if lang == "en" else "17 sur 18") in text
-        # one world, overview, one table per threat, replication
-        assert len(at.dataframe) == 3 + len(THREATS)
+        # one world, overview, one table per threat, the supplement's table, replication
+        from simulation_engine.demo_study import SUPPLEMENT
+        assert len(at.dataframe) == 3 + len(THREATS) + len(SUPPLEMENT)
+        title = "Supplement: effects that differ across units" if lang == "en" else             "Supplément : un effet qui diffère d'une unité à l'autre"
+        assert title in [h.value for h in at.subheader]
 
 
 def test_relative_bias_has_no_meaning_at_a_zero_effect():

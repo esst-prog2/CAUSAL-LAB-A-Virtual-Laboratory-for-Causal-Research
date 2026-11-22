@@ -24,9 +24,9 @@ import streamlit as st
 
 from estimators.did import estimate_did
 from robustness_engine.stress_test import _check_parallel_trends
-from simulation_engine.demo_study import (CARD_KRUEGER_TABLE3, LEVELS, MAX_BIAS_SHARE, MIN_COVERAGE, design,
-                                          largest_acceptable, load_study, replicate_card_krueger, run_level, same,
-                                          summarize)
+from simulation_engine.demo_study import (CARD_KRUEGER_TABLE3, LEVELS, MAX_BIAS_SHARE, MIN_COVERAGE,
+                                          SUPPLEMENT_FILE, design, largest_acceptable, load_study,
+                                          replicate_card_krueger, run_level, same, summarize)
 from simulation_engine.dgp import generate
 from ui import style
 from ui.page_text import F, lang, references_caption
@@ -65,6 +65,11 @@ def _one_world(level: str):
 @st.cache_data(show_spinner=False)
 def _study():
     return load_study()
+
+
+@st.cache_data(show_spinner=False)
+def _supplement_study():
+    return load_study(SUPPLEMENT_FILE)
 
 
 @st.cache_data(show_spinner=False)
@@ -143,6 +148,7 @@ def render(L) -> None:
                     _reading_threat(by_level, L)
         st.caption(L("demo.table_note"))
         _live_rerun(study, L)
+        _supplement(L)
 
     # 4. Replication
     st.header(L("demo.s4"))
@@ -204,6 +210,29 @@ def _reading_threat(summaries, L) -> None:
                   bias=num(beyond.bias, sign=True), share=pct(beyond.bias_share, 0),
                   coverage=pct(beyond.coverage), detection=pct(beyond.detection),
                   baseline=pct(summaries["none"].detection)))
+
+
+def _supplement(L) -> None:
+    """Effects that differ across units: stored apart from the four threats (demo_study.SUPPLEMENT)."""
+    stored = _supplement_study()
+    if stored is None:
+        return
+    meta, study = stored
+    reps = study["unit_heterogeneity"]
+    st.subheader(L("demo.supplement.title"), anchor=False)
+    st.caption(L("demo.threat.unit_heterogeneity.desc"))
+    by_level = {level: summarize(level, r) for level, r in reps.items()}
+    _study_table(by_level, L)
+    design_att = design("unit_heterogeneity", "none").true_att
+    design_cov = {level: sum(x.ci_low <= design_att <= x.ci_high for x in r) / len(r) for level, r in reps.items()}
+    worst = max(by_level.values(), key=lambda s: abs(s.bias))
+    top = by_level[LEVELS[-1]]
+    st.markdown(F("demo.supplement.reading", bias=num(worst.bias, sign=True), mcse=num(worst.bias_mcse),
+                  n_ok=sum(s.acceptable for s in by_level.values()), n=len(by_level),
+                  cov_top=pct(top.coverage), cov_design=pct(design_cov[LEVELS[-1]]),
+                  design_att=num(design_att, 2, sign=True)))
+    st.caption(F("demo.provenance", reps=meta["replications_per_level"], seed=meta["seed_base"],
+                 date=meta["computed_at"][:10], script=meta["script"]))
 
 
 def _study_table(summaries, L) -> None:
