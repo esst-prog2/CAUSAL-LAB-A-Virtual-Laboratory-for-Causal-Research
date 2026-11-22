@@ -20,6 +20,8 @@ Rendered 2026-11-13 with HyperFrames 0.9.41: `docs/video/causal-lab-30s.mp4`, 19
 - `t=3.5–7 s` · panel labels · "You type" and the tags were 26 and 27 px, under the 28 px floor → 28 px.
 - `t=22–24.5 s` · source line · on screen too briefly for its 10 words → shortened to "Source: docs/DEMO_DETAILS.md".
 
+- 2026-11-22, after the professor's feedback on Homework 10: the end card's address under "Open the app" was the promo page's; it is now the app's (causal-lab-a-virtual-laboratory-for-causal-research-busavtyebb.streamlit.app), on one line inside the safe area at 0:28. Check passed; re-rendered (30.0 s, 1920x1080, 2.1 MB).
+
 ## Warnings kept on purpose
 
 - `film_silent`: slide 15 says no sound is needed, and the film is made to play muted on the page.
