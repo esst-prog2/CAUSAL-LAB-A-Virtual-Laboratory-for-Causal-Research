@@ -34,6 +34,7 @@ from code_generator.generator import CodeGenParams, generate_all
 from estimators.common import Z_95
 from estimators.did import estimate_did
 from estimators.event_study import estimate_event_study
+from estimators.honest_did import breakdown_m, sensitivity
 from estimators.staggered_did import SMALL_COHORT, estimate_staggered_did
 from report_engine.builder import build_report
 from report_engine.render import FORMATS, render_report, to_markdown
@@ -155,6 +156,13 @@ def cached_event_study(df: pd.DataFrame, fixed_treatment_period: int | None):
 
 
 @st.cache_data(show_spinner=False, max_entries=CACHE_ENTRIES)
+def cached_honest(df: pd.DataFrame, treatment_period: int):
+    """Rambachan-Roth sensitivity, from the units' changes relative to the period
+    before treatment (estimators/honest_did.py)."""
+    return sensitivity(df, int(treatment_period))
+
+
+@st.cache_data(show_spinner=False, max_entries=CACHE_ENTRIES)
 def cached_staggered_did(df: pd.DataFrame):
     return estimate_staggered_did(df)
 
@@ -204,6 +212,42 @@ def use_card_krueger() -> None:
 def page_title(page_id: str) -> None:
     """Every page is titled with its name in the sidebar."""
     st.title(L(f"nav.{page_id}"))
+
+
+def honest_section(df: pd.DataFrame, treatment_period: int, staggered: bool) -> None:
+    """How far parallel trends may fail before the event study's conclusion changes."""
+    st.subheader(L("honest.title"), anchor=False)
+    st.caption(L("honest.intro"))
+    if staggered:
+        st.info(L("honest.staggered_na"))
+        return
+    try:
+        table = cached_honest(df, treatment_period)
+    except LocalizedError as exc:
+        st.info(error_text(exc))
+        return
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=table["M"], y=(table["ci_low"] + table["ci_high"]) / 2, mode="markers",
+                             error_y=dict(type="data", symmetric=False,
+                                          array=table["ci_high"] - (table["ci_low"] + table["ci_high"]) / 2,
+                                          arrayminus=(table["ci_low"] + table["ci_high"]) / 2 - table["ci_low"]),
+                             name=L("honest.interval")))
+    fig.add_hline(y=0, line_dash="dot", line_color="gray")
+    fig.update_layout(xaxis_title=L("honest.x_axis"), yaxis_title=L("honest.y_axis"), height=360,
+                      margin=dict(t=20, b=30), showlegend=False)
+    st.plotly_chart(fig, width="stretch")
+    shown = table.rename(columns={"M": "M", "estimate": L("common.estimate"), "se": L("honest.se"),
+                                  "max_bias": L("honest.max_bias"), "ci_low": L("honest.ci_low"),
+                                  "ci_high": L("honest.ci_high")})
+    st.dataframe(shown.round(4), width="stretch", hide_index=True)
+    m = breakdown_m(table)
+    if m is None:
+        st.caption(F("honest.breakdown_none", top=float(table["M"].max())))
+    elif m == 0:
+        st.caption(L("honest.breakdown_zero"))
+    else:
+        st.caption(F("honest.breakdown", m=m))
+    references_caption("honest_did")
 
 
 def empty_state(message_key: str, actions: list[tuple[str, str, object]]) -> None:
@@ -685,6 +729,7 @@ elif page == "estimation":
             st.plotly_chart(fig, width="stretch")
             st.caption(L("event_study.caption"))
             references_caption("event_study")
+            honest_section(df, treatment_period, staggered)
 
         with tab3:
             st.caption(L("staggered.intro"))

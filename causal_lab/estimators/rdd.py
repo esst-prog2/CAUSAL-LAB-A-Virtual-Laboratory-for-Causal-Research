@@ -20,9 +20,17 @@ bias estimate. Both inferences are always in `details`.
 
 The default bandwidth h is the MSE-optimal bandwidth of Imbens &
 Kalyanaraman (2012), computed on the outcome. Estimates at h/2 and 2h are
-shown for sensitivity. The manipulation check compares observation counts
-just below and just above the cutoff (a simple binomial stand-in for the
-McCrary test).
+shown for sensitivity.
+
+Manipulation check: the local-polynomial density test of Cattaneo, Jansson &
+Ma (2020), computed by the authors' package rddensity (its defaults:
+jackknife standard error, its own bandwidths on each side). On 500 RD virtual
+worlds per scenario (spike/rd_density_validation.py) it rejected 4.0% of the
+time without manipulation, and 35.2% and 93.4% when 20% and 40% of the units
+just below the cutoff moved just above it; the binomial count test used until
+2026-11-22 gave 5.0%, 22.2% and 77.8%. That binomial test of the counts within
+h/2 of the cutoff remains as a fallback if rddensity cannot run on the data,
+and the result says which test was used.
 """
 from __future__ import annotations
 
@@ -43,6 +51,33 @@ INFERENCES = ("conventional", "robust")
 # rdrobust "Conventional" row that the reference tests compare.
 APP_INFERENCE = "robust"
 WEAK_FIRST_STAGE_F = 10.0
+
+
+def density_test(x: np.ndarray, cutoff: float, bandwidth: float) -> dict:
+    """Test for a jump in the density of the running variable at the cutoff.
+
+    Cattaneo-Jansson-Ma when rddensity runs on these data, else the binomial
+    test of the counts within bandwidth / 2 on each side."""
+    try:
+        import warnings
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            from rddensity import rddensity        # imported here: it loads plotting libraries (~5 s)
+            fit = rddensity(X=np.asarray(x, float), c=float(cutoff))
+        p, t = float(fit.test["p_jk"]), float(fit.test["t_jk"])
+        h_left, h_right = float(fit.h["left"]), float(fit.h["right"])
+        if np.isfinite(p) and np.isfinite(t):
+            return dict(test="cjm", p_value=p, t_stat=t, h_left=h_left, h_right=h_right,
+                        count_below=int(((x >= cutoff - h_left) & (x < cutoff)).sum()),
+                        count_above=int(((x >= cutoff) & (x <= cutoff + h_right)).sum()))
+    except Exception:          # noqa: BLE001 - rddensity raises on too few or degenerate points: fall back
+        pass
+    w = bandwidth / 2
+    below = int(((x >= cutoff - w) & (x < cutoff)).sum())
+    above = int(((x >= cutoff) & (x < cutoff + w)).sum())
+    p = float(stats.binomtest(above, below + above, 0.5).pvalue) if below + above > 0 else float("nan")
+    return dict(test="binomial", p_value=p, t_stat=float("nan"), h_left=w, h_right=w,
+                count_below=below, count_above=above)
 
 
 def _poly_fit(x: np.ndarray, y: np.ndarray, degree: int) -> np.ndarray:
@@ -204,13 +239,11 @@ def estimate_rdd(df: pd.DataFrame, outcome_col: str = "Y", running_col: str = "X
                                     estimate=float("nan"), se=float("nan")))
 
     warnings: list[Msg] = []
-    w = h / 2
-    count_below = int(((x >= cutoff - w) & (x < cutoff)).sum())
-    count_above = int(((x >= cutoff) & (x < cutoff + w)).sum())
-    manipulation_p = float(stats.binomtest(count_above, count_below + count_above, 0.5).pvalue) \
-        if count_below + count_above > 0 else float("nan")
-    if manipulation_p < 0.05:
-        warnings.append(Msg("warn.rdd_manipulation", below=count_below, above=count_above, p=manipulation_p))
+    manipulation = density_test(x, cutoff, h)
+    if manipulation["p_value"] < 0.05:
+        warnings.append(Msg("warn.rdd_manipulation", test=Msg(f"test.{manipulation['test']}"),
+                            below=manipulation["count_below"], above=manipulation["count_above"],
+                            p=manipulation["p_value"]))
     if fit["first_stage"] is not None and fit["first_stage"]["f"] < WEAK_FIRST_STAGE_F:
         warnings.append(Msg("warn.rdd_weak_first_stage", f=fit["first_stage"]["f"],
                             threshold=WEAK_FIRST_STAGE_F))
@@ -230,7 +263,7 @@ def estimate_rdd(df: pd.DataFrame, outcome_col: str = "Y", running_col: str = "X
                         ci_high=fit["ci_robust"][1], p_value=fit["p_robust"], bias_bandwidth=fit["bias_bandwidth"]),
             first_stage=fit["first_stage"],
             sensitivity=pd.DataFrame(sensitivity),
-            manipulation=dict(count_below=count_below, count_above=count_above, p_value=manipulation_p),
+            manipulation=manipulation,
             plot_data=pd.DataFrame({"x": x, "y": y}),
             notes=Msg("note.rdd_inference_robust" if inference == "robust" else "note.rdd_inference"),
         ),

@@ -300,8 +300,8 @@ def _plots(method: str, result: MethodResult, state: dict, L) -> None:
         st.dataframe(_translated_table(d["sensitivity"].round(4), L), width="stretch")
         man = d["manipulation"]
         rule = L("methods.rule_user") if d["bandwidth_rule"] == "user" else d["bandwidth_rule"]
-        st.caption(F("methods.rdd_caption", rule=rule, below=man["count_below"], above=man["count_above"],
-                     p=man["p_value"], notes=R(d["notes"])))
+        st.caption(F("methods.rdd_caption", rule=rule, test=Msg(f"test.{man['test']}"), below=man["count_below"],
+                     above=man["count_above"], p=man["p_value"], notes=R(d["notes"])))
         rb = d["robust"]
         st.caption(F("methods.rdd_robust_caption", estimate=rb["estimate_bc"], se=rb["se"], lo=rb["ci_low"],
                      hi=rb["ci_high"], p=rb["p_value"]))

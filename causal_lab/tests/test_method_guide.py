@@ -42,9 +42,9 @@ def test_every_design_has_a_name_and_checked_readings():
 
 
 def test_the_guide_says_what_causal_lab_does_not_do():
-    # Advice only for interrupted time series; no density test in the RD yet.
+    # Advice only for interrupted time series.
     assert "no interrupted time series estimator" in guide_text("its", "en")
-    assert "does not yet run" in guide_text("rdd", "en")
+    assert "falls back to a binomial test" in guide_text("rdd", "en")
 
 
 def test_the_page_renders_in_both_languages():

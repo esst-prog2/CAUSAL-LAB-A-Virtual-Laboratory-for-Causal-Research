@@ -26,11 +26,12 @@ $(\bar Y^{T}_{post} - \bar Y^{T}_{pre}) - (\bar Y^{C}_{post} - \bar Y^{C}_{pre})
 - **Diagnostics.**
   - The joint test of the pre-treatment leads, with a wild cluster bootstrap $p$-value.
   - Warnings for a non-binary treatment and for treatment that switches off.
-  - The Guided Demo's simulation study: 4 threats × 5 levels × 1,000 worlds, judged by a rule fixed in advance.
+  - The Guided Demo's simulation study: 4 threats × 5 levels × 1,000 worlds, judged by a rule fixed in advance, and a supplement with effects that differ across units.
+- **Sensitivity to violations of parallel trends** (Estimation page, event-study tab). Following Rambachan and Roth (2023), the difference in trends may bend by at most $M$ per period. For each $M$, a fixed-length interval (Armstrong and Kolesár, 2018) covers the average post-treatment effect with probability at least 95% under every such violation; $M = 0$ allows exactly the linear trends seen before treatment. One treatment date and a balanced panel are needed. The estimator's weights are chosen with a working covariance and its standard error estimated from the units, because with few treated units the paper's choice on the estimated covariance under-covered (88.5% on 200 study worlds).
 
 #### When it fails
 
 - **Diverging pre-trends.** In the stored study, a low level of divergence gives a bias of 47% of the true effect and 31.3% coverage, while the pre-trend test warns in only 14.2% of worlds.
-- **A passed pre-test is weak evidence.** Conditioning on it can make the bias worse (Roth, 2022). Rambachan and Roth (2023) show how to report results under bounded violations; Causal Lab does not implement that yet.
+- **A passed pre-test is weak evidence.** Conditioning on it can make the bias worse (Roth, 2022). Rambachan and Roth (2023) show how to report results under bounded violations; Causal Lab does it on the Estimation page (see above).
 - **Staggered timing with effects that change over time.** Two-way fixed effects then compare later adopters with earlier ones whose effects are still growing (Goodman-Bacon, 2021; de Chaisemartin and D'Haultfœuille, 2020).
 - **Few treated clusters.** Clustered inference is then unreliable.

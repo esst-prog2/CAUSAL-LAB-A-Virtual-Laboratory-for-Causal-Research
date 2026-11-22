@@ -26,11 +26,12 @@ $(\bar Y^{T}_{post} - \bar Y^{T}_{pre}) - (\bar Y^{C}_{post} - \bar Y^{C}_{pre})
 - **Diagnostics.**
   - Le test joint des avances (leads) d'avant traitement, avec une $p$-valeur par wild cluster bootstrap.
   - Des avertissements pour un traitement non binaire et pour un traitement qui s'arrête.
-  - L'étude de simulation de la Démo guidée : 4 menaces × 5 niveaux × 1 000 mondes, jugés par une règle fixée d'avance.
+  - L'étude de simulation de la Démo guidée : 4 menaces × 5 niveaux × 1 000 mondes, jugés par une règle fixée d'avance, et un supplément où l'effet diffère d'une unité à l'autre.
+- **Sensibilité aux violations des tendances parallèles** (page Estimation, onglet étude d'événement). Comme Rambachan et Roth (2023), l'écart de tendance peut se courber d'au plus $M$ par période. Pour chaque $M$, un intervalle de longueur fixe (Armstrong et Kolesár, 2018) couvre l'effet moyen après traitement avec une probabilité d'au moins 95 % sous toute violation de ce type ; $M = 0$ n'autorise que les tendances linéaires vues avant le traitement. Il faut une seule date de traitement et un panel cylindré. Les poids de l'estimateur sont choisis avec une covariance de travail et son erreur-type estimée à partir des unités : avec peu d'unités traitées, le choix du papier sur la covariance estimée couvrait trop peu (88,5 % sur 200 mondes de l'étude).
 
 #### Quand elle échoue
 
 - **Des pré-tendances divergentes.** Dans l'étude stockée, une divergence faible donne un biais de 47 % de l'effet vrai et une couverture de 31,3 %, alors que le test de pré-tendance n'avertit que dans 14,2 % des mondes.
-- **Un pré-test réussi est une preuve faible.** Conditionner sur lui peut aggraver le biais (Roth, 2022). Rambachan et Roth (2023) montrent comment présenter des résultats sous des violations bornées ; Causal Lab ne le fait pas encore.
+- **Un pré-test réussi est une preuve faible.** Conditionner sur lui peut aggraver le biais (Roth, 2022). Rambachan et Roth (2023) montrent comment présenter des résultats sous des violations bornées ; Causal Lab le fait sur la page Estimation (voir plus haut).
 - **Un calendrier échelonné avec des effets qui changent dans le temps.** Les doubles effets fixes comparent alors les adoptants tardifs aux précoces, dont les effets croissent encore (Goodman-Bacon, 2021 ; de Chaisemartin et D'Haultfœuille, 2020).
 - **Peu de clusters traités.** L'inférence clusterisée n'est alors pas fiable.

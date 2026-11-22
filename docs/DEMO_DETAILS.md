@@ -59,6 +59,20 @@ The study supports five findings:
 - a passed test is not a proof;
 - a replication checks the computation, not the identification.
 
+**Supplement (2026-11-22): effects that differ across units.** Issue #1 asked to vary effect heterogeneity. The four threats vary it over time since adoption, not across units, so a fifth scenario was added and **stored apart** (`causal_lab/data/demo_study/supplement_unit_heterogeneity.json`, computed by `spike/demo_study_supplement.py`): every figure above is unchanged. Each treated unit draws its own effect, −0.50 + N(0, s²) with s = 0.3, 0.7, 1.2 and 2.0 from low to severe; one adoption date; same design, seeds, estimator, pre-trend test and rule, the bias judged against each world's realised effect (the mean over its treated units). 1,000 worlds per level:
+
+| Unit heterogeneity | Bias (MC SE) | Coverage of the realised effect | Coverage of the design effect −0.50 | Mean SE / SD of the estimate | Verdict |
+|---|---|---|---|---|---|
+| none | −0.004 (0.003) | 94.9% | 94.9% | 0.097 / 0.097 | acceptable |
+| low | −0.004 (0.003) | 97.1% | 94.0% | 0.111 / 0.114 | acceptable |
+| medium | −0.004 (0.003) | 99.6% | 94.1% | 0.158 / 0.166 | acceptable |
+| high | −0.004 (0.003) | 100.0% | 94.2% | 0.235 / 0.248 | acceptable |
+| severe | −0.004 (0.003) | 100.0% | 94.0% | 0.371 / 0.390 | acceptable |
+
+Two-way fixed effects estimate the average effect of the treated units however unequal their effects: the bias does not move, and every level meets the rule. The clustered standard error also counts the spread of the units' effects, which matters for an average over a wider population (coverage of −0.50 stays near 94%) but not for the effect of the units actually treated, for which the interval is conservative. This answers the heterogeneity question for one adoption date; with staggered adoption, effects that change over time do bias the estimator (the third threat).
+
+**Sensitivity to violations of parallel trends (2026-11-22).** The Estimation page now reports, for an event study with one treatment date, the interval of Rambachan & Roth (2023) under their smoothness restriction (`causal_lab/estimators/honest_did.py`). On the worlds of the first threat, whose divergence is linear, its interval with M = 0 covers the true effect in 94.9% of 1,000 worlds at the none, low and medium levels, where the DiD interval covers 94.9%, 31.3% and 0.0% (`spike/honest_did_validation.py`).
+
 **Then, quickly, the rest of the lab:**
 - **Causal Methods:** six other designs on worlds with a known effect (RCT, matching, IV, RDD, synthetic control, DML).
 - **Theoretical Model:** solves a game, predicts the treatment effect, and compares the prediction with the causal estimate.

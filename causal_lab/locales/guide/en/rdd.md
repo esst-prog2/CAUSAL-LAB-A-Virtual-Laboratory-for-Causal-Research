@@ -24,7 +24,7 @@ In both cases the effect is **local**: it says nothing about units far from the 
   - Estimates at $h/2$ and $2h$, for sensitivity to the bandwidth.
   - Placebo cutoffs, in the stress test on the Causal Methods page, at the median of the running variable on each side, where there should be no jump.
   - In a fuzzy design, the first-stage jump and its $F$ statistic.
-  - A manipulation check: a binomial test of the counts just below and just above the cutoff. This is a simple stand-in for the density tests of McCrary (2008) and Cattaneo, Jansson and Ma (2020), which Causal Lab does not yet run.
+  - A manipulation check: the density test of Cattaneo, Jansson and Ma (2020), run with the authors' package `rddensity`. In a simulation of 500 worlds per scenario it raised a false alarm 4.0% of the time, and detected sorting more often than the simple count comparison it replaced. If the test cannot run on the data, Causal Lab falls back to a binomial test of the counts near the cutoff and says so.
 
 #### When it fails
 

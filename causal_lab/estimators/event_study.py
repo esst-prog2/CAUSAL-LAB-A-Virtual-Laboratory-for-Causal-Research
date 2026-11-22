@@ -38,6 +38,12 @@ class EventStudyResult:
     coefficients: pd.DataFrame   # columns: rel_period, estimate, se, ci_low, ci_high
     reference_period: int
     n_obs: int
+    # Clustered covariance of the estimated coefficients (reference period excluded),
+    # indexed by rel_period on both axes: the input of the sensitivity analysis
+    # of estimators.honest_did.
+    vcov: pd.DataFrame | None = None
+    n_clusters: int = 0
+    binned: bool = False         # some relative periods lay beyond the window and were lumped into its ends
 
 
 def estimate_event_study(df: pd.DataFrame, outcome_col: str = "Y",
@@ -74,6 +80,7 @@ def estimate_event_study(df: pd.DataFrame, outcome_col: str = "Y",
         data[time_col] - adoption,
         np.nan,
     )
+    binned = bool(((data["rel_period"] < -window) | (data["rel_period"] > window)).any())
     data["rel_period"] = data["rel_period"].clip(lower=-window, upper=window)
 
     # Comparison units (never treated) share the reference category with
@@ -94,6 +101,7 @@ def estimate_event_study(df: pd.DataFrame, outcome_col: str = "Y",
     crit = float(stats.t.ppf(0.975, max(data[unit_col].nunique() - 1, 1)))
 
     rows = []
+    names: dict[int, str] = {}
     for name, coef in fitted.params.items():
         if "rel_bucket" not in name:
             continue
@@ -102,8 +110,12 @@ def estimate_event_study(df: pd.DataFrame, outcome_col: str = "Y",
             k = int(bucket.replace("k", ""))
         except ValueError:
             continue
+        names[k] = name
         se = fitted.bse[name] * factor
         rows.append(dict(rel_period=k, estimate=coef, se=se, ci_low=coef - crit * se, ci_high=coef + crit * se))
+    order = sorted(names)
+    vcov = fitted.cov_params().loc[[names[k] for k in order], [names[k] for k in order]] * factor ** 2
+    vcov.index = vcov.columns = order
 
     rows.append(dict(rel_period=reference_period, estimate=0.0, se=0.0,
                       ci_low=0.0, ci_high=0.0))
@@ -113,4 +125,7 @@ def estimate_event_study(df: pd.DataFrame, outcome_col: str = "Y",
         coefficients=coef_df,
         reference_period=reference_period,
         n_obs=int(fitted.nobs),
+        vcov=vcov,
+        n_clusters=int(data[unit_col].nunique()),
+        binned=binned,
     )

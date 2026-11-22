@@ -55,11 +55,22 @@ THREATS = {
     "staggered_dynamic": ("dynamic_effects", {"staggered_adoption": True}),
     "anticipation": ("anticipation", {}),
 }
+# Supplement, added 2026-11-22 and stored apart (SUPPLEMENT_FILE), so the four
+# threats above and every figure quoted from them stay as they were. Issue #1
+# asked to vary effect heterogeneity; the study varied it over time since
+# adoption (staggered_dynamic), not across units. Here each treated unit draws
+# its own effect, ATT + N(0, s^2) with s = 0.3, 0.7, 1.2, 2.0 from low to
+# severe (the Virtual World's treatment_heterogeneity), with one adoption
+# date. It is judged by the same rule, against each world's realized ATT.
+SUPPLEMENT = {
+    "unit_heterogeneity": ("treatment_heterogeneity", {}),
+}
 MAX_BIAS_SHARE = 0.10              # |bias| <= 10% of the true effect ...
 MIN_COVERAGE = 0.90                # ... and coverage of the 95% CI >= 90% (the user's rule)
 NEGLIGIBLE_EFFECT = 1e-12            # below this, a share of the true effect has no meaning
 SEED_BASE = 20261029
 RESULTS_FILE = Path(__file__).resolve().parent.parent / "data" / "demo_study" / "results.json"
+SUPPLEMENT_FILE = RESULTS_FILE.parent / "supplement_unit_heterogeneity.json"
 
 
 @dataclass(frozen=True)
@@ -77,7 +88,7 @@ class Replication:
 
 def design(threat: str, level: str) -> VirtualWorldConfig:
     """The default Virtual World with `threat` at `level`."""
-    field, fixed = THREATS[threat]
+    field, fixed = {**THREATS, **SUPPLEMENT}[threat]
     return replace(VirtualWorldConfig(), **{field: level}, **fixed)
 
 
