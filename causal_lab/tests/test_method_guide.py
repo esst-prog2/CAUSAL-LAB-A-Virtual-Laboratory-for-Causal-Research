@@ -10,7 +10,7 @@ from streamlit.testing.v1 import AppTest
 
 from ui.guide_page import GUIDE_DIR, GUIDE_METHODS, guide_text
 from utils.i18n import t
-from utils.references import METHOD_READINGS, REFERENCES
+from utils.references import GENERAL_READINGS, METHOD_READINGS, REFERENCES
 
 APP = str(Path(__file__).resolve().parent.parent / "app.py")
 
@@ -25,14 +25,20 @@ def test_every_design_has_a_text_in_both_languages_with_the_same_sections():
     assert files == set(GUIDE_METHODS)
 
 
-def test_every_design_has_a_name_and_journal_readings():
+def test_every_design_has_a_name_and_checked_readings():
     for method in GUIDE_METHODS:
         assert t(f"method.{method}", "en") != f"method.{method}"
         keys = METHOD_READINGS[method]
-        assert keys, method
+        assert any(REFERENCES[k].kind == "article" for k in keys), method
+        assert len(set(keys)) == len(keys), method
         for key in keys:
             ref = REFERENCES[key]
-            assert ref.kind == "article" and ref.doi, key
+            assert ref.kind in ("article", "book"), key
+            # A DOI, or for a book without one its ISBN, so the reader can find it.
+            assert ref.doi or "ISBN" in ref.note, key
+    # Every design but DML (no textbook yet) points to at least one reference book.
+    assert all(any(REFERENCES[k].kind == "book" for k in METHOD_READINGS[m]) for m in GUIDE_METHODS if m != "dml")
+    assert all(REFERENCES[k].kind == "book" for k in GENERAL_READINGS)
 
 
 def test_the_guide_says_what_causal_lab_does_not_do():

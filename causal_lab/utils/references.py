@@ -90,7 +90,8 @@ _ENTRIES = [
        "American Economic Review", 84, 4, "772–793", url="https://www.jstor.org/stable/2118030"),
     # ------------------------------------------------- difference-in-differences
     _b("angrist_pischke_2009", ["Angrist, J. D.", "Pischke, J.-S."], 2009,
-       "Mostly harmless econometrics: An empiricist's companion", "Princeton University Press"),
+       "Mostly harmless econometrics: An empiricist's companion", "Princeton University Press",
+       note="ISBN 978-0-691-12035-5."),
     _a("bertrand_duflo_mullainathan_2004", ["Bertrand, M.", "Duflo, E.", "Mullainathan, S."], 2004,
        "How much should we trust differences-in-differences estimates?", "Quarterly Journal of Economics",
        119, 1, "249–275", "10.1162/003355304772839588"),
@@ -124,7 +125,8 @@ _ENTRIES = [
        "Using simulation studies to evaluate statistical methods", "Statistics in Medicine", 38, 11, "2074–2102",
        "10.1002/sim.8086"),
     _b("wooldridge_2010", ["Wooldridge, J. M."], 2010,
-       "Econometric analysis of cross section and panel data (2nd ed.)", "MIT Press"),
+       "Econometric analysis of cross section and panel data (2nd ed.)", "MIT Press",
+       note="ISBN 978-0-262-23258-6."),
     # ----------------------------------------------------------------- RCT
     _a("lin_2013", ["Lin, W."], 2013,
        "Agnostic notes on regression adjustments to experimental data: Reexamining Freedman's critique",
@@ -341,6 +343,39 @@ _ENTRIES = [
     _a("von_heusinger_kanzow_2009", ["von Heusinger, A.", "Kanzow, C."], 2009,
        "Optimization reformulations of the generalized Nash equilibrium problem using Nikaido-Isoda-type "
        "functions", "Computational Optimization and Applications", 43, 3, "353–377", "10.1007/s10589-007-9145-6"),
+    # ----------------------------------- reference books of the Method Guide
+    # Checked on 2026-11-22: against Crossref where the book has a DOI, else
+    # against its ISBN record at Open Library (title, authors, year, publisher).
+    _b("imbens_rubin_2015", ["Imbens, G. W.", "Rubin, D. B."], 2015,
+       "Causal inference for statistics, social, and biomedical sciences: An introduction",
+       "Cambridge University Press", doi="10.1017/CBO9781139025751"),
+    _b("morgan_winship_2014", ["Morgan, S. L.", "Winship, C."], 2014,
+       "Counterfactuals and causal inference: Methods and principles for social research (2nd ed.)",
+       "Cambridge University Press", doi="10.1017/CBO9781107587991"),
+    _b("pearl_2009", ["Pearl, J."], 2009, "Causality: Models, reasoning, and inference (2nd ed.)",
+       "Cambridge University Press", doi="10.1017/CBO9780511803161"),
+    _b("angrist_pischke_2015", ["Angrist, J. D.", "Pischke, J.-S."], 2015,
+       "Mastering 'metrics: The path from cause to effect", "Princeton University Press", note="ISBN 978-0-691-15284-4."),
+    _b("cunningham_2021", ["Cunningham, S."], 2021, "Causal inference: The mixtape", "Yale University Press",
+       note="ISBN 978-0-300-25168-5."),
+    _b("huntington_klein_2021", ["Huntington-Klein, N."], 2021,
+       "The effect: An introduction to research design and causality", "Chapman and Hall/CRC",
+       doi="10.1201/9781003226055"),
+    _b("gerber_green_2012", ["Gerber, A. S.", "Green, D. P."], 2012,
+       "Field experiments: Design, analysis, and interpretation", "W. W. Norton", note="ISBN 978-0-393-97995-4."),
+    _b("glennerster_takavarasha_2013", ["Glennerster, R.", "Takavarasha, K."], 2013,
+       "Running randomized evaluations: A practical guide", "Princeton University Press",
+       note="ISBN 978-0-691-15924-9."),
+    _b("cattaneo_idrobo_titiunik_2019", ["Cattaneo, M. D.", "Idrobo, N.", "Titiunik, R."], 2019,
+       "A practical introduction to regression discontinuity designs: Foundations", "Cambridge University Press",
+       doi="10.1017/9781108684606"),
+    _b("shadish_cook_campbell_2002", ["Shadish, W. R.", "Cook, T. D.", "Campbell, D. T."], 2002,
+       "Experimental and quasi-experimental designs for generalized causal inference", "Houghton Mifflin",
+       note="ISBN 978-0-395-61556-0; published July 2001, copyright 2002."),
+    _b("rosenbaum_2002", ["Rosenbaum, P. R."], 2002, "Observational studies (2nd ed.)", "Springer",
+       doi="10.1007/978-1-4757-3692-2"),
+    _b("rosenbaum_2010", ["Rosenbaum, P. R."], 2010, "Design of observational studies", "Springer",
+       doi="10.1007/978-1-4419-1213-8"),
 ]
 
 REFERENCES: dict[str, Reference] = {r.key: r for r in _ENTRIES}
@@ -377,22 +412,29 @@ METHOD_REFERENCES: dict[str, tuple[str, ...]] = {
 }
 
 
-# Key readings of the Method Guide page, per design: peer-reviewed journal articles only.
+# Reference books on causal inference as a whole, shown at the top of the Method Guide.
+GENERAL_READINGS: tuple[str, ...] = (
+    "imbens_rubin_2015", "angrist_pischke_2009", "angrist_pischke_2015", "morgan_winship_2014", "pearl_2009",
+    "cunningham_2021", "huntington_klein_2021", "wooldridge_2010",
+)
+
+# Indicative readings of the Method Guide page, per design: its reference books,
+# then peer-reviewed journal articles. The page lists books and articles apart.
 METHOD_READINGS: dict[str, tuple[str, ...]] = {
-    "rct": ("lin_2013", "bruhn_mckenzie_2009"),
-    "rdd": ("hahn_todd_vanderklaauw_2001", "imbens_lemieux_2008", "lee_lemieux_2010",
+    "rct": ("gerber_green_2012", "glennerster_takavarasha_2013", "imbens_rubin_2015", "lin_2013", "bruhn_mckenzie_2009"),
+    "rdd": ("cattaneo_idrobo_titiunik_2019", "hahn_todd_vanderklaauw_2001", "imbens_lemieux_2008", "lee_lemieux_2010",
             "calonico_cattaneo_titiunik_2014", "mccrary_2008", "cattaneo_jansson_ma_2020"),
-    "did": ("bertrand_duflo_mullainathan_2004", "callaway_santanna_2021", "goodman_bacon_2021",
+    "did": ("angrist_pischke_2009", "cunningham_2021", "huntington_klein_2021", "bertrand_duflo_mullainathan_2004", "callaway_santanna_2021", "goodman_bacon_2021",
             "dechaisemartin_dhaultfoeuille_2020", "roth_2022", "rambachan_roth_2023",
             "roth_santanna_bilinski_poe_2023"),
-    "event_study": ("sun_abraham_2021", "freyaldenhoven_hansen_shapiro_2019", "borusyak_jaravel_spiess_2024",
+    "event_study": ("cunningham_2021", "huntington_klein_2021", "sun_abraham_2021", "freyaldenhoven_hansen_shapiro_2019", "borusyak_jaravel_spiess_2024",
                     "roth_2022"),
-    "synthetic_control": ("abadie_gardeazabal_2003", "abadie_diamond_hainmueller_2010",
+    "synthetic_control": ("cunningham_2021", "abadie_gardeazabal_2003", "abadie_diamond_hainmueller_2010",
                           "abadie_diamond_hainmueller_2015", "abadie_2021", "arkhangelsky_et_al_2021"),
-    "iv": ("imbens_angrist_1994", "angrist_imbens_rubin_1996", "staiger_stock_1997", "andrews_stock_sun_2019",
+    "iv": ("angrist_pischke_2009", "imbens_rubin_2015", "imbens_angrist_1994", "angrist_imbens_rubin_1996", "staiger_stock_1997", "andrews_stock_sun_2019",
            "lee_mccrary_moreira_porter_2022"),
-    "its": ("kontopantelis_et_al_2015",),
-    "matching": ("rosenbaum_rubin_1983", "abadie_imbens_2006", "abadie_imbens_2016", "imbens_2004", "stuart_2010",
+    "its": ("shadish_cook_campbell_2002", "kontopantelis_et_al_2015",),
+    "matching": ("rosenbaum_2002", "rosenbaum_2010", "imbens_rubin_2015", "rosenbaum_rubin_1983", "abadie_imbens_2006", "abadie_imbens_2016", "imbens_2004", "stuart_2010",
                  "austin_2011"),
     "dml": ("robinson_1988", "belloni_chernozhukov_hansen_2014", "chernozhukov_et_al_2018"),
 }

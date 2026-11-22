@@ -4,8 +4,10 @@ Lab does with it, when it fails, and its key readings.
 
 The explanations are long-form text, one Markdown file per design and
 language, in locales/guide/<lang>/<method>.md (a test keeps both languages
-complete). The key readings come from utils/references.py (METHOD_READINGS):
-peer-reviewed journal articles whose metadata were checked against Crossref.
+complete). The readings are indicative, for whoever wants to read further:
+reference books and peer-reviewed journal articles from utils/references.py
+(GENERAL_READINGS, METHOD_READINGS), each checked against Crossref or, for a
+book without a DOI, its ISBN record.
 """
 from __future__ import annotations
 
@@ -15,7 +17,7 @@ from typing import Callable
 
 import streamlit as st
 
-from utils.references import METHOD_READINGS, REFERENCES, reference_list
+from utils.references import GENERAL_READINGS, METHOD_READINGS, REFERENCES, reference_list
 
 GUIDE_DIR = Path(__file__).resolve().parent.parent / "locales" / "guide"
 # The eight designs of the recommendation, in its order, then double machine learning.
@@ -33,8 +35,16 @@ def _linked(entry: str, doi: str) -> str:
     return entry.replace(url, f"[{url}]({url})") if doi else entry
 
 
+def _entries(keys) -> str:
+    """APA entries of `keys` as a Markdown list, DOIs as links."""
+    doi = {REFERENCES[k].full(): REFERENCES[k].doi for k in keys}
+    return "\n".join(f"- {_linked(entry, doi[entry])}" for entry in reference_list(keys))
+
+
 def render(L: Callable[[str], str], lang: str) -> None:
     st.caption(L("guide.intro"))
+    with st.expander(L("guide.general")):
+        st.markdown(_entries(GENERAL_READINGS))
     method = st.selectbox(L("guide.choose"), GUIDE_METHODS, format_func=lambda m: L(f"method.{m}"),
                           key="guide_method")
     st.header(L(f"method.{method}"), anchor=False)
@@ -44,5 +54,10 @@ def render(L: Callable[[str], str], lang: str) -> None:
     st.subheader(L("guide.readings"), anchor=False)
     st.caption(L("guide.readings_note"))
     keys = METHOD_READINGS[method]
-    by_entry = {REFERENCES[k].full(): REFERENCES[k].doi for k in keys}
-    st.markdown("\n".join(f"- {_linked(entry, by_entry[entry])}" for entry in reference_list(keys)))
+    books = [k for k in keys if REFERENCES[k].kind == "book"]
+    articles = [k for k in keys if REFERENCES[k].kind == "article"]
+    if books:
+        st.markdown(f"**{L('guide.books')}**")
+        st.markdown(_entries(books))
+    st.markdown(f"**{L('guide.articles')}**")
+    st.markdown(_entries(articles))
