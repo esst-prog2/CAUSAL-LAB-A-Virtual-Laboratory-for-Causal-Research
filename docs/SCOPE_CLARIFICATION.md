@@ -30,7 +30,9 @@ So:
 
 - **Heterogeneity across units stays a supplement** (`docs/DEMO_DETAILS.md`); the four threats and their figures are unchanged. The one-sentence answer for December is question 10 of `docs/defense/ORAL_DEFENSE.md`.
 - **What is assessed in December**: to be presented by the professor in Tuesday's session; not yet known here.
-- **Issue #2**: closed on 2026-11-22, after the author checked that the planning-log rule has been in `AGENTS.md` since 26 September and that the log has entries from early October onwards.
+- **Issue #2**: closed on 2026-11-22 by the author, on the professor's comment there the same day:
+
+  > "Checked: the rule has been in `AGENTS.md` since 26 September, and the log has entries from early October onwards with no long gaps. You can close this one."
 
 ## Feedback on the film (Homework 10), received 2026-11-22
 
