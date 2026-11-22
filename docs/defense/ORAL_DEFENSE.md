@@ -67,10 +67,11 @@ For Thierry. Have someone ask these in a random order, and answer without the pa
 ## Effect heterogeneity
 
 ### 10. Issue #1 named effect heterogeneity. Is it in your study?
-**Answer.** Partly, and I should be precise. Heterogeneity over time since adoption is in the study, as the staggered threat. Heterogeneity across units is in the simulator (`treatment_heterogeneity`) but is **not** one of the study's threats. I have asked whether to add it [state what the professor answered].
-**Intuition.** With a single adoption date, heterogeneity across units does not bias the ATT; it matters mainly with staggered timing or for external validity.
-**Example.** The Heterogeneous Effects check compares the variance of changes in the two groups. A warning there no longer counts against identification.
-**Follow-up.** *What would you expect?* Little bias with one date, by the argument above, but that is a prediction until it is simulated.
+**Answer.** Yes, in two places. Heterogeneity over time since adoption is one of the four threats (staggered adoption with growing effects). Heterogeneity across units is a supplement stored apart, 5 levels x 1,000 worlds, with one adoption date (`docs/DEMO_DETAILS.md`). The professor confirmed on issue #1 (2026-11-22) that the supplement is enough and can stay a supplement.
+**The one sentence (asked for by the professor).** With one adoption date, two-way fixed effects compare treated units only with never-treated ones, so unequal effects simply average into the effect of the treated (bias −0.004, as with no threat); with staggered adoption, units already treated serve as controls, so their still-growing effects are subtracted from those of the newly treated (Goodman-Bacon 2021), and the estimate is pulled toward zero (bias +0.094, coverage 87.6% at severe).
+**Intuition.** Heterogeneity alone is harmless; heterogeneity plus a control group that is itself treated is not.
+**Example.** Across units, at severe (s = 2.0), bias −0.004 (MC SE 0.003) and coverage of the design effect 94.0%; the interval is conservative for the treated units' realised effect (100%) because the clustered SE also counts the spread of their effects.
+**Follow-up.** *So is heterogeneity across units never a problem?* Not for the bias of the effect of the treated in this design; it matters for external validity (the treated units' average need not be the population's) and, combined with staggered timing, for the bias.
 
 ## Relative bias, coverage, power
 
