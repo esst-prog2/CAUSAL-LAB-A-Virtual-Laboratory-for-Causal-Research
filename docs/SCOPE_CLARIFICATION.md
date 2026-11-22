@@ -16,6 +16,16 @@ So:
 
 Still open, not answered by that feedback: effect heterogeneity across units, what exactly is assessed in December beyond the demo, and whether issue #2 can be closed.
 
+## Feedback on the film (Homework 10), received 2026-11-22
+
+Homework 10 done, 1 point. In writing:
+
+> "Thierry, every number in the film's third beat, from −0.264 to the 68.4% of quiet worlds that miss the truth, matches docs/DEMO_DETAILS.md, and the live-app screens carry their date on screen, so a viewer can tell what is real.
+>
+> The one thing to fix is the end card. At about 0:28, "Open the app" sits above the promo page's address, not the app's, so a viewer who has just been told to open the app is shown the page they are already on. Put the streamlit.app address under that line, render again, and replace the mp4."
+
+Done the same day (PROCESS.md row 19): the end card now shows causal-lab-a-virtual-laboratory-for-causal-research-busavtyebb.streamlit.app under "Open the app"; the film was rendered again (30.0 s, 1920x1080) and `docs/video/causal-lab-30s.mp4` replaced.
+
 ## Feedback on the promo page (Homework 9), received 2026-11-16
 
 In writing:
