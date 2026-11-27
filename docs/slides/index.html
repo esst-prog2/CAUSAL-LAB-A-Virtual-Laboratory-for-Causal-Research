@@ -95,6 +95,22 @@ html, body { background: var(--paper); }
 .reveal .progress { color: var(--blue); height: 3px; }
 .reveal .controls { color: var(--ink-soft); }
 .reveal .slide-number { background: transparent; color: var(--ink-soft); font-family: var(--sans); font-size: 15px; }
+/* v2: one chart, keys beside it */
+.one { display: block; }
+.shot.chart img { height: auto; width: 100%; object-fit: contain; }
+.keys { font-size: 0.72em; display: grid; grid-template-columns: auto auto 1fr; gap: 0 2em; margin-top: 0.9em; align-items: start; }
+.reveal .key { display: flex; gap: 0.6em; align-items: flex-start; margin: 0 0 0.9em; line-height: 1.3; }
+.reveal .key.big { font-family: var(--serif); font-size: 1.2em; margin-top: -0.15em; }
+.sw { flex: none; width: 1.4em; height: 0.35em; margin-top: 0.55em; border-radius: 2px; }
+.sw-blue { background: #4F68DF; } .sw-orange { background: #E07B39; }
+.stats.light .stat { border-top-color: var(--line-strong); }
+.stats.light .n { color: var(--ink); }
+.stats.light .t { color: var(--ink-soft); }
+.reveal .call { margin-top: 1.4em; font-family: var(--serif); font-size: 1.05em; border-left: 4px solid var(--navy); padding-left: 0.7em; max-width: 26em; }
+.reveal .versus { font-size: 0.82em; color: var(--on-navy); margin: -0.1em 0 0.2em; }
+.reveal .versus strong { color: #FFFFFF; }
+.reveal .mine.same { margin-top: 0.6em; border-left-color: var(--teal); }
+.reveal .stats { margin-top: 0.8em; }
 </style>
 </head>
 <body>
@@ -105,30 +121,29 @@ html, body { background: var(--paper); }
   <section data-background-color="#0F1B33">
     <div class="navy">
       <p class="kicker">Causal Lab · Thierry Z. Barhame · MSc Statistics and Data Analytics, ELTE</p>
-      <h1>Test difference-in-differences <em>where you know the answer</em></h1>
+      <h1>Your test says “all clear”. <em>Your estimate is off by almost half.</em></h1>
+      <p class="versus">R fixest and Stata compute the estimate. <strong>Causal Lab tells you whether to believe it.</strong></p>
       <div class="stats">
-        <div class="stat"><div class="n">47%</div><div class="t">bias, with a slight pre-trend</div></div>
-        <div class="stat"><div class="n">14%</div><div class="t">of those worlds, the usual test warns</div></div>
+        <div class="stat"><div class="n">47%</div><div class="t">off the true effect, with a slight trend<br>difference before the reform</div></div>
+        <div class="stat"><div class="n">86%</div><div class="t">of those cases, the usual test<br>stays silent</div></div>
       </div>
-      <p class="for"><strong>For</strong> students and researchers about to trust a DiD estimate.<br><strong>Why:</strong> its usual check stays quiet when it is wrong.</p>
-      <p class="src">1,000 simulated worlds, true effect −0.50, low diverging pre-trends: bias +0.236, pre-trend test warns in 14.2%. docs/DEMO_DETAILS.md.</p>
+      <p class="for"><strong>For</strong> anyone measuring a reform by comparing before and after, treated and untreated (difference-in-differences): a thesis, a report.<br><strong>What it does:</strong> tests your design on worlds where the true effect is known.</p>
+      <p class="src">1,000 simulated worlds, true effect −0.50, low diverging pre-trends: bias +0.236 (47%); the pre-trend test warns in 14.2%, so it is silent in 85.8%. docs/DEMO_DETAILS.md.</p>
     </div>
   </section>
 
   <!-- 2. The demo, from a real run -->
   <section>
-    <h2>The demo: the question first, then the test</h2>
-    <div class="run">
-      <div>
-        <p class="step"><b>1</b>It reads the question</p>
-        <figure class="shot"><img src="../img/beat1-question.png" width="601" height="700" alt="Research Question screen: the question is unclear; smoking and lung cancer are to confirm; no method is picked."></figure>
-      </div>
-      <div>
-        <p class="step"><b>2</b>DiD on 1,000 worlds per level</p>
-        <figure class="shot wide"><img src="../img/beat3-study.png" width="1070" height="580" alt="Guided Demo: table and chart of coverage and pre-trend warnings across five levels of diverging pre-trends."></figure>
+    <h2>The demo: as the trend difference grows, <em>the test wakes up too late</em></h2>
+    <div class="one">
+      <figure class="shot chart"><img src="../img/slide-coverage-chart.png" width="1070" height="330" alt="Guided Demo chart: across five levels of diverging pre-trends, the share of worlds whose 95% interval covers the true effect falls from 95% to 31% then 0%, while the share where the pre-trend test warns rises from 9% to 14%, 40%, 84% and 100%."></figure>
+      <div class="keys">
+        <p class="key"><span class="sw sw-blue"></span><span><b>Blue:</b> how often the answer is right</span></p>
+        <p class="key"><span class="sw sw-orange"></span><span><b>Orange:</b> how often the test warns</span></p>
+        <p class="key big"><span><b>At “low”:</b> right 31% of the time, warned 14%</span></p>
       </div>
     </div>
-    <p class="src">The live app, 13 November 2026.</p>
+    <p class="src">The live app, Guided Demo, 13 November 2026 (1,000 worlds per level). The run starts on the Research Question screen.</p>
   </section>
 
   <!-- 3. Why it works: a check I set -->
@@ -150,33 +165,30 @@ html, body { background: var(--paper); }
       </div>
     </div>
     <p class="mine"><strong>My rule:</strong> at most 10% bias, at least 90% coverage. Written on 30 October, after the pre-trends run and before the other three threats were simulated.</p>
-    <p class="src">Bars to scale. PLANNING_LOG.md, 2026-10-30; causal_lab/data/demo_study/results.json.</p>
+    <p class="mine same"><strong>Same calculation as R fixest,</strong> to 1e-13. What changes: here the true answer is known.</p>
+    <p class="src">Bars to scale. PLANNING_LOG.md, 2026-10-30; causal_lab/data/demo_study/results.json; spike/did_fixest_check.py (fixest 0.14.2, five worlds and Card &amp; Krueger).</p>
   </section>
 
   <!-- 4. What I learned -->
   <section>
     <h2>What I learned: a better score was <em>not</em> a better tool</h2>
-    <table class="table">
-      <thead><tr><th>Question set</th><th>Version</th><th>Recall (target 0.70)</th><th>Version 2, same set</th></tr></thead>
-      <tbody>
-        <tr><td>2</td><td>2</td><td class="fails">0.60</td><td></td></tr>
-        <tr><td>3</td><td>3</td><td>0.83</td><td>0.80</td></tr>
-        <tr><td>4</td><td>3.1</td><td>0.86</td><td>0.79</td></tr>
-      </tbody>
-    </table>
-    <p class="lesson">Most of the gain was the new set, not the new code. Since then, every set is frozen before its one run.</p>
-    <p class="src">Recall of the question reader on causal questions. docs/evaluation/v3/REPORT.md, docs/evaluation/v4/REPORT.md (commits 9880fcb, 14b3db1).</p>
+    <div class="stats light">
+      <div class="stat"><div class="n">+0.23</div><div class="t">the question reader’s score rose<br>(0.60 → 0.83)</div></div>
+      <div class="stat"><div class="n">+0.03</div><div class="t">of it came from the new code<br>(the old code scores 0.80 on the new questions)</div></div>
+    </div>
+    <p class="lesson">The rest came from the new questions. Since then, every question set is frozen before its one run.</p>
+    <p class="src">Recall on causal questions: version 2 on set 2, 0.60; version 3 on set 3, 0.83, where version 2 scores 0.80. docs/evaluation/v3/REPORT.md (commit 9880fcb).</p>
   </section>
 
   <!-- 5. What's next -->
   <section>
     <h2>What’s next</h2>
     <ul class="next">
-      <li><span class="what">A second rater</span><span>All labels come from one rater: the agent that wrote the reader.</span></li>
-      <li><span class="what">Students’ questions</span><span>None tested yet; French not evaluated.</span></li>
-      <li><span class="what">Threats combined</span><span>The study varies one threat at a time.</span></li>
-      <li><span class="what">Cutoff rules</span><span>How often the app finds them is not measured.</span></li>
+      <li><span class="what">A second person</span><span>to check the labels: all come from the agent that wrote the reader.</span></li>
+      <li><span class="what">Real questions</span><span>from students, and in French: none tested yet.</span></li>
+      <li><span class="what">Threats together</span><span>the study changes one at a time.</span></li>
     </ul>
+    <p class="call">Writing a thesis with a before-and-after comparison? <strong>Test your design here first.</strong></p>
     <p class="src">docs/evaluation/RATER_PROCEDURE.md; docs/defense/DEFENSE_GUIDE.md.</p>
   </section>
 
