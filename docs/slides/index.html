@@ -111,6 +111,22 @@ html, body { background: var(--paper); }
 .reveal .versus strong { color: #FFFFFF; }
 .reveal .mine.same { margin-top: 0.6em; border-left-color: var(--teal); }
 .reveal .stats { margin-top: 0.8em; }
+/* v3: the product first */
+.intro { display: grid; grid-template-columns: 1.02fr 0.98fr; gap: 1.2em; align-items: start; }
+.reveal .lines { margin: 0.2em 0 0; font-size: 0.74em; }
+.reveal .lines p { margin: 0 0 0.75em; line-height: 1.36; }
+.reveal .lines strong { color: #FFFFFF; }
+.reveal .lines .num { color: #FFFFFF; font-weight: 700; }
+.shot.app { margin-top: 0.3em; border-color: rgba(255, 255, 255, 0.25); }
+.shot.app img { height: auto; width: 100%; object-fit: contain; }
+.app-cap { font-size: 0.5em; color: var(--on-navy-soft); margin-top: 0.45em; }
+.path { display: grid; grid-template-columns: 0.7fr 1.3fr; gap: 1.1em; align-items: start; }
+.path .left { display: grid; gap: 0.75em; }
+.reveal .cap { font-size: 0.6em; margin: 0 0 0.4em; line-height: 1.3; }
+.reveal .cap b.n { display: inline-block; width: 1.5em; height: 1.5em; line-height: 1.5em; text-align: center; border-radius: 50%; background: var(--navy); color: #FFFFFF; margin-right: 0.35em; font-size: 0.9em; }
+.shot.s img { height: auto; width: 100%; }
+.path .keys { margin-top: 0.6em; font-size: 0.66em; grid-template-columns: auto auto; gap: 0 1.6em; }
+.path .key.big { grid-column: 1 / -1; }
 </style>
 </head>
 <body>
@@ -121,34 +137,54 @@ html, body { background: var(--paper); }
   <section data-background-color="#0F1B33">
     <div class="navy">
       <p class="kicker">For whom, and why · Causal Lab · Thierry Z. Barhame, MSc Statistics and Data Analytics, ELTE</p>
-      <h1>Your test says “all clear”. <em>Your estimate is off by almost half.</em></h1>
-      <p class="versus">R fixest and Stata compute the estimate. <strong>Causal Lab tells you whether to believe it.</strong></p>
-      <div class="stats">
-        <div class="stat"><div class="n">47%</div><div class="t">off the true effect, with a slight trend<br>difference before the reform</div></div>
-        <div class="stat"><div class="n">86%</div><div class="t">of those cases, the usual test<br>stays silent</div></div>
+      <div class="intro">
+        <div>
+          <h1>Question first. Design second. <em>Break it before you trust it.</em></h1>
+          <div class="lines">
+            <p><strong>For</strong> a student or researcher asking “did this reform change the outcome?”, for a thesis or a report.</p>
+            <p><strong>Why:</strong> R and Stata give an estimate, not whether to believe it. With a slight trend difference before the reform, the estimate is <span class="num">47%</span> off and the usual test stays silent <span class="num">86%</span> of the time.</p>
+            <p><strong>Causal Lab</strong> reads your question, picks the method, then tests it on simulated worlds where the true effect is known.</p>
+          </div>
+        </div>
+        <div>
+          <figure class="shot app"><img src="../img/slide-app-dashboard.png" width="1440" height="700" alt="The Causal Lab home screen: the menu runs from Research Question to Method Recommendation, Virtual Lab, Estimation, Break My Design and Code Generator."></figure>
+          <p class="app-cap">The app, live, 27 November 2026.</p>
+        </div>
       </div>
-      <p class="for"><strong>For</strong> anyone measuring a reform by comparing before and after, treated and untreated (difference-in-differences): a thesis, a report.<br><strong>What it does:</strong> tests your design on worlds where the true effect is known.</p>
       <p class="src">1,000 simulated worlds, true effect −0.50, low diverging pre-trends: bias +0.236 (47%); the pre-trend test warns in 14.2%, so it is silent in 85.8%. docs/DEMO_DETAILS.md.</p>
     </div>
   </section>
 
   <!-- 2. The demo, from a real run -->
   <section>
-    <h2>The demo: as the trend difference grows, <em>the test wakes up too late</em></h2>
-    <div class="one">
-      <figure class="shot chart"><img src="../img/slide-coverage-chart.png" width="1070" height="330" alt="Guided Demo chart: across five levels of diverging pre-trends, the share of worlds whose 95% interval covers the true effect falls from 95% to 31% then 0%, while the share where the pre-trend test warns rises from 9% to 14%, 40%, 84% and 100%."></figure>
-      <div class="keys">
-        <p class="key"><span class="sw sw-blue"></span><span><b>Blue:</b> how often the answer is right</span></p>
-        <p class="key"><span class="sw sw-orange"></span><span><b>Orange:</b> how often the test warns</span></p>
-        <p class="key big"><span><b>At “low”:</b> right 31% of the time, warned 14%</span></p>
+    <h2>The demo: one path through the app, <em>three screens</em></h2>
+    <div class="path">
+      <div class="left">
+        <div>
+          <p class="cap"><b class="n">1</b>You type your question. “Associated with” is not causal, so it asks before choosing.</p>
+          <figure class="shot s"><img src="../img/slide-step1-question.png" width="601" height="270" alt="Research Question screen: the question is unclear, based on the words associated with; a box reads My aim is to estimate a causal effect."></figure>
+        </div>
+        <div>
+          <p class="cap"><b class="n">2</b>A question about a scholarship cutoff gets its method: Regression Discontinuity, not difference-in-differences.</p>
+          <figure class="shot s"><img src="../img/slide-step2-method.png" width="620" height="128" alt="Method Recommendation screen: Regression Discontinuity for the effect of a scholarship on enrollment near the eligibility cutoff, with its causal estimand."></figure>
+        </div>
+      </div>
+      <div>
+        <p class="cap"><b class="n">3</b>It breaks the design: difference-in-differences on 1,000 worlds per level, true effect −0.50.</p>
+        <figure class="shot chart"><img src="../img/slide-coverage-chart.png" width="1070" height="330" alt="Guided Demo chart: as diverging pre-trends grow, the share of worlds whose 95% interval covers the true effect falls from 95% to 31% then 0%, while the share where the pre-trend test warns rises from 9% to 14%, 40%, 84% and 100%."></figure>
+        <div class="keys">
+          <p class="key"><span class="sw sw-blue"></span><span><b>Blue:</b> how often the answer is right</span></p>
+          <p class="key"><span class="sw sw-orange"></span><span><b>Orange:</b> how often the test warns</span></p>
+          <p class="key big"><span><b>At “low”:</b> right 31% of the time, warned 14%</span></p>
+        </div>
       </div>
     </div>
-    <p class="src">The live app, Guided Demo, 13 November 2026 (1,000 worlds per level).</p>
+    <p class="src">The live app, 13 November 2026: Research Question, Method Recommendation, Guided Demo.</p>
   </section>
 
   <!-- 3. Why it works: a check I set -->
   <section>
-    <h2>Why it works: <em>the bar is mine</em>, in writing</h2>
+    <h2>Why it works: the app judges a design <em>by my rule</em>, written first</h2>
     <div class="cols">
       <div>
         <h3>Parallel trends hold</h3>
@@ -164,7 +200,7 @@ html, body { background: var(--paper); }
         <div class="row"><span class="k">Test warns</span><div class="track"><span class="fill warn">14.2%</span></div></div>
       </div>
     </div>
-    <p class="mine"><strong>My rule:</strong> at most 10% bias, at least 90% coverage. Written on 30 October, after the pre-trends run and before the other three threats were simulated.</p>
+    <p class="mine"><strong>My rule</strong>, the app’s “within the rule” column: at most 10% bias, at least 90% coverage. Written on 30 October, after the pre-trends run and before the other three threats were simulated.</p>
     <p class="src">Bars to scale. PLANNING_LOG.md, 2026-10-30; causal_lab/data/demo_study/results.json.</p>
   </section>
 
@@ -172,7 +208,7 @@ html, body { background: var(--paper); }
   <section>
     <h2>What I learned: a better score was <em>not</em> a better tool</h2>
     <div class="stats light">
-      <div class="stat"><div class="n">+0.23</div><div class="t">the question reader’s score rose<br>(0.60 → 0.83)</div></div>
+      <div class="stat"><div class="n">+0.23</div><div class="t">screen 1, reading causal questions:<br>its score rose (0.60 → 0.83)</div></div>
       <div class="stat"><div class="n">+0.03</div><div class="t">of it came from the new code<br>(the old code scores 0.80 on the new questions)</div></div>
     </div>
     <p class="lesson">11 November, commit 9880fcb: the rest came from the new questions. Since then, every question set is frozen before its one run.</p>
