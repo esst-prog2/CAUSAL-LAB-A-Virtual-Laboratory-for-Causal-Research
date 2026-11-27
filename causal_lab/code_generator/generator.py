@@ -42,6 +42,13 @@ import pandas as pd
 import statsmodels.formula.api as smf
 
 df = pd.read_csv("{p.data_path}")
+# {t("gen.singletons", lang)}
+while True:
+    keep = (df.groupby("{p.unit_col}")["{p.unit_col}"].transform("size") > 1) & \\
+           (df.groupby("{p.time_col}")["{p.time_col}"].transform("size") > 1)
+    if keep.all():
+        break
+    df = df[keep]
 df["{p.unit_col}"] = df["{p.unit_col}"].astype("category")
 df["{p.time_col}"] = df["{p.time_col}"].astype("category")
 
