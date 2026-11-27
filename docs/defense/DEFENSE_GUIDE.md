@@ -122,6 +122,8 @@ If the professor asks "does the app enforce it?", the answer is no: it is the ve
 
 **The finding that matters:** where DiD first goes wrong, the pre-trend test usually does not warn. In three of the four rows it barely differs from its 10% false-alarm level (9.2% with no threat), because those threats leave little trace in the pre-period, or the test has little power at that level. Passing a pre-test does not establish parallel trends (Roth 2022).
 
+**Supplement, effects that differ across units** (`causal_lab/data/demo_study/supplement_unit_heterogeneity.json`, one adoption date, 1,000 worlds per level): bias −0.004 at every level, all acceptable; coverage of the treated units' realised effect rises from 94.9% to 100% (the clustered SE also counts the spread of their effects), coverage of the design effect −0.50 stays near 94%. The professor confirmed on issue #1 (2026-11-22) that it can stay a supplement, and asked you to be able to say in one sentence why this result is clean and the staggered one is not: see question 10 of [ORAL_DEFENSE.md](ORAL_DEFENSE.md).
+
 ## Part 2. Module by module
 
 ### Method names and counts: know these exactly
@@ -188,23 +190,25 @@ Two mismatches to state yourself:
 - **Logic.**
   - *DiD:* Y_it = α_i + γ_t + β·D_it + ε_it by OLS, cluster-robust SE by unit (Bertrand, Duflo & Mullainathan 2004), unit dummies not counted in the small-sample factor, Student t with G − 1 degrees of freedom.
   - *Event study:* the same, with one coefficient per period relative to treatment, and k = −1 as reference.
+  - *Sensitivity (Rambachan & Roth 2023), `honest_did.py`:* with one treatment date, the fixed-length interval for the average post-period effect under Δ^SD(M), where M bounds how much the slope of the trend difference may change from one period to the next; M = 0 allows a linear trend difference. The table runs over a grid of M and reports the breakdown value, the smallest M at which the interval contains zero. Covariance: the two-sample one of the event-study coefficients; weights chosen with a working covariance (a documented deviation, because weights fitted to the estimated covariance under-covered, 88.5%).
   - *Callaway & Sant'Anna:* one comparison per cohort and period, base period the last observed before adoption, clean controls only, analytic variance with Welch-Satterthwaite degrees of freedom.
   - *RCT:* difference in means or Lin's adjustment, HC2.
   - *Matching:* Mahalanobis nearest neighbour with bias correction, Abadie-Imbens variance.
-  - *IV:* 2SLS, first-stage F, Anderson-Rubin set.
-  - *RDD:* local linear, IK bandwidth, robust bias-corrected interval.
+  - *IV:* 2SLS, first-stage F, Anderson-Rubin set; with one instrument and 10 ≤ F < 104.7 a warning points to the Anderson-Rubin set (Lee, McCrary, Moreira & Porter 2022).
+  - *RDD:* local linear, IK bandwidth, robust bias-corrected interval; manipulation check by the Cattaneo, Jansson & Ma (2020) density test (`rddensity`), the binomial count test as fallback.
   - *Synthetic control:* simplex weights, placebo-in-space p-value, no SE.
-  - *DML:* cross-fitted partialling out.
+  - *DML:* cross-fitted partialling out; θ is a variance-weighted average of effects, not the ATE, when effects differ, and the label says so.
 - **Assumptions.** Each method's identifying assumption, stated on its page. For TWFE DiD: parallel trends, no anticipation, no spillovers, and with staggered timing, effects that do not change over time.
 - **Limits.**
   - A correct calculation is not a credible design.
   - DiD: with few clusters the interval is unreliable, and the app warns.
-  - RDD: the manipulation check is a binomial comparison of counts, a simple stand-in for a density test.
+  - RDD: the density test has limited power against mild manipulation (power 35.2% when 20% of the units just below the cutoff move above it, 93.4% at 40%; 500 worlds each, `spike/rd_density_validation.py`).
+  - Sensitivity: the interval is valid only under the restriction chosen; M is a judgement, which is why the table shows the whole grid and the breakdown value.
   - Synthetic control: below 19 donors, no effect can reach 5%, and the app warns.
 - **Interactions.** Called by the pages, the simulation, the stress tests, the report and the code generator through one registry, so that each runs a method the same way.
 - **Validation.** Reference packages on committed data (`tests/test_external_reference.py`, `test_did_reference.py`), the published Card & Krueger result (`test_card_krueger.py`), a coverage study (`spike/estimator_validation_2026-10-31.md`), and hand-computed values (`test_statistical_corrections.py`).
 - **Example.** Card & Krueger: ATT 2.75, SE 1.34, 95% interval 0.12 to 5.38, with 410 clusters.
-- **Professor might ask.** Why cluster by unit? (Serial correlation within a unit; ignoring it over-rejects badly.) Why not always use Callaway & Sant'Anna? (With one adoption date it reduces to the same comparison; it needs clean controls and absorbing treatment.)
+- **Professor might ask.** Why cluster by unit? (Serial correlation within a unit; ignoring it over-rejects badly.) Why not always use Callaway & Sant'Anna? (With one adoption date it reduces to the same comparison; it needs clean controls and absorbing treatment.) What does the sensitivity interval add to the pre-trend test? (The test asks whether a violation is detectable; the interval asks how large a violation the conclusion survives. On worlds with linear diverging pre-trends it covers 94.9% where the DiD interval covers 31.3% and 0%, `spike/honest_did_validation.py`.)
 
 ### robustness_engine/ (stress_test.py, method_stress.py, robustness.py)
 
@@ -223,7 +227,7 @@ Two mismatches to state yourself:
 
 - **Why it exists.** To compare a causal estimate with what a behavioural model predicts. It is **outside the original brief**: be ready to say so.
 - **Inputs and outputs.** A game from the catalogue or the editor, and data for calibration; an equilibrium, a predicted treatment effect, and a comparison verdict.
-- **Logic.** First-order conditions and best responses, solved in closed form or numerically; parameters calibrated from data; QRE and GMM estimation.
+- **Logic.** First-order conditions and best responses, solved in closed form or numerically; parameters calibrated from data; QRE and GMM estimation. Equilibria can also be found by optimisation (`theory_engine/optimization.py`): continuous games by minimising the Nikaido-Isoda gap, which is zero exactly at a Nash equilibrium; matrix games by the Mangasarian-Stone quadratic program; zero-sum games by linear programming. Each is shown next to the method it checks (best-response iteration, vertex enumeration); the gap method says it does not apply to games with jumps.
 - **Assumptions.** The model's functional forms and that agents play the equilibrium.
 - **Limits.** Agreement with an estimate does not validate either one.
 - **Interactions.** Takes a causal estimate from the estimators; otherwise separate from the claim of this project.

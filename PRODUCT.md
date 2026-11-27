@@ -24,7 +24,7 @@ Method-choice tools usually start from a design the student already knows ("do y
 
 ## Operating Context
 
-A student types a research question on the Research Question screen, confirms the form, gets a Method Recommendation, then uses Break My Design, the robustness battery, and the Guided Demo (a stored simulation study). The app is available in English and in French. It is presented at demo days on 1 and 8 December 2026, five minutes, five slides, from a shared computer.
+A student types a research question on the Research Question screen, confirms the form, gets a Method Recommendation, then uses Break My Design, the robustness battery, and the Guided Demo (a stored simulation study). The app is available in English and in French. It is presented at the demo days of 1 and 15 December 2026 (the author on 15 December), five minutes, five slides and a closing link, from a shared computer; the audience scores the program on three questions: whether they understand what it does and who it is for, whether it solves a problem worth solving, and whether they would use it.
 
 ## Capabilities and Constraints
 
