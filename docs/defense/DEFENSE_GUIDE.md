@@ -207,7 +207,7 @@ Two mismatches to state yourself:
   - Synthetic control: below 19 donors, no effect can reach 5%, and the app warns.
 - **Interactions.** Called by the pages, the simulation, the stress tests, the report and the code generator through one registry, so that each runs a method the same way.
 - **Validation.** Reference packages on committed data (`tests/test_external_reference.py`, `test_did_reference.py`), the published Card & Krueger result (`test_card_krueger.py`), a coverage study (`spike/estimator_validation_2026-10-31.md`), and hand-computed values (`test_statistical_corrections.py`).
-- **Example.** Card & Krueger: ATT 2.75, SE 1.34, 95% interval 0.12 to 5.38, with 410 clusters.
+- **Example.** Card & Krueger: ATT 2.75, SE 1.34, 95% interval 0.12 to 5.38, with 384 clusters (the 26 stores observed in one wave only are dropped, as R fixest does). Every value equals fixest's to 1e-13 (`spike/did_fixest_check.py`).
 - **Professor might ask.** Why cluster by unit? (Serial correlation within a unit; ignoring it over-rejects badly.) Why not always use Callaway & Sant'Anna? (With one adoption date it reduces to the same comparison; it needs clean controls and absorbing treatment.) What does the sensitivity interval add to the pre-trend test? (The test asks whether a violation is detectable; the interval asks how large a violation the conclusion survives. On worlds with linear diverging pre-trends it covers 94.9% where the DiD interval covers 31.3% and 0%, `spike/honest_did_validation.py`.)
 
 ### robustness_engine/ (stress_test.py, method_stress.py, robustness.py)

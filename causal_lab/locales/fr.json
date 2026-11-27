@@ -188,6 +188,7 @@
   "common.ci_length": "Longueur moyenne de l'IC",
   "err.mc_reps": "Le Monte Carlo nécessite au moins 2 réplications (reçu : {value}).",
   "err.mc_failed": "L'estimateur a refusé {failed} des {reps} réplications : trop peu de résultats pour un bilan Monte Carlo.",
+  "gen.singletons": "Retirer les unités ou périodes observées une seule fois, comme R fixest et Stata reghdfe : elles ne changent aucune estimation mais compteraient dans N et parmi les clusters.",
   "gen.nested_fe": "Correction de petit échantillon comme Stata xtreg, fe / reghdfe et R fixest : les indicatrices d'unité, emboîtées dans les clusters, ne sont pas comptées (Causal Lab fait de même).",
   "gen.m.se": "Erreur-type",
   "gen.m.header": "{method} : reproduit l'estimation de Causal Lab",

@@ -62,6 +62,30 @@ def test_clustered_se_does_not_count_the_nested_unit_dummies():
     assert abs(ours.ci_high - ours.ci_low - 2 * stats.t.ppf(0.975, ours.n_clusters - 1) * ours.se) < 1e-5
 
 
+def test_card_krueger_equals_r_fixest():
+    # R 4.6.1, fixest 0.14.2: feols(Y ~ D | unit + period, cluster = ~unit),
+    # on the app's Card & Krueger panel (spike/did_fixest_check.py). fixest
+    # drops the 26 stores observed in one wave only; the app does the same.
+    from utils.real_data import load_card_krueger
+    ours = estimate_did(load_card_krueger())
+    assert abs(ours.att - 2.7499999999999720) < 1e-10
+    assert abs(ours.se - 1.3377230281804726) < 1e-10
+    assert abs(ours.p_value - 0.0404857509185187) < 1e-10
+    assert abs(ours.ci_low - 0.1197994939199822) < 1e-10
+    assert abs(ours.ci_high - 5.3802005060799623) < 1e-10
+    assert ours.n_clusters == 384 and ours.n_obs == 768
+
+
+def test_singletons_change_nothing_on_a_balanced_panel():
+    from estimators.did import drop_singletons
+    df, _ = generate(VirtualWorldConfig(seed=4))
+    assert len(drop_singletons(df, "unit", "period")) == len(df)
+    extra = df.iloc[[0]].assign(unit=10_000)   # a unit seen once
+    with_singleton = pd.concat([df, extra], ignore_index=True)
+    a, b = estimate_did(df), estimate_did(with_singleton)
+    assert abs(a.att - b.att) < 1e-12 and abs(a.se - b.se) < 1e-12 and b.n_clusters == a.n_clusters
+
+
 def test_did_recovers_true_effect_of_two():
     df, truth = generate(VirtualWorldConfig(n_units=300, true_att=2.0, seed=11))
     result = estimate_did(df)

@@ -30,7 +30,7 @@ import pandas as pd
 import statsmodels.formula.api as smf
 from scipy import stats
 
-from estimators.did import nested_fe_factor
+from estimators.did import drop_singletons, nested_fe_factor
 
 
 @dataclass
@@ -60,7 +60,7 @@ def estimate_event_study(df: pd.DataFrame, outcome_col: str = "Y",
     `adoption_period_col` can supply a per-unit adoption period; otherwise
     `fixed_treatment_period` applies to every treated unit.
     """
-    data = df.dropna(subset=[outcome_col, unit_col, time_col]).copy()
+    data = drop_singletons(df.dropna(subset=[outcome_col, unit_col, time_col]), unit_col, time_col).copy()
 
     if adoption_period_col and adoption_period_col in data.columns:
         adoption = data[adoption_period_col]

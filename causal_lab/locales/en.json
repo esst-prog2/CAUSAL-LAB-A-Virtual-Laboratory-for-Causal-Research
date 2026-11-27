@@ -189,6 +189,7 @@
   "common.ci_length": "Mean CI length",
   "err.mc_reps": "The Monte Carlo needs at least 2 replications (got {value}).",
   "err.mc_failed": "The estimator refused {failed} of {reps} replications: too few results for a Monte Carlo summary.",
+  "gen.singletons": "Drop units or periods observed only once, as R fixest and Stata reghdfe do: they change no estimate but would count in N and among the clusters.",
   "gen.nested_fe": "Small-sample correction as in Stata xtreg, fe / reghdfe and R fixest: the unit dummies, nested in the clusters, are not counted (Causal Lab does the same).",
   "gen.m.se": "Standard error",
   "gen.m.header": "{method}: reproduces the Causal Lab estimate",

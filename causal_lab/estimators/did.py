@@ -70,7 +70,7 @@ def estimate_did(df: pd.DataFrame, outcome_col: str = "Y", treatment_col: str = 
     level (or `cluster_col` if provided)."""
     # Only complete rows: statsmodels would drop them from the model but not from the clusters.
     used = list(dict.fromkeys([outcome_col, treatment_col, unit_col, time_col, cluster_col or unit_col]))
-    df = df[used].dropna()
+    df = drop_singletons(df[used].dropna(), unit_col, time_col)
     if df[treatment_col].nunique() < 2:
         raise LocalizedError("err.did_no_variation", column=treatment_col)
     # A text or boolean treatment would enter the formula as a category and
@@ -140,6 +140,23 @@ def _warnings(data: pd.DataFrame, treatment_col, unit_col, time_col, cluster_var
     if switched_off.any():
         out.append(Msg("warn.did_reversal", n=int(switched_off.sum())))
     return out
+
+
+def drop_singletons(data: pd.DataFrame, unit_col: str, time_col: str) -> pd.DataFrame:
+    """Drop the observations whose unit or period appears only once, repeatedly
+    until none is left, as R fixest does by default (and Stata reghdfe). A
+    singleton is fitted exactly by its own dummy: it changes no coefficient,
+    but it would still count in N and among the clusters and make the clustered
+    SE slightly too small. Balanced panels have none, so nothing changes there;
+    on Card & Krueger, 26 stores observed once are dropped and the SE then
+    equals fixest's (spike/did_fixest_check.py)."""
+    while True:
+        unit_n = data.groupby(unit_col, observed=True)[unit_col].transform("size")
+        time_n = data.groupby(time_col, observed=True)[time_col].transform("size")
+        keep = (unit_n > 1) & (time_n > 1)
+        if keep.all():
+            return data
+        data = data[keep]
 
 
 def nested_fe_factor(data: pd.DataFrame, fitted, unit_col: str, cluster_var: str) -> float:
