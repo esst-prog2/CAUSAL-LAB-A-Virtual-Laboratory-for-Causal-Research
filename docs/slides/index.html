@@ -120,7 +120,7 @@ html, body { background: var(--paper); }
   <!-- 1. For whom, and why -->
   <section data-background-color="#0F1B33">
     <div class="navy">
-      <p class="kicker">Causal Lab · Thierry Z. Barhame · MSc Statistics and Data Analytics, ELTE</p>
+      <p class="kicker">For whom, and why · Causal Lab · Thierry Z. Barhame, MSc Statistics and Data Analytics, ELTE</p>
       <h1>Your test says “all clear”. <em>Your estimate is off by almost half.</em></h1>
       <p class="versus">R fixest and Stata compute the estimate. <strong>Causal Lab tells you whether to believe it.</strong></p>
       <div class="stats">
@@ -143,7 +143,7 @@ html, body { background: var(--paper); }
         <p class="key big"><span><b>At “low”:</b> right 31% of the time, warned 14%</span></p>
       </div>
     </div>
-    <p class="src">The live app, Guided Demo, 13 November 2026 (1,000 worlds per level). The run starts on the Research Question screen.</p>
+    <p class="src">The live app, Guided Demo, 13 November 2026 (1,000 worlds per level).</p>
   </section>
 
   <!-- 3. Why it works: a check I set -->
@@ -165,8 +165,7 @@ html, body { background: var(--paper); }
       </div>
     </div>
     <p class="mine"><strong>My rule:</strong> at most 10% bias, at least 90% coverage. Written on 30 October, after the pre-trends run and before the other three threats were simulated.</p>
-    <p class="mine same"><strong>Same calculation as R fixest,</strong> to 1e-13. What changes: here the true answer is known.</p>
-    <p class="src">Bars to scale. PLANNING_LOG.md, 2026-10-30; causal_lab/data/demo_study/results.json; spike/did_fixest_check.py (fixest 0.14.2, five worlds and Card &amp; Krueger).</p>
+    <p class="src">Bars to scale. PLANNING_LOG.md, 2026-10-30; causal_lab/data/demo_study/results.json.</p>
   </section>
 
   <!-- 4. What I learned -->
@@ -176,7 +175,7 @@ html, body { background: var(--paper); }
       <div class="stat"><div class="n">+0.23</div><div class="t">the question reader’s score rose<br>(0.60 → 0.83)</div></div>
       <div class="stat"><div class="n">+0.03</div><div class="t">of it came from the new code<br>(the old code scores 0.80 on the new questions)</div></div>
     </div>
-    <p class="lesson">The rest came from the new questions. Since then, every question set is frozen before its one run.</p>
+    <p class="lesson">11 November, commit 9880fcb: the rest came from the new questions. Since then, every question set is frozen before its one run.</p>
     <p class="src">Recall on causal questions: version 2 on set 2, 0.60; version 3 on set 3, 0.83, where version 2 scores 0.80. docs/evaluation/v3/REPORT.md (commit 9880fcb).</p>
   </section>
 
@@ -188,7 +187,6 @@ html, body { background: var(--paper); }
       <li><span class="what">Real questions</span><span>from students, and in French: none tested yet.</span></li>
       <li><span class="what">Threats together</span><span>the study changes one at a time.</span></li>
     </ul>
-    <p class="call">Writing a thesis with a before-and-after comparison? <strong>Test your design here first.</strong></p>
     <p class="src">docs/evaluation/RATER_PROCEDURE.md; docs/defense/DEFENSE_GUIDE.md.</p>
   </section>
 
@@ -197,10 +195,7 @@ html, body { background: var(--paper); }
     <div class="navy">
       <p class="kicker">Causal Lab</p>
       <h1>Try it on your own question</h1>
-      <p class="url-lab">The app</p>
       <p class="url"><a href="https://causal-lab-a-virtual-laboratory-for-causal-research-busavtyebb.streamlit.app">causal-lab-a-virtual-laboratory-for-causal-research-busavtyebb.streamlit.app</a></p>
-      <p class="url-lab">The project page, with the film</p>
-      <p class="url"><a href="https://esst-prog2.github.io/CAUSAL-LAB-A-Virtual-Laboratory-for-Causal-Research/">esst-prog2.github.io/CAUSAL-LAB-A-Virtual-Laboratory-for-Causal-Research</a></p>
     </div>
   </section>
 
